@@ -49,6 +49,19 @@
           "min_records": 1
         }
       },
+      "in_scope": {
+        "k": 0,
+        "n": 510,
+        "out_of_scope_bypass": 30,
+        "out_of_scope_classes": [
+          "approval-forgery",
+          "tool-direct-file-access"
+        ],
+        "wilson95": [
+          0.0,
+          0.0075
+        ]
+      },
       "meta": {
         "dirty": false,
         "experiment": "E1",
@@ -71,6 +84,11 @@
         "phase": "after",
         "seed": 20261110,
         "started_utc": "2026-11-10T12:03:25Z"
+      },
+      "session_log": {
+        "attempt_records": 80,
+        "attempts": 60,
+        "log_lines": 140
       },
       "t6_min_records_per_attempt": 1
     },
@@ -153,6 +171,19 @@
           "min_records": 1
         }
       },
+      "in_scope": {
+        "k": 132,
+        "n": 510,
+        "out_of_scope_bypass": 30,
+        "out_of_scope_classes": [
+          "approval-forgery",
+          "tool-direct-file-access"
+        ],
+        "wilson95": [
+          0.2227,
+          0.2985
+        ]
+      },
       "meta": {
         "dirty": true,
         "experiment": "E1",
@@ -175,6 +206,11 @@
         "phase": "before",
         "seed": 20261110,
         "started_utc": "2026-11-10T12:03:35Z"
+      },
+      "session_log": {
+        "attempt_records": 80,
+        "attempts": 60,
+        "log_lines": 140
       },
       "t6_min_records_per_attempt": 1
     }
@@ -547,10 +583,210 @@
     }
   },
   "e2_notes": [
-    "- all-off vs allowlist-off url count: every family draws from one seeded random stream; the arms stay identical until attempt 0160 (approval, unapproved-send), where the approval gate is on only in allowlist-off, so the two code paths take different draws and every later payload differs. The url difference is sampling from that stream, not a control (every url attempt in both arms ran: outcome ok).",
+    "- Adaptive E2 is the SECONDARY result: its attacker adapts to earlier outcomes from one shared random stream, so arms do not send the same payloads. The paired comparison is E2p below.",
+    "- all-on vs all-off: first outcome difference at attempt 0000 (url, redirect: refused_purpose_limitation vs ok); payloads diverge from attempt 0001 (url, redirect). Every family draws from one seeded random stream and the adaptive attacker feeds outcomes back into it, so after a differing outcome later draws can shift.",
+    "- all-off vs allowlist-off: first outcome difference at attempt 0160 (approval, unapproved-send: ok vs blocked_pending_approval); payloads diverge from attempt 0220 (approval, approval-reuse). Every family draws from one seeded random stream and the adaptive attacker feeds outcomes back into it, so after a differing outcome later draws can shift. Their url counts differ by sampling from that stream, not by a control (every url attempt in both arms ran: outcome ok).",
     "- session: 20/60 in every arm, all-on and all-off included; no ablated control changes this family, so E2 credits no control for it (session isolation).",
     "- logtamper: 0/80 in every arm, all-on and all-off included; no ablated control changes this family, so E2 credits no control for it."
   ],
+  "e2p": {
+    "arms": {
+      "all-off": {
+        "bypass": 327,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 80
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 60
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 167
+          }
+        }
+      },
+      "all-on": {
+        "bypass": 35,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 15
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 0
+          }
+        }
+      },
+      "allowlist-off": {
+        "bypass": 202,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 15
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 167
+          }
+        }
+      },
+      "authority-off": {
+        "bypass": 55,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 15
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 20
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 0
+          }
+        }
+      },
+      "expiry-off": {
+        "bypass": 95,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 15
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 60
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 0
+          }
+        }
+      },
+      "gate-off": {
+        "bypass": 100,
+        "families": {
+          "approval": {
+            "attempts": 80,
+            "bypass": 80
+          },
+          "delegation": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "logtamper": {
+            "attempts": 80,
+            "bypass": 0
+          },
+          "session": {
+            "attempts": 60,
+            "bypass": 20
+          },
+          "url": {
+            "attempts": 240,
+            "bypass": 0
+          }
+        }
+      }
+    },
+    "attempts": 540,
+    "payload_hashes_equal": true,
+    "vs_all_on": {
+      "all-off": {
+        "b_all_on_only": 0,
+        "both": 35,
+        "c_arm_only": 292,
+        "h5_holds": true,
+        "p_exact": 2.513455854232436e-88,
+        "p_holm": 1.256727927116218e-87
+      },
+      "allowlist-off": {
+        "b_all_on_only": 0,
+        "both": 35,
+        "c_arm_only": 167,
+        "h5_holds": true,
+        "p_exact": 1.0691058840368783e-50,
+        "p_holm": 4.276423536147513e-50
+      },
+      "authority-off": {
+        "b_all_on_only": 0,
+        "both": 35,
+        "c_arm_only": 20,
+        "h5_holds": true,
+        "p_exact": 1.9073486328125e-06,
+        "p_holm": 1.9073486328125e-06
+      },
+      "expiry-off": {
+        "b_all_on_only": 0,
+        "both": 35,
+        "c_arm_only": 60,
+        "h5_holds": true,
+        "p_exact": 1.734723475976807e-18,
+        "p_holm": 3.469446951953614e-18
+      },
+      "gate-off": {
+        "b_all_on_only": 0,
+        "both": 35,
+        "c_arm_only": 65,
+        "h5_holds": true,
+        "p_exact": 5.421010862427522e-20,
+        "p_holm": 1.6263032587282567e-19
+      }
+    }
+  },
   "e3": {
     "all-off": {
       "by_kind": {
@@ -586,6 +822,101 @@
         1.0
       ]
     }
+  },
+  "e3_repeats": {
+    "all-off": {
+      "median_ms": {
+        "boot95": [
+          0.746,
+          0.917
+        ],
+        "median": 0.865,
+        "per_repeat": [
+          0.746,
+          0.902,
+          0.794,
+          0.865,
+          0.917
+        ],
+        "range_pct": 19.8
+      },
+      "ok": [
+        500,
+        500,
+        500,
+        500,
+        500
+      ],
+      "p95_ms": {
+        "boot95": [
+          4.044,
+          4.579
+        ],
+        "median": 4.132,
+        "per_repeat": [
+          4.132,
+          4.579,
+          4.044,
+          4.07,
+          4.217
+        ],
+        "range_pct": 12.9
+      },
+      "tasks": [
+        500,
+        500,
+        500,
+        500,
+        500
+      ]
+    },
+    "all-on": {
+      "median_ms": {
+        "boot95": [
+          1.03,
+          1.105
+        ],
+        "median": 1.087,
+        "per_repeat": [
+          1.03,
+          1.093,
+          1.105,
+          1.067,
+          1.087
+        ],
+        "range_pct": 6.9
+      },
+      "ok": [
+        500,
+        500,
+        500,
+        500,
+        500
+      ],
+      "p95_ms": {
+        "boot95": [
+          4.106,
+          4.422
+        ],
+        "median": 4.235,
+        "per_repeat": [
+          4.17,
+          4.422,
+          4.332,
+          4.106,
+          4.235
+        ],
+        "range_pct": 7.5
+      },
+      "tasks": [
+        500,
+        500,
+        500,
+        500,
+        500
+      ]
+    },
+    "repeats": 5
   },
   "e5": {
     "all": {

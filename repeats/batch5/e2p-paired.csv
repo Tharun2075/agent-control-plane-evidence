@@ -1,0 +1,6 @@
+control,bypass_control,bypass_all_on,b_all_on_only,c_control_only,both,p_mcnemar_exact,p_holm,h5_holds
+gate-off,100,35,0,65,35,5.42e-20,1.63e-19,True
+allowlist-off,202,35,0,167,35,1.07e-50,4.28e-50,True
+expiry-off,95,35,0,60,35,1.73e-18,3.47e-18,True
+authority-off,55,35,0,20,35,1.91e-06,1.91e-06,True
+all-off,327,35,0,292,35,2.51e-88,1.26e-87,True
