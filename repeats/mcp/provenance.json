@@ -1,0 +1,139 @@
+{
+  "calls": [
+    {
+      "called_utc": "2026-11-10T07:56:45Z",
+      "content_keys": [
+        "text",
+        "type"
+      ],
+      "failed": false,
+      "result_keys": [
+        "content",
+        "isError"
+      ],
+      "structured": {
+        "content_hash": false,
+        "licence": false,
+        "retrieval_time": false,
+        "source_url": false
+      },
+      "structured_keys": {
+        "content_hash": [],
+        "licence": [],
+        "retrieval_time": [],
+        "source_url": []
+      },
+      "url": "https://www.python.org/"
+    },
+    {
+      "called_utc": "2026-11-10T07:56:46Z",
+      "content_keys": [
+        "text",
+        "type"
+      ],
+      "failed": false,
+      "result_keys": [
+        "content",
+        "isError"
+      ],
+      "structured": {
+        "content_hash": false,
+        "licence": false,
+        "retrieval_time": false,
+        "source_url": false
+      },
+      "structured_keys": {
+        "content_hash": [],
+        "licence": [],
+        "retrieval_time": [],
+        "source_url": []
+      },
+      "url": "https://en.wikipedia.org/wiki/Data_protection"
+    },
+    {
+      "called_utc": "2026-11-10T07:56:47Z",
+      "content_keys": [
+        "text",
+        "type"
+      ],
+      "failed": false,
+      "result_keys": [
+        "content",
+        "isError"
+      ],
+      "structured": {
+        "content_hash": false,
+        "licence": false,
+        "retrieval_time": false,
+        "source_url": false
+      },
+      "structured_keys": {
+        "content_hash": [],
+        "licence": [],
+        "retrieval_time": [],
+        "source_url": []
+      },
+      "url": "https://www.gov.uk/"
+    },
+    {
+      "called_utc": "2026-11-10T07:56:48Z",
+      "content_keys": [
+        "text",
+        "type"
+      ],
+      "failed": false,
+      "result_keys": [
+        "content",
+        "isError"
+      ],
+      "structured": {
+        "content_hash": false,
+        "licence": false,
+        "retrieval_time": false,
+        "source_url": false
+      },
+      "structured_keys": {
+        "content_hash": [],
+        "licence": [],
+        "retrieval_time": [],
+        "source_url": []
+      },
+      "url": "https://www.legislation.gov.uk/"
+    },
+    {
+      "called_utc": "2026-11-10T07:56:49Z",
+      "content_keys": [
+        "text",
+        "type"
+      ],
+      "failed": false,
+      "result_keys": [
+        "content",
+        "isError"
+      ],
+      "structured": {
+        "content_hash": false,
+        "licence": false,
+        "retrieval_time": false,
+        "source_url": false
+      },
+      "structured_keys": {
+        "content_hash": [],
+        "licence": [],
+        "retrieval_time": [],
+        "source_url": []
+      },
+      "url": "https://example.org/"
+    }
+  ],
+  "protocol_version": "2025-06-18",
+  "question": "does the tool result carry source URL, retrieval time, content hash or licence as structured fields (not inside the text)?",
+  "server_argv": [
+    "uvx",
+    "mcp-server-fetch==2026.11.4"
+  ],
+  "server_info": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  }
+}

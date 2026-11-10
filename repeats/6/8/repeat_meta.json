@@ -1,0 +1,20 @@
+{
+  "ended_utc": "2026-11-10T07:56:43Z",
+  "error": "RuntimeError: model call failed rc=1: \":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"Failed to authenticate: OAuth session expired and could not be refreshed\",\"type\":\"result\",\"duration_ms\":30,\"uuid\":\"5c3f91f6-96e9-4f5a-96c0-b3352ddad145\",\"queued_turn_cou",
+  "error_trace_tail": [
+    "  File \"acp/model_harness.py\", line 56, in ask",
+    "    raise RuntimeError(f\"model call failed rc={p.returncode}: {(p.stdout or p.stderr)[-300:]}\")",
+    "RuntimeError: model call failed rc=1: \":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"Failed to authenticate: OAuth session expired and could not be refreshed\",\"type\":\"result\",\"duration_ms\":30,\"uuid\":\"5c3f91f6-96e9-4f5a-96c0-b3352ddad145\",\"queued_turn_count\":0,\"result_index\":0}"
+  ],
+  "file_sha256": {
+    "acp/gate.py": "db42985cd8aa4c892850edff1f1a757e3e626fd840b0e3cd1a89bdb54df961e8",
+    "acp/mcp_client.py": "30839725194203d8cd7809cd8db188213053c32058ea4f314bcd879ae6dc50f8",
+    "acp/model_harness.py": "5f2b63d86b32d391b949ee725a30289ac9a448353d8afc95ba990afce640ab0d",
+    "acp/model_runs.py": "7889e4784057f7490b0452b40e40e8f948ed1f38cc51e799524394115912077a"
+  },
+  "git_commit": "be1116ee55be3c3341290dc425ee218a36f4be15",
+  "k": 8,
+  "n": 10,
+  "scenario": "6",
+  "started_utc": "2026-11-10T07:56:42Z"
+}

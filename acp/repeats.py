@@ -30,7 +30,7 @@ MCP_URLS = ("https://www.python.org/", "https://en.wikipedia.org/wiki/Data_prote
             "https://www.legislation.gov.uk/", "https://example.org/")
 PROV_KINDS = {
     "source_url": re.compile(r"(^|_)(url|uri|source|origin)", re.I),
-    "retrieval_time": re.compile(r"(time|date|fetched|retrieved)", re.I),
+    "retrieval_time": re.compile(r"(time|date|fetched|retrieved|modified)", re.I),
     "content_hash": re.compile(r"(hash|sha|digest|etag|checksum)", re.I),
     "licence": re.compile(r"(licen[cs]e|rights|copyright)", re.I),
 }
@@ -71,7 +71,7 @@ def repeat(root: Path, scenario: str, n: int, out: Path, write_summary) -> list[
         except Exception as e:  # recorded as an error, not retried (PROTOCOL.md)
             d.mkdir(parents=True, exist_ok=True)
             meta["error"] = f"{type(e).__name__}: {str(e)[:300]}"
-            meta["error_trace_tail"] = traceback.format_exc().strip().splitlines()[-3:]
+            meta["error_trace_tail"] = [l.replace(str(root) + "/", "") for l in traceback.format_exc().strip().splitlines()[-3:]]
         meta["ended_utc"] = _now()
         if (d / "log.jsonl").exists():
             try:
