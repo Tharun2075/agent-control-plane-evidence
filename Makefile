@@ -31,3 +31,7 @@ verify:
 	@tmp=$$(mktemp -t acp-repeats.XXXXXX); \
 	$(PY) -m acp repeats-summary --out $$tmp && cmp -s repeats/summary.json $$tmp; rc=$$?; rm -f $$tmp; \
 	if [ $$rc = 0 ]; then echo "repeats summary identical: True"; else echo "repeats summary identical: False"; fi; exit $$rc
+	@$(PY) -c 'import json,sys; from pathlib import Path; from acp.repeats import tricks_markdown; \
+	a = json.load(open("repeats/summary.json")); p = Path("repeats/batch4/tricks.md"); \
+	ok = "batch4" not in a or (p.exists() and p.read_text() == tricks_markdown(a["batch4"])); \
+	print("batch-4 tricks identical:", ok); sys.exit(0 if ok else 1)'
