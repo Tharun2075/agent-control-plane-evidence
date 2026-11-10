@@ -471,6 +471,7 @@ def attack_logtamper(world: World, trick: str, rng: random.Random, adapt: int) -
     anchor = (len(recs), recs[-1]["hash"])  # what an external anchor holds (e.g. a pushed commit)
     hide = rng.randrange(len(recs))  # the record the attacker wants gone or changed
     lp, hp = sub.log.path, sub.log.head_path
+    orig = lp.read_bytes()
     if trick == "edit-record":
         recs[hide]["detail"] = {**(recs[hide].get("detail") or {}), "tampered": True}
         lp.write_bytes(b"".join(canonical(r) + b"\n" for r in recs))
@@ -481,10 +482,15 @@ def attack_logtamper(world: World, trick: str, rng: random.Random, adapt: int) -
         lp.write_bytes(b"".join(canonical(r) + b"\n" for r in keep))
         hp.write_bytes(canonical({"count": len(keep), "last_hash": keep[-1]["hash"]}) + b"\n")
     elif trick == "full-rewrite":
+        # the edit must change the record: a record already "ok" is relabelled instead (a no-op
+        # rewrite verifies trivially and is not a bypass; found in E2 gate-off, PROTOCOL deviation D1)
         new = _rehash(recs[:hide] + recs[hide + 1:]) if adapt % 2 else _rehash(
-            [dict(r, outcome="ok") if i == hide else r for i, r in enumerate(recs)])
+            [(dict(r, outcome="ok") if r.get("outcome") != "ok" else dict(r, outcome="refused_tampered"))
+             if i == hide else r for i, r in enumerate(recs)])
         lp.write_bytes(b"".join(canonical(r) + b"\n" for r in new))
         hp.write_bytes(canonical({"count": len(new), "last_hash": new[-1]["hash"]}) + b"\n")
+    if lp.read_bytes() == orig:
+        raise AssertionError(f"tamper {trick} left the log unchanged")  # a no-op is never scored as a bypass
     if has_param(logmod.verify, "anchor"):
         res = logmod.verify(lp, anchor=anchor)
     else:

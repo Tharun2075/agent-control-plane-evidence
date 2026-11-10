@@ -39,6 +39,15 @@ class TestAttacker(unittest.TestCase):
             p = self.tmp / "on" / fam / "log.jsonl"
             self.assertTrue(verify(p).ok, fam)
 
+    def test_log_tamper_is_never_a_noop(self):  # PROTOCOL deviation D1
+        # with the anchor fix, no ablation arm lets a log tamper verify: gate-off once scored
+        # a no-op rewrite (record already "ok") as a bypass
+        for arm in ("gate-off", "all-off"):
+            rows = attacker.run(self.tmp / f"lt-{arm}", ROOT, per_trick=4, ablate=arm)["rows"]
+            lt = [r for r in rows if r["family"] == "logtamper"]
+            self.assertTrue(lt)
+            self.assertFalse(any(r["bypass"] for r in lt), arm)
+
     def test_attempts_file_matches_rows(self):
         rows = [json.loads(x) for x in (self.tmp / "on" / "attempts.jsonl").read_text().splitlines()]
         self.assertEqual(len(rows), len(self.on))
