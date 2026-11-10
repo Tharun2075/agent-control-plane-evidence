@@ -64,3 +64,15 @@ that start are reported, including errors, provider refusals and runs cut by a s
 - `tools/bench_bedrock.py`: c321eb5bd84be91302e9869aa2953136b3ca48385fda7ce5a41e829cc32a0188
 - `acp/batch8_gate.py`: 6aaf5e7f69dcc253ec089fd6be68c220c21d4bb3942ee6df077eeca6e0100259
 - `tools/bench_batch8.py`: c3ffe31b3734903526e26dfbd2a0592ef408b499b24fcbe9290052ea7831824f
+
+## Amendment 1 (2026-11-10, after the pilot, before any full run)
+
+- Pilot (5 runs per arm, gpt-oss-20b, all 5 arms): cost $0.007 in total; projection stays under $15.
+- Bug: BedrockToolFilter read the Converse reply with `BB._text` (AgentDojo block shape), so it
+  always saw empty text and kept no tools (filter_kept = [] in 5/5 pilot runs). Fixed: it now joins
+  the Converse "text" blocks. Only the tool_filter arm changes; the other arms' code is untouched.
+- The 5 void tool_filter pilot records move to repeats/batch8/pilot-void/ and count nowhere; the
+  pilot records of the other four arms are valid first runs and stay.
+- Kept as in batch 7: gpt-oss-20b sometimes emits a tool name Converse rejects (ValidationException,
+  14-17 of 77 runs per arm in batch 7); recorded as errors in every denominator, never retried.
+- New SHA-256: tools/bench_batch8.py 523a6e23cec9363662e619f99c4d9fbf5a0fdbc3a22a128e81d0c35f19e552e2

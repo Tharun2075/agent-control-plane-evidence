@@ -108,7 +108,8 @@ class BedrockToolFilter(BasePipelineElement):
         self.llm.stop_reasons.append("filter:" + reason)
         if reason in ("guardrail_intervened", "content_filtered"):
             raise B.ProviderRefusal(f"stopReason={reason}")
-        text = BB._text(r["output"]["message"].get("content", []))
+        # Converse output blocks carry "text" (BB._text reads AgentDojo blocks; amendment 1)
+        text = "\n".join(b.get("text", "") for b in r["output"]["message"].get("content", []))
         new = {n: f for n, f in runtime.functions.items() if n in text}
         self.kept = sorted(new)
         runtime.update_functions(new)
