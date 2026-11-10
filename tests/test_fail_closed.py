@@ -2,6 +2,7 @@
 import json
 import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -94,6 +95,27 @@ class ExpiryAndReplayTest(Tmp):
         self.assertEqual(last["outcome"], "refused_authority_expired")
         self.assertEqual(last["detail"]["reason"], "invalid expires")
         self.assertTrue(verify(log.path).ok)
+
+    def test_naive_expires_refused_whatever_the_host_tz(self):  # batch 5 E1 class naive-tz
+        old = os.environ.get("TZ")
+        os.environ["TZ"] = "America/Los_Angeles"
+        time.tzset()
+        try:
+            log = ChainLog(self.tmp / "log.jsonl", clock=FixedStepClock("2026-11-10T09:00:00Z"), durable=False)
+            # 08:00 naive is in the past in UTC but in the future read as Los Angeles time
+            m = bind_session(load(ROOT / "manifests" / "outreach-agent.json"), session_id="s", task="t",
+                             expires="2026-11-10T08:00:00")
+            tr = ToolRunner(AgentContext(log, m, "s"), self.tmp / "ap")
+            with self.assertRaises(PermissionDenied):
+                tr.call("crm_read", "read", lambda: ("x", {"source": "t"}),
+                        personal_data_categories=CATS, lawful_basis="legitimate_interests")
+            self.assertEqual(lines(log.path)[-1]["detail"]["reason"], "invalid expires")
+        finally:
+            if old is None:
+                os.environ.pop("TZ", None)
+            else:
+                os.environ["TZ"] = old
+            time.tzset()
 
     def test_approval_cannot_be_replayed(self):
         c, log = ctx(self.tmp)
