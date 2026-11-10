@@ -1,0 +1,9 @@
+[
+ {"provider": "anthropic", "model": "claude-haiku-5-5", "date": "2026-11-10", "planned_b2": 20, "status": "finished", "note": "ICO evidence key, list-price cost in run records"},
+ {"provider": "anthropic", "model": "claude-sonnet-5-5", "date": "2026-11-10", "planned_b2": 20, "status": "finished", "note": "ICO evidence key"},
+ {"provider": "anthropic", "model": "claude-opus-5-5", "date": "2026-11-10", "planned_b2": 20, "status": "finished", "note": "ICO evidence key"},
+ {"provider": "openrouter", "model": "nvidia/nemotron-3.5-lightning:free", "date": "2026-11-10", "planned_b2": 20, "status": "PROVIDER-STOP", "note": "429 free-models-per-min after 15 runs; free tier, $0"},
+ {"provider": "gemini", "model": "gemini-3.8-flash", "date": "2026-11-10", "planned_b2": 20, "status": "PROVIDER-STOP", "note": "12 runs ended in timeout or 500 (no answer), then 429; free key, $0"},
+ {"provider": "groq", "model": "openai/gpt-oss-120b", "date": "2026-11-10", "planned_b2": 20, "status": "PROVIDER-STOP", "note": "429 on the first request (free plan 8K tokens/min, below one AgentDojo prompt); 0 runs, $0"},
+ {"provider": "local-mlx", "model": "Qwen3.6-35B-A3B (port 8001)", "date": "2026-11-10", "planned_b2": 20, "status": "not-run", "note": "server offloaded by a standing owner order; not restarted; 0 runs"}
+]
