@@ -5,6 +5,10 @@ symlinks and '..') and refuses, with a log record, any path outside the
 session's own directory. Data moves between sessions only through handoff(),
 which copies one file and logs the recipient agent on the sender's log.
 
+Every write, read and handoff first passes gate.authorise(), the same
+authority check as ToolRunner.call (tool name session_store, checked on the
+acting session): an expired or undelegated session is refused and logged.
+
 Limit: this is an in-process check, not an OS sandbox. A tool that opens files
 itself bypasses it; production use needs OS-level isolation (separate user,
 container or sandbox profile) with this layer kept for the audit record.
@@ -16,6 +20,7 @@ from pathlib import Path
 
 from .agent import AgentContext
 from .canon import sha256_hex
+from .gate import authorise
 
 
 class IsolationError(Exception):
@@ -38,6 +43,10 @@ class SessionStore:
 
     def write(self, name: str, text: str, *, personal_data_categories=None, lawful_basis="not_applicable",
               derived_from: str | None = None, detail: dict | None = None) -> Path:
+        authorise(self.ctx, "session_store",
+                  dict(operation="execute_tool", tool="session_store", action="write",
+                       personal_data_categories=personal_data_categories, lawful_basis=lawful_basis),
+                  {**(detail or {}), "requested": name})
         p = (self.dir / name).resolve()
         if not self._inside(p):
             self.ctx.record(operation="execute_tool", tool="session_store", action="write",
@@ -56,6 +65,10 @@ class SessionStore:
 
     def read(self, path, *, personal_data_categories=None, lawful_basis="not_applicable",
              detail: dict | None = None) -> str:
+        authorise(self.ctx, "session_store",
+                  dict(operation="execute_tool", tool="session_store", action="read",
+                       personal_data_categories=personal_data_categories, lawful_basis=lawful_basis),
+                  {**(detail or {}), "requested": str(path)})
         p = Path(path)
         if not p.is_absolute():
             p = self.dir / p
@@ -76,6 +89,11 @@ class SessionStore:
 
     def handoff(self, name: str, to: "SessionStore", *, personal_data_categories=None,
                 lawful_basis="not_applicable", detail: dict | None = None) -> Path:
+        authorise(self.ctx, "session_store",
+                  dict(operation="invoke_agent", tool=None, action="handoff",
+                       personal_data_categories=personal_data_categories, lawful_basis=lawful_basis,
+                       recipients=[]),
+                  {**(detail or {}), "requested": name, "to_session": to.ctx.session_id})
         src = (self.dir / name).resolve()
         dst = to.dir / name
         bad = None

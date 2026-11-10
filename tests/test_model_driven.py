@@ -65,6 +65,29 @@ class TestModelDriven(unittest.TestCase):
         self.assertEqual(model_metrics(ROOT / "runs" / "6")["refusals_by_category"]["authority"], 1)
         self.assertEqual(model_metrics(ROOT / "runs" / "4")["third_party_calls_without_self_provenance"], 1)
 
+    def test_run6_worker_without_store_authority_cannot_hand_back(self):
+        """Regression (batch-4 fix): before it, the harness wrote and handed off results.json from a worker
+        delegated only ["classify"] (committed runs/6 and every batch-2 run-6 repeat). Now refused and logged."""
+        from acp import model_runs
+        from tests.test_batch3 import Scripted, act
+        replies = [act("ticket_read"), act("delegate", worker="acp.worker-model", authority=["classify"]),
+                   '{"done": "w"}', '{"done": "o"}']
+        orig = model_runs.ModelClient
+        model_runs.ModelClient = lambda *a, **k: Scripted(replies)
+        try:
+            with tempfile.TemporaryDirectory() as td:
+                d = Path(td) / "6"
+                model_runs.run6(ROOT, d)
+                recs = [json.loads(x) for x in (d / "log.jsonl").read_text().splitlines()]
+                self.assertTrue(verify(d / "log.jsonl").ok)
+        finally:
+            model_runs.ModelClient = orig
+        w = [(r["action"], r["outcome"]) for r in recs if r["gen_ai.conversation.id"] == "run6-worker-s1"
+             and r["gen_ai.tool.name"] == "session_store"]
+        self.assertEqual(w, [("write", "refused_not_permitted")])
+        self.assertFalse(any(r["action"] == "handoff" and r["outcome"] == "ok"
+                             and r["gen_ai.conversation.id"] == "run6-worker-s1" for r in recs))
+
     def test_edited_model_log_record_fails_and_is_named(self):
         with tempfile.TemporaryDirectory() as td:
             src = ROOT / "runs" / "6"

@@ -75,7 +75,9 @@ def main(argv=None) -> int:
     if a.cmd == "verify-all":
         bad = 0
         logs = sorted((ROOT / "runs").glob("*/log.jsonl")) + sorted(
-            (ROOT / "repeats").glob("*/*/log.jsonl"), key=lambda p: (p.parent.parent.name, int(p.parent.name))) + sorted(
+            [p for p in (ROOT / "repeats").glob("*/*/log.jsonl") if p.parent.name.isdigit()],
+            key=lambda p: (p.parent.parent.name, int(p.parent.name))) + sorted(
+            (ROOT / "repeats").glob("batch*/probe-*/log.jsonl")) + sorted(
             [p for b in ("batch2", "batch3") for p in (ROOT / "repeats" / b).glob("*/*/*/log.jsonl")],
             key=lambda p: (p.parent.parent.parent.parent.name, p.parent.parent.parent.name, p.parent.parent.name,
                            int(p.parent.name)))

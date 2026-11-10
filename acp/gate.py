@@ -3,7 +3,8 @@
 Every tool call goes through ToolRunner.call(). It
 1. refuses a tool the manifest does not allow (logged, outcome refused_not_permitted);
    It also refuses (logged) once current_task.expires has passed, and treats a
-   missing delegated_authority as no authority (fail closed);
+   missing delegated_authority as no authority (fail closed). This is authorise(),
+   the one check SessionStore (write, read, handoff) also calls;
 2. for a tool the manifest marks outbound or irreversible, computes
    action_sha256 over (agent, session, tool, action, payload) and looks for an
    approval record approvals/<first 16 hex>.json whose action_sha256 matches.
@@ -39,7 +40,9 @@ def _parse(ts: str) -> datetime:
 
 
 class PermissionDenied(Exception):
-    pass
+    def __init__(self, message: str, outcome: str = "refused_not_permitted"):
+        super().__init__(message)
+        self.outcome = outcome
 
 
 class ApprovalRequired(Exception):
@@ -50,6 +53,34 @@ class ApprovalRequired(Exception):
 
 class Rejected(Exception):
     pass
+
+
+def authorise(ctx: AgentContext, tool: str, base: dict, detail: dict) -> None:
+    """The one authority check for every agent action (ToolRunner.call and
+    SessionStore write/read/handoff). Refuses, with a log record built from
+    base + detail, once current_task.expires has passed (or is missing or
+    invalid), and any tool not in both allowed_tools and delegated_authority.
+    A missing delegated_authority counts as no authority (fail closed)."""
+    allowed = ctx.manifest["permissions"].get("allowed_tools", [])
+    authority = ctx.manifest["current_task"].get("delegated_authority")
+    if authority is None:  # fail closed: no stated authority means none
+        authority = []
+    expires = ctx.manifest["current_task"].get("expires")
+    now = ctx.log.clock.current()
+    try:
+        expired = not expires or now >= _parse(expires)
+    except ValueError:
+        ctx.record(**base, outcome="refused_authority_expired",
+                   detail={**detail, "gate": "refused", "expires": expires, "reason": "invalid expires"})
+        raise
+    if expired:
+        ctx.record(**base, outcome="refused_authority_expired",
+                   detail={**detail, "gate": "refused", "expires": expires})
+        raise PermissionDenied(f"{ctx.agent_id} authority expired or has no expiry ({expires})",
+                               "refused_authority_expired")
+    if tool not in allowed or tool not in authority:
+        ctx.record(**base, outcome="refused_not_permitted", detail={**detail, "gate": "refused"})
+        raise PermissionDenied(f"{ctx.agent_id} may not use {tool}")
 
 
 def action_digest(ctx: AgentContext, tool: str, action: str, payload) -> str:
@@ -209,25 +240,8 @@ class ToolRunner:
             recipients=recipients,
         )
         detail = dict(detail or {})
-        allowed = ctx.manifest["permissions"].get("allowed_tools", [])
-        authority = ctx.manifest["current_task"].get("delegated_authority")
-        if authority is None:  # fail closed: no stated authority means none
-            authority = []
-        expires = ctx.manifest["current_task"].get("expires")
+        authorise(ctx, tool, base, detail)
         now = ctx.log.clock.current()
-        try:
-            expired = not expires or now >= _parse(expires)
-        except ValueError:
-            ctx.record(**base, outcome="refused_authority_expired",
-                       detail={**detail, "gate": "refused", "expires": expires, "reason": "invalid expires"})
-            raise
-        if expired:
-            ctx.record(**base, outcome="refused_authority_expired",
-                       detail={**detail, "gate": "refused", "expires": expires})
-            raise PermissionDenied(f"{ctx.agent_id} authority expired or has no expiry ({expires})")
-        if tool not in allowed or tool not in authority:
-            ctx.record(**base, outcome="refused_not_permitted", detail={**detail, "gate": "refused"})
-            raise PermissionDenied(f"{ctx.agent_id} may not use {tool}")
 
         url = payload.get("url", "") if isinstance(payload, dict) else ""
         perms = ctx.manifest["permissions"]

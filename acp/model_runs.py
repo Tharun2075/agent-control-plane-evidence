@@ -86,6 +86,8 @@ def _store_op(store, args, d, cats=None, basis="not_applicable"):
         return {"error": "op must be read or write"}
     except IsolationError as e:
         return _refusal(e, "refused_outside_session")
+    except PermissionDenied as e:
+        return _refusal(e, e.outcome)
     except FileNotFoundError:
         return {"error": f"{name} not found in your session"}
 
@@ -318,10 +320,14 @@ def run6(root: Path, out: Path) -> str:
                          tools={"classify": "{\"ticket_id\": ...} label one ticket (rules-based)",
                                 "session_store": "{\"op\": \"write\"|\"read\", \"name\": ...}"})
         rc = sorted({c for r in results for c in r["special"]}) + ["identifier:customer_ref"]
-        wstore.write("results.json", json.dumps(results, indent=2) + "\n", personal_data_categories=rc,
-                     lawful_basis="unclear" if len(rc) > 1 else "contract", derived_from="classify")
-        wstore.handoff("results.json", store, personal_data_categories=rc,
-                       lawful_basis="unclear" if len(rc) > 1 else "contract")
+        try:  # the worker's own store authority applies (gate.authorise); refused is logged, results stay put
+            wstore.write("results.json", json.dumps(results, indent=2) + "\n", personal_data_categories=rc,
+                         lawful_basis="unclear" if len(rc) > 1 else "contract", derived_from="classify")
+            wstore.handoff("results.json", store, personal_data_categories=rc,
+                           lawful_basis="unclear" if len(rc) > 1 else "contract")
+        except PermissionDenied as e:
+            return {"refused": e.outcome, "worker_session": wsid, "worker_final": wres["final"],
+                    "message": f"worker results not handed back: {e}"}
         seen.update(rc)
         return {"ok": True, "worker_session": wsid, "worker_final": wres["final"], "results": results}
 
