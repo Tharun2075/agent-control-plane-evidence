@@ -41,8 +41,7 @@ no network, no spend: every attempt is scripted, seeded and replayable.
   something other than a control refusal; errors are reported, never dropped.
 - fixable = can be closed inside acp without trusting the tool process or the filesystem
   owner. approval-forgery and tool-direct-file-access are declared NOT fixable in-process
-  (an attacker who can write the approvals dir, or a tool process that can read or write other
-  sessions' files, is outside the model).
+  (an attacker who can write the approvals dir or the session files is outside the model).
 - All runs are reported. Development dry runs into temp dirs (not repeats/batch5) were used
   to build the attacker; they are not results.
 
@@ -94,3 +93,6 @@ data/vectors/WPT-LICENSE.md.
   `python3 -m acp.batch5 check` recounts T6 from them. All E1/E2/E3 runs from a0c2513..3eec250 were
   replaced by ee27121. Changed: logtamper checks_reached (min/mean) and E3 wall times. Unchanged:
   every attempt, bypass, class and gate-record count (E1 162/540 -> 30/540, E2 per-arm bypasses).
+- D3 (2026-11-10, commit 06f3cca 13:04:25+01:00, after results): threat-model boundary clarified to
+  "(an attacker who can write the approvals dir, or a tool process that can read or write other
+  sessions' files, is outside the model)"; the original wording is kept above.
