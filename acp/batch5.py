@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import io
 import json
 import random
@@ -47,9 +48,17 @@ def _git(*a: str) -> str:
     return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
 
+CODE = ("acp/attacker.py", "acp/batch5.py", "acp/gate.py", "acp/isolation.py", "acp/manifest.py", "acp/log.py",
+        "acp/agent.py", "acp/canon.py", "acp/redteam_runs.py", "acp/repeats.py", "data/vectors/wpt-urltestdata-http.json")
+
+
+def code_sha256(root: Path = ROOT) -> dict:
+    return {f: hashlib.sha256((root / f).read_bytes()).hexdigest() for f in CODE if (root / f).exists()}
+
+
 def _meta(**kw) -> dict:
     return {"started_utc": _now(), "git_head": _git("rev-parse", "HEAD"),
-            "dirty": bool(_git("status", "--porcelain", "--", "acp")), **kw}
+            "dirty": bool(_git("status", "--porcelain", "--", "acp")), "file_sha256": code_sha256(), **kw}
 
 
 def _prune(d: Path) -> None:
