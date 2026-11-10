@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -186,6 +187,18 @@ def normalised_url_string(url: str) -> str:
     return urlunsplit((scheme, netloc, path, query, ""))
 
 
+_URLISH = re.compile(r"^(?:[A-Za-z][A-Za-z0-9+.-]*:)?//\S*$")
+
+
+def url_values(payload) -> list[tuple[str, str]]:
+    """Every top-level string value of a dict payload that is a whole URL
+    (scheme://... or //host...), whatever its key: a tool may fetch from
+    "uri", "href" or "endpoint" as readily as from "url"."""
+    if not isinstance(payload, dict):
+        return []
+    return [(k, v.strip()) for k, v in payload.items() if isinstance(v, str) and _URLISH.match(v.strip())]
+
+
 def _has_run(segs: list[str], run: list[str]) -> bool:
     n = len(run)
     return n > 0 and any(segs[i:i + n] == run for i in range(len(segs) - n + 1))
@@ -269,6 +282,13 @@ class ToolRunner:
         perms = ctx.manifest["permissions"]
         prefixes, patterns = perms.get("allowed_url_prefixes"), perms.get("blocked_url_patterns", [])
         bad = check_url(url, prefixes, patterns)
+        for k, v in url_values(payload):  # a tool may read the URL from any key, so check them all
+            if bad:
+                break
+            if v != url:
+                bad = check_url(v, prefixes, patterns)
+                if bad:
+                    url = v
         if bad:
             ctx.record(**base, outcome="refused_purpose_limitation",
                        detail={**detail, "gate": "refused", "url": url, "matched": bad[1]})

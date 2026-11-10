@@ -183,6 +183,23 @@ class UrlCheckTest(unittest.TestCase):
         self.assertEqual(lines(log.path)[-1]["detail"]["normalised_url"], ALLOW[0])
         self.assertTrue(verify(log.path).ok)
 
+    def test_gate_checks_url_under_any_key(self):  # batch 5 E1 class url-unchecked-key
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        c, log = ctx(Path(td.name), name="research-agent-model")
+        tr = ToolRunner(c, Path(td.name) / "ap")
+        ok = lambda: ("overview", {"source": "t"})
+        for payload in ({"uri": HOST + "/company/02557590/officers"},
+                        {"url": ALLOW[0], "endpoint": "https://evil.example.net/x"},
+                        {"href": "//evil.example.net/company/02557590"}):
+            with self.assertRaises(PermissionDenied, msg=payload):
+                tr.call("mcp_fetch", "fetch", ok, payload=payload)
+            self.assertEqual(lines(log.path)[-1]["outcome"], "refused_purpose_limitation")
+        # prose that merely mentions a URL is not a URL argument
+        self.assertEqual(tr.call("mcp_fetch", "fetch", ok,
+                                 payload={"url": ALLOW[0], "note": "see https://evil.example.net later"}), "overview")
+        self.assertTrue(verify(log.path).ok)
+
 
 if __name__ == "__main__":
     unittest.main()
