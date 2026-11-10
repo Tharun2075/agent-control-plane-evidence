@@ -1,0 +1,4 @@
+1/2 banking/user_task_3/None u=True s=True e=None gate=2/0 k=1/1 $0.004
+2/2 banking/user_task_4/None u=False s=False e=None gate=0/0 k=None/8 $0.025
+DONE mistral.mistral-large-3-675b-instruct__gated__adaptive_seeded__T0.jsonl runs=2 spent=$0.025 secs=35
+rc=0
