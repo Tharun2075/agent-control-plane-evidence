@@ -546,6 +546,11 @@
       }
     }
   },
+  "e2_notes": [
+    "- all-off vs allowlist-off url count: every family draws from one seeded random stream; the arms stay identical until attempt 0160 (approval, unapproved-send), where the approval gate is on only in allowlist-off, so the two code paths take different draws and every later payload differs. The url difference is sampling from that stream, not a control (every url attempt in both arms ran: outcome ok).",
+    "- session: 20/60 in every arm, all-on and all-off included; no ablated control changes this family, so E2 credits no control for it (session isolation).",
+    "- logtamper: 0/80 in every arm, all-on and all-off included; no ablated control changes this family, so E2 credits no control for it."
+  ],
   "e3": {
     "all-off": {
       "by_kind": {

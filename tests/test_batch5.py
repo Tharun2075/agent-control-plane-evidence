@@ -50,6 +50,16 @@ class TestBatch5(unittest.TestCase):
     def test_e2_has_every_arm(self):
         self.assertEqual(set(batch5.build(self.out)["e2"]), set(attacker.ablation.ARMS))
 
+    def test_e2_notes_explain_arm_drift_and_untouched_families(self):  # judge A ALSO b, c
+        s = batch5.build(self.out)
+        notes = "\n".join(s["e2_notes"])
+        if "all-off" in s["e2"] and "allowlist-off" in s["e2"]:
+            self.assertIn("one seeded random stream", notes)
+        for fam in attacker.FAMILIES:
+            counts = {(v["families"][fam]["bypass"], v["families"][fam]["attempts"]) for v in s["e2"].values()}
+            self.assertEqual(len(counts) == 1, f"- {fam}: " in notes, fam)
+        self.assertIn("Notes:", batch5.markdown(s))
+
     def test_e3_controls_do_not_block_benign_work(self):
         e3 = batch5.build(self.out)["e3"]
         self.assertEqual(e3["all-on"]["ok"], e3["all-on"]["tasks"])

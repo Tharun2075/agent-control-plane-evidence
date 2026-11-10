@@ -180,6 +180,31 @@ def _e2(out: Path) -> dict:
     return res
 
 
+def _e2_notes(out: Path, e2: dict) -> list[str]:
+    """Why two arms differ in a family no ablated control touches, and which families no arm moves."""
+    notes = []
+    a, b = (out / "e2" / arm / "attempts.jsonl" for arm in ("all-off", "allowlist-off"))
+    if a.exists() and b.exists():
+        ra, rb = _read_rows(a), _read_rows(b)
+        first = next((x for x, y in zip(ra, rb) if x != y), None)
+        if first:
+            url_ok = all(r["outcome"] == "ok" for r in ra + rb if r["family"] == "url")
+            notes.append(
+                f"- all-off vs allowlist-off url count: every family draws from one seeded random stream; the arms "
+                f"stay identical until attempt {first['id']} ({first['family']}, {first['trick']}), where the "
+                f"approval gate is on only in allowlist-off, so the two code paths take different draws and every "
+                f"later payload differs. The url difference is sampling from that stream, not a control"
+                + (" (every url attempt in both arms ran: outcome ok)." if url_ok else "."))
+    for fam in attacker.FAMILIES:
+        counts = {(v["families"][fam]["bypass"], v["families"][fam]["attempts"]) for v in e2.values() if fam in v["families"]}
+        if len(counts) == 1 and len(e2) > 1:
+            k, n = counts.pop()
+            what = " (session isolation)" if fam == "session" else ""
+            notes.append(f"- {fam}: {k}/{n} in every arm, all-on and all-off included; no ablated control changes "
+                         f"this family, so E2 credits no control for it{what}.")
+    return notes
+
+
 def _replay(p: Path) -> dict:
     """Runs 4-6 task set: how many model-chosen calls executed, and fidelity to the logged outcome."""
     if not p.exists():
@@ -270,9 +295,10 @@ def _pool(cm: dict) -> dict:
 
 
 def build(out: Path = OUT) -> dict:
+    e2 = _e2(out)
     s = {"protocol": "repeats/batch5/PROTOCOL.md",
          "e1": {ph: _e1(out / f"e1-{ph}") for ph in ("before", "after")},
-         "e2": _e2(out), "e3": _e3(out), "e5": _e5()}
+         "e2": e2, "e2_notes": _e2_notes(out, e2), "e3": _e3(out), "e5": _e5()}
     return s
 
 
@@ -351,6 +377,8 @@ def markdown(s: dict) -> str:
             if r:
                 L.append(f"- {arm}: {r['executed']}/{r['actions']} executed, {r['matches_logged']}/{r['actions']} "
                          f"same outcome as logged; stopped: {', '.join(r['stopped']) or 'none'}")
+        if s.get("e2_notes"):
+            L += ["", "Notes:", ""] + s["e2_notes"]
         L.append("")
     if s["e3"]:
         L.append("## E3 benign tasks")
