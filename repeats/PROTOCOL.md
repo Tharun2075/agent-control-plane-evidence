@@ -247,6 +247,8 @@ Pinned files (SHA-256 at the pre-registration commit):
 The digests in the batch 1-3 tables describe the code at their own pre-registration
 commits; 9ebb092 changed `gate.py`, `isolation.py` and `model_runs.py` after them.
 
+Deviation (disclosed after the batch): 49 of 70 batch-4 runs recorded acp/repeats.py at 5741134 instead of the pinned 4e6c5e6c; the change touches aggregation and tables only, not the runner or gate.
+
 Plan:
 
 | model | N | runs |
