@@ -84,4 +84,13 @@ data/vectors/WPT-LICENSE.md.
   runs were repeated with the fixed attacker: e1-before on the core code at 503adeb (meta dirty=true:
   only acp/attacker.py differs, its SHA-256 is in meta.json), e1-after, E2 and E3 on HEAD. The first
   runs are kept in git history (ea5138e, 475a1f3 and the two runs after it) and gave the same E1
-  before/after counts (162/540, 30/540); only the E2 logtamper column changed.
+  before/after counts (162/540, 30/540); only the E2 logtamper column changed. These D1 runs
+  (a0c2513..3eec250: 2ba3676 e1-before, 6afcd56 e1-after, 8d632e8 E2, 8070b4d E3, 3eec250 summary)
+  were themselves replaced by the D2 reruns in ee27121.
+- D2 (2026-11-10, commits c6ecf40 13:03:04+01:00 and ee27121 13:03:58+01:00, after results): the
+  attacker and one pre-registered metric changed. For the logtamper family, "checks reached" is
+  redefined from "gate records the attempt wrote" to the verify(anchor=) stage the tampered log
+  reached (1, 2 or 3); the pre-tamper logs are now kept (repeats/batch5/*/logtamper/aNNNN/), and
+  `python3 -m acp.batch5 check` recounts T6 from them. All E1/E2/E3 runs from a0c2513..3eec250 were
+  replaced by ee27121. Changed: logtamper checks_reached (min/mean) and E3 wall times. Unchanged:
+  every attempt, bypass, class and gate-record count (E1 162/540 -> 30/540, E2 per-arm bypasses).
