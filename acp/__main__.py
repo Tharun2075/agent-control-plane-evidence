@@ -1,4 +1,4 @@
-"""CLI: python3 -m acp {reproduce,model-run,verify-all,metrics,verify,summary,digest,validate}"""
+"""CLI: python3 -m acp {reproduce,model-run,repeat,repeats-summary,mcp-check,verify-all,metrics,verify,summary,digest,validate}"""
 from __future__ import annotations
 
 import argparse
@@ -30,6 +30,13 @@ def main(argv=None) -> int:
     sub.add_parser("verify-all", help="verify every committed run log (scripted and model-driven)")
     p = sub.add_parser("metrics", help="recompute metrics.json / metrics.md from runs/")
     p.add_argument("--out", help="write metrics JSON to this path instead (committed files untouched)")
+    p = sub.add_parser("repeat", help="repeat model-driven run 4, 5 or 6 n times (repeats/PROTOCOL.md)")
+    p.add_argument("--scenario", required=True, choices=["4", "5", "6"])
+    p.add_argument("--n", type=int, default=10)
+    p.add_argument("--out", help="default repeats/<scenario>")
+    p = sub.add_parser("repeats-summary", help="aggregate repeats/ into repeats/summary.json + summary.md")
+    p.add_argument("--out", help="write the summary JSON to this path instead (committed files untouched)")
+    sub.add_parser("mcp-check", help="repeat the MCP provenance check on five public URLs (repeats/mcp/)")
     p = sub.add_parser("verify", help="verify a hash-chained log")
     p.add_argument("log")
     p = sub.add_parser("summary", help="write summary.md/json next to a log")
@@ -60,10 +67,12 @@ def main(argv=None) -> int:
         return 0 if s["log_verified"] else 1
     if a.cmd == "verify-all":
         bad = 0
-        for log in sorted((ROOT / "runs").glob("*/log.jsonl")):
+        logs = sorted((ROOT / "runs").glob("*/log.jsonl")) + sorted(
+            (ROOT / "repeats").glob("*/*/log.jsonl"), key=lambda p: (p.parent.parent.name, int(p.parent.name)))
+        for log in logs:
             r = verify(log)
             bad += not r.ok
-            print(f"{log.parent.name}: {'ok' if r.ok else 'FAIL'} {r.records} records" +
+            print(f"{log.parent.relative_to(ROOT)}: {'ok' if r.ok else 'FAIL'} {r.records} records" +
                   ("" if r.ok else " " + "; ".join(r.errors[:3])))
         return 1 if bad else 0
     if a.cmd == "metrics":
@@ -71,6 +80,19 @@ def main(argv=None) -> int:
             Path(a.out).write_text(json.dumps(metrics.compute(ROOT), indent=2, sort_keys=True) + "\n")
         else:
             metrics.write(ROOT)
+        return 0
+    if a.cmd in ("repeat", "repeats-summary", "mcp-check"):
+        from . import repeats
+        if a.cmd == "repeat":
+            out = Path(a.out) if a.out else ROOT / "repeats" / a.scenario
+            done = repeats.repeat(ROOT, a.scenario, a.n, out, write_summary)
+            print(f"scenario {a.scenario}: {sum(not d['error'] for d in done)}/{len(done)} without harness error")
+            return 0
+        if a.cmd == "mcp-check":
+            m = repeats.mcp_check(ROOT / "repeats" / "mcp" / "provenance.json")
+            print(json.dumps([{k: c[k] for k in ("url", "failed", "structured")} for c in m["calls"]], indent=1))
+            return 0
+        repeats.write(ROOT, Path(a.out) if a.out else None)
         return 0
     if a.cmd == "verify":
         r = verify(Path(a.log))
