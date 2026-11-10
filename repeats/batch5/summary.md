@@ -62,6 +62,8 @@ Same 540 attempts in every arm: per-attempt seed, adapt = k % 4 from the plan, p
 | authority-off | 55/540 | 0 | 20 | 1.91e-06 | 1.91e-06 | holds |
 | all-off | 327/540 | 0 | 292 | 2.51e-88 | 1.26e-87 | holds |
 
+Note: all-on 35/540 vs adaptive 30/540: approval-file-write bypasses at every adapt >= 1; the fixed plan has 15 such attempts (adapt 1-3) vs 10 in the adaptive run; tool-direct-file-access is 20 in both; no in-scope attempt bypasses.
+
 ## E3 benign tasks
 - all-on: 500/500 completed (Wilson [0.9924, 1.0]), median 0.972 ms, p95 4.432 ms per task
 - all-off: 500/500 completed (Wilson [0.9924, 1.0]), median 0.745 ms, p95 4.412 ms per task

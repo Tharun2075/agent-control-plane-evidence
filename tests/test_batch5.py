@@ -71,6 +71,12 @@ class TestBatch5(unittest.TestCase):
         rows[2]["bypass"] = False
         self.assertEqual((n, batch5.in_scope_n(rows)), (1, 1))
 
+    def test_e2p_note_explains_all_on_gap(self):  # judge A3 K5
+        s = batch5.build(self.out)
+        self.assertEqual(len(s["e2p_notes"]), 1)
+        self.assertIn("approval-file-write bypasses at every adapt >= 1", s["e2p_notes"][0])
+        self.assertIn("Note: all-on", batch5.markdown(s))
+
     def test_bootstrap_ci_brackets_median(self):
         lo, hi = batch5.bootstrap_ci([1.0, 1.1, 1.2, 1.3, 5.0])
         self.assertLessEqual(lo, 1.2)

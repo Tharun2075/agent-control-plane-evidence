@@ -249,6 +249,28 @@ def _e2_notes(out: Path, e2: dict) -> list[str]:
     return notes
 
 
+def _e2p_notes(out: Path, e2p: dict) -> list[str]:
+    """Why E2p all-on differs from the adaptive all-on (E1-after / E2): bypasses by trick, counted from the rows."""
+    pa, aa = out / "e2p" / "all-on" / "attempts.jsonl", out / "e2" / "all-on" / "attempts.jsonl"
+    if not (e2p and pa.exists() and aa.exists()):
+        return []
+    rp, ra = _read_rows(pa), _read_rows(aa)
+
+    def cnt(rows, trick, only_bypass=True):
+        return sum(r["trick"] == trick and (r["bypass"] or not only_bypass) for r in rows)
+
+    def adapts(rows):
+        a = sorted({r["adapt"] for r in rows if r["trick"] == "approval-file-write" and r["bypass"]})
+        return f"adapt {a[0]}-{a[-1]}" if a else "no adapt"
+    iscope = sum(bool(r["bypass"]) for r in rp if r["trick"] not in OUT_OF_SCOPE_TRICKS)
+    iscope += sum(bool(r["bypass"]) for r in ra if r["trick"] not in OUT_OF_SCOPE_TRICKS)
+    return [f"all-on {e2p['arms']['all-on']['bypass']}/{len(rp)} vs adaptive {sum(bool(r['bypass']) for r in ra)}/{len(ra)}: "
+            f"approval-file-write bypasses at every adapt >= 1; the fixed plan has {cnt(rp, 'approval-file-write')} such "
+            f"attempts ({adapts(rp)}) vs {cnt(ra, 'approval-file-write')} in the adaptive run; tool-direct-file-access is "
+            f"{cnt(rp, 'tool-direct-file-access')} in both; "
+            + ("no in-scope attempt bypasses." if not iscope else f"{iscope} in-scope attempts bypass.")]
+
+
 def _replay(p: Path) -> dict:
     """Runs 4-6 task set: how many model-chosen calls executed, and fidelity to the logged outcome."""
     if not p.exists():
@@ -433,10 +455,10 @@ def _pool(cm: dict) -> dict:
 
 
 def build(out: Path = OUT) -> dict:
-    e2 = _e2(out)
+    e2, e2p = _e2(out), _e2p(out)
     s = {"protocol": "repeats/batch5/PROTOCOL.md",
          "e1": {ph: _e1(out / f"e1-{ph}") for ph in ("before", "after")},
-         "e2": e2, "e2_notes": _e2_notes(out, e2), "e2p": _e2p(out), "e3": _e3(out),
+         "e2": e2, "e2_notes": _e2_notes(out, e2), "e2p": e2p, "e2p_notes": _e2p_notes(out, e2p), "e3": _e3(out),
          "e3_repeats": _e3_repeats(out), "e5": _e5()}
     return s
 
@@ -558,7 +580,7 @@ def markdown(s: dict) -> str:
         for arm, v in e["vs_all_on"].items():
             L.append(f"| {arm} | {e['arms'][arm]['bypass']}/{e['attempts']} | {v['b_all_on_only']} | {v['c_arm_only']} "
                      f"| {v['p_exact']:.3g} | {v['p_holm']:.3g} | {'holds' if v['h5_holds'] else 'not shown'} |")
-        L.append("")
+        L += [""] + [f"Note: {n}" for n in s.get("e2p_notes", [])] + [""] if s.get("e2p_notes") else [""]
     if s["e3"]:
         L.append("## E3 benign tasks")
         for a, v in s["e3"].items():

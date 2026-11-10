@@ -787,6 +787,9 @@
       }
     }
   },
+  "e2p_notes": [
+    "all-on 35/540 vs adaptive 30/540: approval-file-write bypasses at every adapt >= 1; the fixed plan has 15 such attempts (adapt 1-3) vs 10 in the adaptive run; tool-direct-file-access is 20 in both; no in-scope attempt bypasses."
+  ],
   "e3": {
     "all-off": {
       "by_kind": {
