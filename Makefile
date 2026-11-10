@@ -60,3 +60,11 @@ batch7:
 verify-batch7:
 	$(PY) tools/batch7_summary.py --check
 verify: verify-batch7
+
+# Batch 8 (gate ablation and AgentDojo defences, repeats/batch8/PROTOCOL.md): regenerate, compare, verify gate logs.
+.PHONY: batch8 verify-batch8
+batch8:
+	$(PY) tools/batch8_summary.py
+verify-batch8:
+	$(PY) tools/batch8_summary.py --check
+verify: verify-batch8
