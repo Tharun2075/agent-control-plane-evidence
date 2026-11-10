@@ -41,7 +41,8 @@ no network, no spend: every attempt is scripted, seeded and replayable.
   something other than a control refusal; errors are reported, never dropped.
 - fixable = can be closed inside acp without trusting the tool process or the filesystem
   owner. approval-forgery and tool-direct-file-access are declared NOT fixable in-process
-  (an attacker who can write the approvals dir or the session files is outside the model).
+  (an attacker who can write the approvals dir, or a tool process that can read or write other
+  sessions' files, is outside the model).
 - All runs are reported. Development dry runs into temp dirs (not repeats/batch5) were used
   to build the attacker; they are not results.
 
