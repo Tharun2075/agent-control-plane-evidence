@@ -1,0 +1,20 @@
+agent-control-plane-evidence
+Copyright (c) 2026 THATCHED Ltd. Code licensed under the MIT License (see LICENSE).
+
+Third-party content (data, not code):
+- data/public/companies-house-02557590.txt and .meta.json, and the derived
+  runs/1/sessions/run1-research-s1/company-summary.md: text from the public
+  Companies House register page for company 02557590. Contains public sector
+  information licensed under the Open Government Licence v3.0.
+  Crown copyright, Companies House.
+  https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+
+Third-party tool used at run time (not vendored, not distributed):
+- mcp-server-fetch 2026.11.4 (Model Context Protocol reference fetch server),
+  MIT License, run with `uvx mcp-server-fetch==2026.11.4` for run 4.
+
+No third-party code is vendored. The library uses only the Python 3.11
+standard library (PSF License). Field names follow the OpenTelemetry GenAI
+semantic conventions (Apache-2.0 specification; names only, no code copied).
+
+All personal records in data/synthetic/ are made up for this repository.

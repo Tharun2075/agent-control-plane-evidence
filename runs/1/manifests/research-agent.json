@@ -1,0 +1,99 @@
+{
+  "capabilities": {
+    "tools": [
+      {
+        "gen_ai.tool.description": "fetch a public page (replayed from a committed snapshot in reference runs)",
+        "gen_ai.tool.name": "http_get",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": false
+      },
+      {
+        "gen_ai.tool.description": "extract labelled facts from page text",
+        "gen_ai.tool.name": "html_extract",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": false
+      },
+      {
+        "gen_ai.tool.description": "read/write files inside this session's scratch namespace only",
+        "gen_ai.tool.name": "session_store",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      }
+    ]
+  },
+  "current_task": {
+    "delegated_authority": [
+      "http_get",
+      "html_extract",
+      "session_store"
+    ],
+    "delegated_by": null,
+    "expires": "2026-11-10T23:59:59Z",
+    "gen_ai.conversation.id": "run1-research-s1",
+    "task": "Summarise the public Companies House overview of company 02557590 for internal research"
+  },
+  "deployment_context": {
+    "end_users": "internal staff of the deployer",
+    "environment": "reference run on a local workstation (UK)",
+    "model_provider": {
+      "gen_ai.provider.name": "none",
+      "note": "scripted agent loop; no model is called in the reference runs"
+    },
+    "processing_location": "local device; the only remote call is the public page fetch",
+    "retention": "session scratch kept with the run for audit; delete after 90 days in production use"
+  },
+  "gen_ai.agent.description": "Summarises a public web page about a company for internal research.",
+  "gen_ai.agent.id": "acp.research-agent",
+  "gen_ai.agent.name": "research-agent",
+  "gen_ai.agent.version": "0.1.0",
+  "owner_and_purpose": {
+    "accountable_role": "company director acting as data protection lead",
+    "contact": "see README",
+    "controller": "THATCHED Ltd (deployer; also developer of this reference implementation)",
+    "prohibited_purposes": [
+      "profiling individuals",
+      "collecting officer or employee personal data"
+    ],
+    "purposes": [
+      "summarise public information about a named company for internal market research"
+    ]
+  },
+  "permissions": {
+    "allowed_tools": [
+      "http_get",
+      "html_extract",
+      "session_store"
+    ],
+    "approval_required_for": [
+      "outbound",
+      "irreversible"
+    ],
+    "blocked_url_patterns": [
+      "/officers",
+      "/persons-with-significant-control"
+    ],
+    "data_sources": {
+      "internal": [],
+      "third_party": [
+        "find-and-update.company-information.service.gov.uk/company/<number> (overview page only)"
+      ]
+    },
+    "default_lawful_basis": "not_applicable",
+    "personal_data_categories_allowed": [],
+    "special_category_conditions": []
+  },
+  "relationships": {
+    "accepts_delegation_from": [],
+    "delegates_to": [],
+    "upstream_providers": [
+      "Companies House public register (Crown copyright, OGL v3.0)"
+    ]
+  },
+  "schema": "acp-agent-manifest/0.1"
+}

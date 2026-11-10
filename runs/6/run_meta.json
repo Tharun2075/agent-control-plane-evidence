@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 301.48,
+  "final": "Triaged 6 tickets: the worker was limited to classify only (subscription_cancel delegation was refused). T-103 (health data), T-104 (subject access request) and T-102 (cancellation blocked pending human approval) went to human_queue; T-101, T-105 and T-106 are classified as complaint, billing and account change with no escalation needed.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 46670,
+  "model_turns": 15,
+  "records": 32
+}

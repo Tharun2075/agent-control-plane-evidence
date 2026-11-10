@@ -1,0 +1,7 @@
+{
+  "_note": "SYNTHETIC records made up for this repo. No real person. No email addresses or phone numbers are stored on purpose; the outbox stub is addressed by contact_id.",
+  "contacts": [
+    {"contact_id": "c-001", "name": "Synthetic Person Alpha", "job_title": "Operations Manager", "employer": "Example Widgets Ltd (synthetic)", "subscriber_type": "individual", "marketing_consent": null, "source": "synthetic"},
+    {"contact_id": "c-002", "name": "Synthetic Person Beta", "job_title": "Head of IT", "employer": "Sample Logistics Ltd (synthetic)", "subscriber_type": "corporate", "marketing_consent": null, "source": "synthetic"}
+  ]
+}

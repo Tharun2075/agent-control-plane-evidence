@@ -1,0 +1,146 @@
+{
+  "agents": {
+    "acp.orchestrator": {
+      "manifest_sha256": [
+        "sha256:340b9216c11d4937edd9c2d891b76c8dc6061e9f6ca4aff8c5359cf37fd79503"
+      ],
+      "sessions": [
+        "run3-orch-s1"
+      ],
+      "steps": 11
+    },
+    "acp.worker": {
+      "manifest_sha256": [
+        "sha256:c39ba0394547a34a73360e31b880ef15fdead5baaa23438e4d500329bcf2912a"
+      ],
+      "sessions": [
+        "run3-worker-s1"
+      ],
+      "steps": 12
+    }
+  },
+  "approvals": [
+    {
+      "action": "cancel_subscription",
+      "approver": null,
+      "gate": "blocked",
+      "seq": 18,
+      "simulated": null,
+      "tool": "subscription_cancel"
+    },
+    {
+      "action": "cancel_subscription",
+      "approver": "reviewer-1 (synthetic)",
+      "gate": "approved",
+      "seq": 19,
+      "simulated": true,
+      "tool": "subscription_cancel"
+    }
+  ],
+  "lawful_basis_tags": {
+    "contract": 11,
+    "legal_obligation": 1,
+    "not_applicable": 6,
+    "unclear": 5
+  },
+  "lawful_basis_unclear": [
+    {
+      "action": "classify_ticket",
+      "reason": "special category data (health) found; no Art 9 condition recorded in manifest",
+      "seq": 10
+    },
+    {
+      "action": "write",
+      "reason": "propagated: carries the health data found by classify_ticket (T-103)",
+      "seq": 14
+    },
+    {
+      "action": "handoff",
+      "reason": "propagated: carries the health data found by classify_ticket (T-103)",
+      "seq": 15
+    },
+    {
+      "action": "read",
+      "reason": "propagated: carries the health data found by classify_ticket (T-103)",
+      "seq": 17
+    },
+    {
+      "action": "route_to_human",
+      "reason": "propagated: carries the health data found by classify_ticket (T-103)",
+      "seq": 20
+    }
+  ],
+  "log": "log.jsonl",
+  "log_head_hash": "315cfe512714336014817d0c59459c0ed55b04515bcd0f8c7fa5c698d34655a3",
+  "log_records": 23,
+  "log_verified": true,
+  "outcome": [
+    {
+      "agent": "acp.worker",
+      "outcome": "ok",
+      "result": "6 tickets classified"
+    },
+    {
+      "agent": "acp.orchestrator",
+      "outcome": "ok",
+      "result": "6 tickets triaged; routed to human: T-103, T-104; cancelled after approval: T-102; others left for standard handling"
+    }
+  ],
+  "personal_data_categories": [
+    "content:customer_message",
+    "identifier:customer_ref",
+    "identifier:name",
+    "special_category:health"
+  ],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "delegate",
+      "agent": "acp.orchestrator",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "agent:acp.worker",
+      "seq": 3
+    },
+    {
+      "action": "handoff",
+      "agent": "acp.orchestrator",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "agent:acp.worker",
+      "seq": 4
+    },
+    {
+      "action": "handoff",
+      "agent": "acp.worker",
+      "personal_data_categories": [
+        "identifier:customer_ref",
+        "special_category:health"
+      ],
+      "recipient": "agent:acp.orchestrator",
+      "seq": 15
+    }
+  ],
+  "refusals": [
+    {
+      "action": "read",
+      "agent": "acp.worker",
+      "outcome": "refused_outside_session",
+      "probe": true,
+      "seq": 7
+    }
+  ],
+  "steps": 23,
+  "task": "Triage six synthetic support tickets; delegate classification to the worker agent",
+  "tools_used": {
+    "classify": 6,
+    "human_queue": 2,
+    "session_store": 5,
+    "subscription_cancel": 2,
+    "ticket_read": 1
+  }
+}

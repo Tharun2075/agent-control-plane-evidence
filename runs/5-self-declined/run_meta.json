@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 56.243,
+  "final": "Email to c-001 was not sent. The contact is an individual subscriber with no recorded marketing consent (marketing_consent is null), and the intro email is promotional. Under PECR, that requires prior consent. I saved a note to session_store as note.md explaining the block and the next step: obtain and record consent, or confirm the contact is a corporate subscriber, then retry.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 18910,
+  "model_turns": 4,
+  "records": 7
+}

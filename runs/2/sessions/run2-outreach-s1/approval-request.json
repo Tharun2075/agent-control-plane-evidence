@@ -1,0 +1,8 @@
+{
+  "action_sha256": "sha256:096fbca7a46b9b4f0f1ec3435d41d266a451c9fd71fa0f899bc50cf7121883b8",
+  "draft": "draft-c-001.txt",
+  "lawful_basis": "unclear",
+  "reason": "PECR reg 22: contact recorded as an individual subscriber with no consent or soft opt-in record, so the agent cannot confirm the send is lawful",
+  "to": "contact:c-001",
+  "tool": "email_send"
+}

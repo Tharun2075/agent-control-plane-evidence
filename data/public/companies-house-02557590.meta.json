@@ -1,0 +1,15 @@
+{
+  "http_status": 200,
+  "licence": "Crown copyright, Companies House; Open Government Licence v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)",
+  "links_on_page": [
+    "/company/02557590/charges",
+    "/company/02557590/filing-history",
+    "/company/02557590/more",
+    "/company/02557590/officers"
+  ],
+  "raw_html_bytes": 36817,
+  "raw_html_sha256": "sha256:fcb5ae9cecb407ebb0dd621ad45f6883d31052ed8ee072704d7f1a91b86a9bc2",
+  "retrieved_at": "2026-11-10T07:06:25Z",
+  "source_url": "https://find-and-update.company-information.service.gov.uk/company/02557590",
+  "text_sha256": "sha256:3572cf7de9e69428df3057154b29523a0772e8e125eefb0b0db539f64f6f5f2e"
+}

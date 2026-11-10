@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "acp-agent-manifest/0.1",
+  "title": "Six-part agent identity manifest",
+  "description": "Agent identity in six parts, following the ICO call for evidence on agentic AI. Agent and tool keys reuse OpenTelemetry GenAI semantic conventions (gen_ai.*). The manifest is identified by the SHA-256 of its RFC 8785-style canonical JSON.",
+  "type": "object",
+  "required": ["schema", "gen_ai.agent.id", "gen_ai.agent.name", "gen_ai.agent.version", "owner_and_purpose", "capabilities", "permissions", "deployment_context", "relationships", "current_task"],
+  "properties": {
+    "schema": {"const": "acp-agent-manifest/0.1"},
+    "gen_ai.agent.id": {"type": "string", "minLength": 1},
+    "gen_ai.agent.name": {"type": "string", "minLength": 1},
+    "gen_ai.agent.version": {"type": "string"},
+    "gen_ai.agent.description": {"type": "string"},
+    "owner_and_purpose": {
+      "description": "Part 1: who is accountable and what the agent is for.",
+      "type": "object",
+      "required": ["controller", "accountable_role", "purposes"],
+      "properties": {
+        "controller": {"type": "string"},
+        "accountable_role": {"type": "string"},
+        "contact": {"type": "string"},
+        "purposes": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "prohibited_purposes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "capabilities": {
+      "description": "Part 2: tools the agent can call.",
+      "type": "object",
+      "required": ["tools"],
+      "properties": {
+        "tools": {"type": "array", "items": {
+          "type": "object",
+          "required": ["gen_ai.tool.name", "gen_ai.tool.type", "outbound", "irreversible"],
+          "properties": {
+            "gen_ai.tool.name": {"type": "string"},
+            "gen_ai.tool.type": {"enum": ["function", "extension", "datastore"]},
+            "gen_ai.tool.description": {"type": "string"},
+            "outbound": {"type": "boolean", "description": "sends data to a party outside the controller"},
+            "irreversible": {"type": "boolean"},
+            "reads_personal_data": {"type": "boolean"}
+          }
+        }}
+      }
+    },
+    "permissions": {
+      "description": "Part 3: what the agent may do and when a human must approve.",
+      "type": "object",
+      "required": ["allowed_tools", "approval_required_for"],
+      "properties": {
+        "allowed_tools": {"type": "array", "items": {"type": "string"}},
+        "data_sources": {"type": "object", "properties": {"internal": {"type": "array"}, "third_party": {"type": "array"}}},
+        "blocked_url_patterns": {"type": "array", "items": {"type": "string"}},
+        "personal_data_categories_allowed": {"type": "array", "items": {"type": "string"}},
+        "special_category_conditions": {"type": "array", "items": {"type": "string"}, "description": "UK GDPR Art 9(2) conditions relied on; empty means none"},
+        "approval_required_for": {"type": "array", "items": {"type": "string"}, "description": "'outbound', 'irreversible' and/or tool names"},
+        "default_lawful_basis": {"enum": ["consent", "contract", "legal_obligation", "vital_interests", "public_task", "legitimate_interests", "not_applicable"]},
+        "route_to_human": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "deployment_context": {
+      "description": "Part 4: where and for whom it runs; where personal data is processed (device, remote or both).",
+      "type": "object",
+      "required": ["environment", "processing_location"],
+      "properties": {
+        "environment": {"type": "string"},
+        "processing_location": {"type": "string"},
+        "model_provider": {"type": "object"},
+        "end_users": {"type": "string"},
+        "retention": {"type": "string"}
+      }
+    },
+    "relationships": {
+      "description": "Part 5: other agents and providers in the chain.",
+      "type": "object",
+      "properties": {
+        "delegates_to": {"type": "array", "items": {"type": "string"}},
+        "accepts_delegation_from": {"type": "array", "items": {"type": "string"}},
+        "upstream_providers": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "current_task": {
+      "description": "Part 6: the session, task and delegated authority this copy is bound to.",
+      "type": "object",
+      "required": ["gen_ai.conversation.id", "task", "delegated_by", "delegated_authority", "expires"],
+      "properties": {
+        "gen_ai.conversation.id": {"type": ["string", "null"]},
+        "task": {"type": ["string", "null"]},
+        "delegated_by": {"type": ["string", "null"]},
+        "delegated_authority": {"type": "array", "items": {"type": "string"}},
+        "expires": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

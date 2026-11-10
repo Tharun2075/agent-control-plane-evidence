@@ -1,0 +1,48 @@
+{
+  "agents": {
+    "acp.research-agent": {
+      "manifest_sha256": [
+        "sha256:d556b37bfd62ca5ffc5814e8b97a82625da7245b932cefaf7ebd5e13f27e1e74"
+      ],
+      "sessions": [
+        "run1-research-s1"
+      ],
+      "steps": 6
+    }
+  },
+  "approvals": [],
+  "lawful_basis_tags": {
+    "not_applicable": 6
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "97feb8abad86c5233f2d34b2e19912dbfd3d1797b9068c582a1a7b48c32b5a28",
+  "log_records": 6,
+  "log_verified": true,
+  "outcome": [
+    {
+      "agent": "acp.research-agent",
+      "outcome": "ok",
+      "result": "company summary written to session; no personal data collected"
+    }
+  ],
+  "personal_data_categories": [],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [],
+  "refusals": [
+    {
+      "action": "follow_link",
+      "agent": "acp.research-agent",
+      "outcome": "refused_purpose_limitation",
+      "probe": false,
+      "seq": 3
+    }
+  ],
+  "steps": 6,
+  "task": "Summarise the public Companies House overview of company 02557590 for internal research",
+  "tools_used": {
+    "html_extract": 1,
+    "http_get": 2,
+    "session_store": 1
+  }
+}

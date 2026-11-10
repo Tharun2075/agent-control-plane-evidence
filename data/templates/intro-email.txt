@@ -1,0 +1,9 @@
+Subject: Short introduction from THATCHED Ltd
+
+Dear {name},
+
+I am writing to you as {job_title} at {employer}. We build small AI tools for operations teams and would value 15 minutes of your view on how your team handles routine paperwork.
+
+If this is not of interest, reply "no" and we will not contact you again.
+
+THATCHED Ltd

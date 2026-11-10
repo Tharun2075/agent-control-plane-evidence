@@ -1,0 +1,12 @@
+{
+  "version": "0.1",
+  "categories": {
+    "data_rights_request": ["copy of all the personal data", "personal data you hold", "delete my data"],
+    "cancellation": ["cancel my subscription"],
+    "complaint": ["damaged", "crushed", "broken"],
+    "billing": ["invoice", "refund", "wrong amount"],
+    "account_change": ["change the delivery address", "update my"],
+    "scheduling": ["rebook", "reschedule", "missed the delivery"]
+  },
+  "special_category_keywords": {"special_category:health": ["hospital", "surgery", "diagnosis", "medication", "pregnan"]}
+}
