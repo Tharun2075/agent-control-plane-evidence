@@ -5,6 +5,10 @@ import re, subprocess, sys
 from pathlib import Path
 
 ALLOWED_EMAILS = {"info@thatched.ai"}
+# Exact strings inside vendored third-party test corpora (not personal data): WPT urltestdata
+# userinfo cases and the 2^32 boundary port numbers. Only these strings, only in this file;
+# the deny-list still applies to it.
+VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com", "www.@pple.com", "4294967295", "4294967296"}}
 RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
 PATTERNS = {
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
@@ -26,6 +30,8 @@ for f in files:
     for kind, rx in PATTERNS.items():
         for m in rx.finditer(text):
             s = m.group(0)
+            if s in VENDORED_OK.get(f, ()):
+                continue
             if kind == "email" and (s in ALLOWED_EMAILS or RESERVED_DOMAIN.search(s)):
                 continue  # RFC 2606 / 6761 reserved names can never reach a real mailbox
             if kind == "phone" and (re.fullmatch(r"[\d-]{10}", s) and s.count("-") == 2 or len(re.sub(r"\D", "", s)) < 10):
