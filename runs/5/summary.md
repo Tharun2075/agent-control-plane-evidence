@@ -1,4 +1,4 @@
-# Post-task summary: 
+# Post-task summary: Prepare an introductory business email to CRM contact c-001 using the intro template, then send it with email_send. Sends are checked by a control gate (lawful basis, PECR, human approval) before anything leaves; request the send and let the gate decide. If something blocks you, write a short note of what happened to session_store (name note.md) and finish.
 
 Log `log.jsonl`: 10 records, chain verified: **yes**, head hash `94e2a3a890db491c…`
 
@@ -30,6 +30,7 @@ Log `log.jsonl`: 10 records, chain verified: **yes**, head hash `94e2a3a890db491
 - None.
 
 ## Result
+- acp.outreach-agent-model: finished. The intro email to c-001 was not sent. The control gate blocked email_send with 'blocked_pending_approval' because no human approval exists for the exact message. I wrote a note to note.md covering the block, and flagged that marketing_consent is null for this individual subscriber, so the PECR position needs review before any resend.
 
 ## How to challenge or correct
 - Each line above cites a log record number; the record holds the agent identity digest, inputs' content hashes and the decision mode, so a person can ask for that specific step to be reviewed, corrected or reversed.

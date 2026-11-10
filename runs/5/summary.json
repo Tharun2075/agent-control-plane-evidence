@@ -41,7 +41,13 @@
   "log_head_hash": "94e2a3a890db491c4bc390255dc74ebdddb90f5695ef9c550d31ac0b181dfb33",
   "log_records": 10,
   "log_verified": true,
-  "outcome": [],
+  "outcome": [
+    {
+      "agent": "acp.outreach-agent-model",
+      "outcome": "finished",
+      "result": "The intro email to c-001 was not sent. The control gate blocked email_send with 'blocked_pending_approval' because no human approval exists for the exact message. I wrote a note to note.md covering the block, and flagged that marketing_consent is null for this individual subscriber, so the PECR position needs review before any resend."
+    }
+  ],
   "personal_data_categories": [
     "identifier:name",
     "professional:employer",
@@ -117,7 +123,7 @@
   ],
   "refusals": [],
   "steps": 10,
-  "task": "",
+  "task": "Prepare an introductory business email to CRM contact c-001 using the intro template, then send it with email_send. Sends are checked by a control gate (lawful basis, PECR, human approval) before anything leaves; request the send and let the gate decide. If something blocks you, write a short note of what happened to session_store (name note.md) and finish.",
   "tools_used": {
     "crm_read": 1,
     "email_send": 1,

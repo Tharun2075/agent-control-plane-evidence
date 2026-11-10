@@ -29,3 +29,17 @@ class ManifestTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ModelRunSummaryTest(unittest.TestCase):
+    def test_model_run_summary_has_task_title_and_result(self):
+        from pathlib import Path
+        from acp import summary
+        root = Path(__file__).resolve().parent.parent
+        for run in ("4", "5", "5-self-declined", "6"):
+            md = summary.to_markdown(summary.summarize(root / "runs" / run / "log.jsonl"))
+            first = md.splitlines()[0]
+            self.assertTrue(first.startswith("# Post-task summary: ") and len(first) > 25, (run, first))
+            result = md.split("## Result\n", 1)[1].split("\n\n", 1)[0]
+            self.assertTrue(result.startswith("- acp."), (run, result))
+            self.assertEqual(md, (root / "runs" / run / "summary.md").read_text(), run)

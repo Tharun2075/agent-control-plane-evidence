@@ -8,6 +8,7 @@ can be checked against the log it came from.
 """
 from __future__ import annotations
 
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -50,6 +51,10 @@ def summarize(log_path) -> dict:
     ]
     ends = [r for r in recs if r["action"] == "task_end"]
     task = next((r["detail"].get("task") for r in recs if r["action"] == "task_start"), "")
+    outcome = [{"agent": r["gen_ai.agent.id"], "outcome": r["outcome"], "result": r["detail"].get("result", "")}
+               for r in ends]
+    if not task or not outcome:
+        task, outcome = _model_run_fallback(log_path.parent, recs, task, outcome)
     return {
         "log": log_path.name,
         "log_verified": v.ok,
@@ -67,9 +72,26 @@ def summarize(log_path) -> dict:
         "recipients_blocked_not_sent": intended,
         "approvals": approvals,
         "refusals": refusals,
-        "outcome": [{"agent": r["gen_ai.agent.id"], "outcome": r["outcome"], "result": r["detail"].get("result", "")}
-                    for r in ends],
+        "outcome": outcome,
     }
+
+
+def _model_run_fallback(run_dir: Path, recs: list, task: str, outcome: list):
+    """Model-driven runs log no task_start/task_end: take the task from the first
+    agent's bound manifest and the result from run_meta.json's final answer."""
+    first = recs[0]["gen_ai.agent.id"] if recs else None
+    if not task:
+        for mp in sorted((run_dir / "manifests").glob("*.json")):
+            m = json.loads(mp.read_text())
+            if m.get("gen_ai.agent.id") == first:
+                task = (m.get("current_task") or {}).get("task", "")
+                break
+    meta_p = run_dir / "run_meta.json"
+    if not outcome and meta_p.exists() and first:
+        meta = json.loads(meta_p.read_text())
+        outcome = [{"agent": first, "outcome": meta.get("stopped") or "finished",
+                    "result": str(meta.get("final") or "no final answer recorded")}]
+    return task, outcome
 
 
 def to_markdown(s: dict) -> str:
