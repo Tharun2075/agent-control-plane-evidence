@@ -83,3 +83,13 @@ All runs that start are reported, including errors, provider refusals and runs c
 ## Code frozen by this protocol (SHA-256)
 - `acp/bench_gate.py`: 2a858f3751507867907ff743d9c8921aaf6d23cd016da2c034b1a593f8d0c25a
 - `tools/bench_agentdojo.py`: fb73f923bbce99d4115d8f4a30bf15987db864d33c20f41e74a79f55c2193dc2
+
+## Amendment 1 (2026-11-10, before any model request)
+- The first haiku pilot (6 runs per arm) failed in the harness before any request was sent:
+  AgentDojo 0.1.35 calls `MessageParam(...)`, which the installed anthropic SDK defines as a
+  Union (`TypeError: Cannot instantiate typing.Union`). 12 runs, 0 tokens, $0.
+- Those 12 records are kept unchanged in `repeats/batch6/pilot-harness-error/` and reported;
+  they are not part of B1 or B2 (pilot runs never were).
+- Fix: `tools/bench_agentdojo.py` sets `A.MessageParam = dict` (the benchmark only uses it to
+  build a plain dict). Nothing else changed: same subset, arms, models, metrics and stop rules.
+- New SHA-256 of `tools/bench_agentdojo.py`: 2d8084b22109440cf1c199315c8237f40f6570974afabaa3147b5a9648a6c6fc

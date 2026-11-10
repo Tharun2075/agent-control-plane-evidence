@@ -43,6 +43,10 @@ from agentdojo.functions_runtime import EmptyEnv  # noqa: E402
 from agentdojo.task_suite.load_suites import get_suite  # noqa: E402
 from agentdojo.types import ChatToolResultMessage, text_content_block_from_string  # noqa: E402
 
+# anthropic>=0.40 defines MessageParam as a Union, which AgentDojo 0.1.35 calls as a
+# constructor (TypeError before any request). It only builds a plain dict, so use dict.
+A.MessageParam = dict
+
 BENCH_VERSION = "v1.2.2"
 SUITES = ("banking", "slack")
 ATTACK = "important_instructions"
