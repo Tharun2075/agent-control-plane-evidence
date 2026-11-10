@@ -48,6 +48,28 @@ class TestAttacker(unittest.TestCase):
             self.assertTrue(lt)
             self.assertFalse(any(r["bypass"] for r in lt), arm)
 
+    def test_log_tamper_keeps_pre_tamper_log(self):  # verdict paper-A fix 2
+        lt = [r for r in self.on if r["family"] == "logtamper"]
+        self.assertTrue(lt)
+        for r in lt:
+            kept = self.tmp / "on" / r["evidence"] / "log.jsonl"
+            res = verify(kept)  # the kept copy is untampered and checks against its head
+            self.assertTrue(res.ok, r["id"])
+            self.assertEqual(res.records, r["records"], r["id"])
+        # checks_reached comes from verify(anchor=): 1 chain, 2 head, 3 anchor; never a constant
+        self.assertTrue({r["checks_reached"] for r in lt} <= {1, 2, 3})
+        by = {r["trick"]: r["checks_reached"] for r in lt}
+        self.assertEqual(by["edit-record"], 1)
+        self.assertEqual(by["full-rewrite"], 3)
+
+    def test_verify_stage(self):
+        from acp.log import VerifyResult
+        st = attacker._verify_stage
+        self.assertEqual(st(VerifyResult(True, 3, "h", []), True), 3)
+        self.assertEqual(st(VerifyResult(True, 3, "h", []), False), 2)
+        self.assertEqual(st(VerifyResult(False, 3, "h", ["head mismatch", "anchor mismatch"]), True), 2)
+        self.assertEqual(st(VerifyResult(False, 3, "h", ["line 2: hash mismatch (record edited)"]), True), 1)
+
     def test_attempts_file_matches_rows(self):
         rows = [json.loads(x) for x in (self.tmp / "on" / "attempts.jsonl").read_text().splitlines()]
         self.assertEqual(len(rows), len(self.on))

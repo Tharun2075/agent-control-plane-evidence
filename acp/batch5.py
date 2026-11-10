@@ -29,7 +29,7 @@ from pathlib import Path
 from . import attacker
 from .gate import ApprovalRequired, PermissionDenied, Rejected, action_digest, write_approval
 from .isolation import IsolationError
-from .log import verify
+from .log import read_records, verify
 from .redteam_runs import ALLOWED
 from .repeats import wilson
 
@@ -415,9 +415,21 @@ def check(out: Path = OUT) -> list[str]:
             errs.append(f"{lp.relative_to(out)}: chain fails verify: {r.errors[:2]}")
     for ap in sorted(out.rglob("attempts.jsonl")):
         if "e1-" in str(ap):
-            bad = [r["id"] for r in _read_rows(ap) if r["records"] < 1]
+            rows = _read_rows(ap)
+            bad = [r["id"] for r in rows if r["records"] < 1]
             if bad:
                 errs.append(f"{ap.relative_to(out)}: T6 attempts without a gate record: {bad[:5]}")
+            # logtamper: recount the records from the kept pre-tamper log, not the row
+            for r in rows:
+                if r["family"] != "logtamper":
+                    continue
+                lp = ap.parent / (r.get("evidence") or "missing") / "log.jsonl"
+                if not lp.exists():
+                    errs.append(f"{ap.relative_to(out)} {r['id']}: pre-tamper log missing "
+                                "(Fix: rerun python3 -m acp.batch5 e1 with the current attacker)")
+                elif len(read_records(lp)) != r["records"]:
+                    errs.append(f"{ap.relative_to(out)} {r['id']}: kept log has {len(read_records(lp))} records, "
+                                f"row says {r['records']}")
     on = out / "e2" / "all-on" / "replay" / "replay.jsonl"
     if on.exists():
         r = _replay(on)

@@ -472,6 +472,12 @@ def attack_logtamper(world: World, trick: str, rng: random.Random, adapt: int) -
     hide = rng.randrange(len(recs))  # the record the attacker wants gone or changed
     lp, hp = sub.log.path, sub.log.head_path
     orig = lp.read_bytes()
+    # keep the pre-tamper log + head beside the family log, so the attempt's gate records can be
+    # recounted (T6) and the tampered copy rebuilt from the plan; the tamper/ scratch is pruned
+    kept = world.root / f"a{world.n:04d}"
+    kept.mkdir(parents=True, exist_ok=True)
+    (kept / lp.name).write_bytes(orig)
+    (kept / hp.name).write_bytes(hp.read_bytes())
     if trick == "edit-record":
         recs[hide]["detail"] = {**(recs[hide].get("detail") or {}), "tampered": True}
         lp.write_bytes(b"".join(canonical(r) + b"\n" for r in recs))
@@ -499,9 +505,20 @@ def attack_logtamper(world: World, trick: str, rng: random.Random, adapt: int) -
     cls = None
     if bypass:
         cls = {"truncate-head-rewrite": "log-truncate-head-rewrite", "full-rewrite": "log-full-rewrite"}.get(trick, "log-other")
-    # the attempt's gate records live in the copied log; count them before tampering
-    return dict(outcome="verify_ok" if res.ok else "verify_failed", records=len(recs), checks_reached=4 if not res.ok else 0,
-                bypass=bypass, cls=cls, anchor_used=has_param(logmod.verify, "anchor"))
+    # the attempt's gate records live in the kept pre-tamper log; count them before tampering
+    return dict(outcome="verify_ok" if res.ok else "verify_failed", records=len(recs),
+                checks_reached=_verify_stage(res, has_param(logmod.verify, "anchor")), bypass=bypass, cls=cls,
+                anchor_used=has_param(logmod.verify, "anchor"), evidence=str(kept.relative_to(world.root.parent)))
+
+
+def _verify_stage(res, anchored: bool) -> int:
+    """Verify stage that stopped the tamper: 1 chain (seq, prev_hash, record hash), 2 head
+    file, 3 external anchor. A tamper that verifies passed every check that ran (2, or 3 with
+    the anchor), so that count is what it reached."""
+    if res.ok:
+        return 3 if anchored else 2
+    stages = [3 if e.startswith("anchor") else 2 if e.startswith("head") else 1 for e in res.errors]
+    return min(stages)
 
 
 ATTACK = {"url": attack_url, "approval": attack_approval, "delegation": attack_delegation,
@@ -538,7 +555,7 @@ def run(out: Path, repo: Path, per_trick: int = PER_TRICK, seed: int = SEED, abl
             rows.append({"id": f"{i:04d}", "family": fam, "trick": trick, "adapt": adapt, "outcome": r["outcome"],
                          "payload": r.get("payload"),
                          "records": r["records"], "checks_reached": r["checks_reached"], "bypass": r["bypass"],
-                         "class": r["cls"]})
+                         "class": r["cls"], **({"evidence": r["evidence"]} if "evidence" in r else {})})
     with open(out / "attempts.jsonl", "w") as f:
         for r in rows:
             f.write(json.dumps(r, sort_keys=True) + "\n")
