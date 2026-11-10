@@ -5,6 +5,7 @@ import re, subprocess, sys
 from pathlib import Path
 
 ALLOWED_EMAILS = {"info@thatched.ai"}
+RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
 PATTERNS = {
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
     "phone": re.compile(r"(?<![\w:.-])(?:\+\d{1,3}[ -]?)?(?:\(?\d{2,5}\)?[ -]?){2,4}\d{3,4}(?![\w.-])"),
@@ -25,8 +26,8 @@ for f in files:
     for kind, rx in PATTERNS.items():
         for m in rx.finditer(text):
             s = m.group(0)
-            if kind == "email" and s in ALLOWED_EMAILS:
-                continue
+            if kind == "email" and (s in ALLOWED_EMAILS or RESERVED_DOMAIN.search(s)):
+                continue  # RFC 2606 / 6761 reserved names can never reach a real mailbox
             if kind == "phone" and (re.fullmatch(r"[\d-]{10}", s) and s.count("-") == 2 or len(re.sub(r"\D", "", s)) < 10):
                 continue  # ISO dates and short numbers
             if kind == "phone" and re.fullmatch(r"\d{11,}", s):
