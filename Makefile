@@ -1,6 +1,6 @@
 PY ?= python3
 
-.PHONY: reproduce test check verify repeats
+.PHONY: reproduce test check verify repeats check-history
 reproduce:
 	$(PY) -m acp reproduce
 
@@ -13,7 +13,13 @@ DENYLIST ?= ../denylist.txt
 # (kept outside the repo) over the tree and the full history of main.
 check: test
 	$(PY) tools/public_safe_check.py $$( [ -f "$(DENYLIST)" ] && echo --denylist "$(DENYLIST)" )
+	@$(MAKE) -s check-history DENYLIST="$(DENYLIST)"
+
+# Deny-list scan of the tree and of main's full history. No main branch means no history to
+# scan: fail (exit 2) instead of reporting 0 hits over an empty log.
+check-history:
 	@if [ -f "$(DENYLIST)" ]; then \
+	  git rev-parse --verify -q main >/dev/null || { echo "check: no main branch, history not scanned (Fix: git fetch origin main:main)"; exit 2; }; \
 	  n=$$( { git ls-files -z | xargs -0 grep -I -F -f "$(DENYLIST)" -- ; git log -p main | grep -F -f "$(DENYLIST)"; } | wc -l | tr -d ' '); \
 	  echo "deny-list hits (tree + git log -p main): $$n"; [ "$$n" = 0 ]; \
 	else echo "deny-list $(DENYLIST) not found: skipped (pattern scan only)"; fi
