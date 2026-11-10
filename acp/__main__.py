@@ -43,6 +43,8 @@ def main(argv=None) -> int:
     p.add_argument("--key-cmd", help="batch 2: command that prints the API key; read in this process only")
     p = sub.add_parser("repeats-summary", help="aggregate repeats/ into repeats/summary.json + summary.md")
     p.add_argument("--out", help="write the summary JSON to this path instead (committed files untouched)")
+    p = sub.add_parser("batch6-summary", help="aggregate repeats/batch6/runs into summary.{md,json} and CSVs")
+    p.add_argument("--out", help="write the files under this directory instead (committed files untouched)")
     sub.add_parser("mcp-check", help="repeat the MCP provenance check on five public URLs (repeats/mcp/)")
     p = sub.add_parser("verify", help="verify a hash-chained log")
     p.add_argument("log")
@@ -80,13 +82,20 @@ def main(argv=None) -> int:
             (ROOT / "repeats").glob("batch*/probe-*/log.jsonl")) + sorted(
             [p for b in ("batch2", "batch3", "batch4") for p in (ROOT / "repeats" / b).glob("*/*/*/log.jsonl")],
             key=lambda p: (p.parent.parent.parent.parent.name, p.parent.parent.parent.name, p.parent.parent.name,
-                           int(p.parent.name)))
+                           int(p.parent.name))) + sorted((ROOT / "repeats" / "batch6" / "logs").glob("*.jsonl"))
         for log in logs:
             r = verify(log)
             bad += not r.ok
             print(f"{log.parent.relative_to(ROOT)}: {'ok' if r.ok else 'FAIL'} {r.records} records" +
                   ("" if r.ok else " " + "; ".join(r.errors[:3])))
         return 1 if bad else 0
+    if a.cmd == "batch6-summary":
+        from . import bench_gate
+        base = Path(a.out) if a.out else ROOT
+        for rel, text in bench_gate.build(ROOT).items():
+            (base / rel).parent.mkdir(parents=True, exist_ok=True)
+            (base / rel).write_text(text)
+        return 0
     if a.cmd == "metrics":
         if a.out:
             Path(a.out).write_text(json.dumps(metrics.compute(ROOT), indent=2, sort_keys=True) + "\n")

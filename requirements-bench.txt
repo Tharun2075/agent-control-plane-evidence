@@ -1,0 +1,5 @@
+# Optional: only for batch 6 (tools/bench_agentdojo.py). The core library stays stdlib-only.
+# AgentDojo, MIT licence, Copyright (c) 2024 Edoardo Debenedetti, Jie Zhang, Mislav Balunovic,
+# Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr. https://github.com/ethz-spylab/agentdojo
+# Installed with pip at run time, not vendored. Its LICENSE ships inside the installed package.
+agentdojo==0.1.35
