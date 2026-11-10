@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 62.822,
+  "final": "Send was blocked by the control gate (blocked_pending_approval): a human must approve the exact intro message before it can leave. Nothing was sent to c-001. The rendered message and the blocking reason are recorded in note.md in session_store.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 13517,
+  "model_turns": 4,
+  "records": 8
+}

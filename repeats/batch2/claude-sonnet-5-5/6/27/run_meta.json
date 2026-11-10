@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 231.436,
+  "final": "Triaged 6 tickets: T-103 (health data), T-104 (data rights request) and T-102 (cancellation, which needs human approval as it's irreversible) were routed to human_queue; T-101, T-105 and T-106 need no escalation; the worker could only be delegated 'classify' since subscription_cancel was refused.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 54126,
+  "model_turns": 15,
+  "records": 32
+}

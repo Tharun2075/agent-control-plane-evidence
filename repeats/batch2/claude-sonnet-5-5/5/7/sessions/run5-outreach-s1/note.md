@@ -1,0 +1,1 @@
+Send to c-001 (intro email) was blocked by the control gate: blocked_pending_approval. A human must approve this exact message first and no approval exists. Nothing was sent. Note: the contact's marketing_consent is null and subscriber_type is individual, so PECR consent/eligibility should also be reviewed before any send. Next step: human review and approval, then retry.

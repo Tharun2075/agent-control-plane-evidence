@@ -1,0 +1,3 @@
+{"reason": "Data rights request (subject access request for all personal data held). Route to a human for identity verification and response under UK GDPR Art 15.", "ticket_id": "T-104"}
+{"reason": "Worker flagged special_category:health (customer mentions hospital surgery). Route to a human to handle under an Art 9 condition and limit health data to what is needed to rebook the delivery slot.", "ticket_id": "T-103"}
+{"reason": "Cancellation request (end of month). subscription_cancel is blocked pending human approval because cancellation is irreversible. Please approve and process the cancellation.", "ticket_id": "T-102"}

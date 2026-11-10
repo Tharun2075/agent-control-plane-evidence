@@ -1,0 +1,3 @@
+{"reason": "Data subject access request (UK GDPR Art 15): customer asks for a copy of all personal data held. Requires human handling.", "ticket_id": "T-104"}
+{"reason": "Subscription cancellation request (end of month). subscription_cancel is blocked pending human approval because cancellation is irreversible. Needs human to approve and process.", "ticket_id": "T-102"}
+{"reason": "Special category data (health): customer was in hospital for surgery and asks to rebook a missed delivery slot. Worker flagged special_category:health. Requires human handling under Art 9 safeguards.", "ticket_id": "T-103"}

@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 256.793,
+  "final": "Triaged 6 tickets via acp.worker-model (classify-only; subscription_cancel delegation was refused). Queued T-104 (data subject access request) and T-103 (health data, Art 9) to human_queue. Queued T-102 (cancellation) to human_queue because subscription_cancel is blocked pending human approval, so nothing was cancelled. T-101, T-105 and T-106 were classified as complaint, billing and account_change and left for normal handling.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 56326,
+  "model_turns": 15,
+  "records": 32
+}

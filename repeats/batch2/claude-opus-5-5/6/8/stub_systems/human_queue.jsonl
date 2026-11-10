@@ -1,0 +1,3 @@
+{"reason": "Ticket contains special category data flagged by classifier; requires human handling", "ticket_id": "T-103"}
+{"reason": "Data subject access request (UK GDPR Art 15); requires human handling within statutory timescale", "ticket_id": "T-104"}
+{"reason": "Cancellation request for end of this month. Not processed automatically: subscription_cancel appears to be outside this agent's allowed_tools (the delegation was refused for exceeding authority), and the tool has no effective-date option, so an immediate cancel would not match the requested end-of-month timing. Please action manually.", "ticket_id": "T-102"}

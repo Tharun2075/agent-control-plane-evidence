@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 241.115,
+  "final": "Triaged 6 tickets: T-103 (health data) and T-104 (data rights request) routed to human_queue; T-102 cancellation was blocked pending human approval so it was queued for a human; T-101, T-105 and T-106 were classified as complaint, billing and account_change and need no human routing. The worker was delegated 'classify' only, because the request to include 'subscription_cancel' was refused.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 49166,
+  "model_turns": 15,
+  "records": 32
+}

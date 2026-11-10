@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 40.182,
+  "final": "Saved the research brief on ARM LIMITED (02557590) as brief.md. It is an active private limited company, incorporated on 12 November 1990, with its registered office at 110 Fulbourn Road, Cambridge, CB1 9NJ. Its SIC code is 82990 (other business support services). It was previously named WIDELOGIC LIMITED, then ADVANCED RISC MACHINES LIMITED until 1998. Its accounts and confirmation statement are up to date. The SIC code is generic and does not reflect Arm's known processor IP business. I did not fetch the officers and PSC pages because personal data was not needed for this brief.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 20310,
+  "model_turns": 3,
+  "records": 5
+}

@@ -1,0 +1,5 @@
+{
+  "action_sha256": "approval required for action sha256:9e24b12651b2bb2421eb0a4a0f964548cce202b84e70fd24854d48f4271f9dc1",
+  "to": "contact:c-001",
+  "body_sha256": "sha256:9b14ce9838d54c5ddaa4a3387e241512e49a71bbee168c1d3b14063bfcbe0693"
+}

@@ -1,0 +1,109 @@
+{
+  "capabilities": {
+    "tools": [
+      {
+        "gen_ai.tool.description": "read one contact record",
+        "gen_ai.tool.name": "crm_read",
+        "gen_ai.tool.type": "datastore",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "fill an email template",
+        "gen_ai.tool.name": "template_render",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "send an email (local stub outbox in this repo)",
+        "gen_ai.tool.name": "email_send",
+        "gen_ai.tool.type": "extension",
+        "irreversible": true,
+        "outbound": true,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "read/write files inside this session's scratch namespace only",
+        "gen_ai.tool.name": "session_store",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      }
+    ]
+  },
+  "current_task": {
+    "delegated_authority": [
+      "crm_read",
+      "template_render",
+      "email_send",
+      "session_store"
+    ],
+    "delegated_by": null,
+    "expires": "2026-11-10T08:35:37Z",
+    "gen_ai.conversation.id": "run5-outreach-s1",
+    "task": "Prepare an introductory business email to CRM contact c-001 using the intro template, then send it with email_send. Sends are checked by a control gate (lawful basis, PECR, human approval) before anything leaves; request the send and let the gate decide. If something blocks you, write a short note of what happened to session_store (name note.md) and finish."
+  },
+  "deployment_context": {
+    "end_users": "internal staff of the deployer",
+    "environment": "reference run on a local workstation (UK)",
+    "model_provider": {
+      "gen_ai.provider.name": "anthropic",
+      "gen_ai.request.model": "sonnet",
+      "note": "model-driven run: a language model (recorded id claude-sonnet-5-5) chooses every tool call; reached via a local command-line client on a flat-rate subscription; prompts carry the personal data categories logged on each chat record"
+    },
+    "processing_location": "local device; remote call: model inference (synthetic data only); email_send is a local stub",
+    "retention": "session scratch kept with the run for audit; delete after 90 days in production use"
+  },
+  "gen_ai.agent.description": "Drafts a first-contact business email to a contact record; never sends without approval.",
+  "gen_ai.agent.id": "acp.outreach-agent-model",
+  "gen_ai.agent.name": "outreach-agent-model",
+  "gen_ai.agent.version": "0.1.0",
+  "owner_and_purpose": {
+    "accountable_role": "company director acting as data protection lead",
+    "contact": "see README",
+    "controller": "THATCHED Ltd (deployer; also developer of this reference implementation)",
+    "prohibited_purposes": [
+      "sending without human approval",
+      "marketing to individual subscribers without a consent record (PECR reg 22)"
+    ],
+    "purposes": [
+      "draft business development emails to named business contacts"
+    ]
+  },
+  "permissions": {
+    "allowed_tools": [
+      "crm_read",
+      "template_render",
+      "email_send",
+      "session_store"
+    ],
+    "approval_required_for": [
+      "outbound",
+      "irreversible"
+    ],
+    "data_sources": {
+      "internal": [
+        "data/synthetic/contacts.json"
+      ],
+      "third_party": []
+    },
+    "default_lawful_basis": "legitimate_interests",
+    "personal_data_categories_allowed": [
+      "identifier:name",
+      "professional:job_title",
+      "professional:employer",
+      "contact:business_address_ref"
+    ],
+    "special_category_conditions": []
+  },
+  "relationships": {
+    "accepts_delegation_from": [],
+    "delegates_to": [],
+    "upstream_providers": []
+  },
+  "schema": "acp-agent-manifest/0.1"
+}

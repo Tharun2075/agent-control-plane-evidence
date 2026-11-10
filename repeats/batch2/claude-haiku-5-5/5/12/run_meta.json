@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 65.603,
+  "final": "The intro email to c-001 was rendered from the template and a send was requested via email_send under Art 6(1)(f). The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before it can be sent. Nothing was sent. A short note is saved in session_store as note.md. Any retry should wait for human approval of the message.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 14316,
+  "model_turns": 4,
+  "records": 8
+}

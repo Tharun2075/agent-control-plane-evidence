@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 67.225,
+  "final": "Not sent. The gate refused the email to c-001 (blocked_pending_approval) because no human has approved this exact message. There is also an open PECR question: c-001 is an individual subscriber with no recorded marketing consent. The draft was rendered from the intro template unchanged. The details and next steps for a human are in note.md: confirm PECR status, approve the message, then re-request the send.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 26648,
+  "model_turns": 5,
+  "records": 10
+}

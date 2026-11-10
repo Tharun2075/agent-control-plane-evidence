@@ -1,0 +1,70 @@
+{
+  "agents": {
+    "acp.research-agent-model": {
+      "manifest_sha256": [
+        "sha256:36ed08d55817bb4b7e80b1e7253f6188a5840fea7d37e86d593808802861a850"
+      ],
+      "sessions": [
+        "run4-research-s1"
+      ],
+      "steps": 7
+    }
+  },
+  "approvals": [],
+  "lawful_basis_tags": {
+    "not_applicable": 7
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "794eaf7d62afcf4adb4d5ed4d0451765b15bd1c174904dd4f528fca2ff2aaff4",
+  "log_records": 7,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "model_turn",
+      "agent": "acp.research-agent-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 0
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.research-agent-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 2
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.research-agent-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 4
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.research-agent-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 6
+    }
+  ],
+  "refusals": [],
+  "steps": 7,
+  "task": "",
+  "tools_used": {
+    "mcp_fetch": 1,
+    "session_store": 2
+  }
+}

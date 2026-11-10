@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 78.201,
+  "final": "No email sent to c-001. The send gate returned blocked_pending_approval: a human must approve this exact message, and no approval exists. The intro draft was rendered and the blocker is recorded in note.md. A reviewer also needs to check PECR first: c-001 is an individual subscriber with no recorded marketing consent, so consent or corporate-subscriber status should be confirmed before approving.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 23564,
+  "model_turns": 5,
+  "records": 10
+}

@@ -1,0 +1,1 @@
+Intro email to contact c-001 was rendered from the intro template and a send was requested via email_send under legitimate_interests. The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before it can be sent. Nothing was sent. The message is ready for human review; no approval exists yet.

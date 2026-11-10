@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 40.529,
+  "final": "Saved brief.md, an internal research brief on ARM LIMITED (02557590) based on the Companies House overview page. It is an active private limited company, incorporated 12 November 1990 as WIDELOGIC LIMITED. It was renamed ADVANCED RISC MACHINES LIMITED in December 1990 and has been ARM LIMITED since 21 May 1998. Registered office: 110 Fulbourn Road, Cambridge, CB1 9NJ. SIC code 82990 (other business support service activities n.e.c.). The brief also covers the accounts and confirmation-statement dates. I didn't fetch the officers, PSC or filing-history pages because the brief didn't need personal data. The 'England and Wales' jurisdiction is inferred from the company number format, not stated on the page.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 18803,
+  "model_turns": 3,
+  "records": 5
+}

@@ -1,0 +1,32 @@
+{
+  "calls": [
+    {
+      "content_len": 1179,
+      "content_sha256": "09129f0a2a836e37944103c1e57e0e56300873fd9e8972048103fe88250587fd",
+      "fields": {
+        "content_annotation_keys": [],
+        "result_keys": [
+          "content",
+          "isError"
+        ],
+        "signer": false,
+        "source_url": false,
+        "source_url_in_text_only": true,
+        "timestamp": false,
+        "version": false
+      },
+      "is_error": false,
+      "url": "https://find-and-update.company-information.service.gov.uk/company/02557590"
+    }
+  ],
+  "protocol_version": "2025-06-18",
+  "question": "does each tool result itself carry source URL, version, timestamp, signer?",
+  "server_argv": [
+    "uvx",
+    "mcp-server-fetch==2026.11.4"
+  ],
+  "server_info": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  }
+}

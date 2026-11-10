@@ -1,0 +1,120 @@
+{
+  "agents": {
+    "acp.outreach-agent-model": {
+      "manifest_sha256": [
+        "sha256:be3d96c756c2ca28d8359b123940ce8743f447fda4e049e3e7d6ea2d5c6f6c2a"
+      ],
+      "sessions": [
+        "run5-outreach-s1"
+      ],
+      "steps": 8
+    }
+  },
+  "approvals": [
+    {
+      "action": "send",
+      "approver": null,
+      "gate": "blocked",
+      "seq": 3,
+      "simulated": null,
+      "tool": "email_send"
+    }
+  ],
+  "lawful_basis_tags": {
+    "legitimate_interests": 4,
+    "not_applicable": 1,
+    "unclear": 3
+  },
+  "lawful_basis_unclear": [
+    {
+      "action": "render",
+      "reason": "",
+      "seq": 1
+    },
+    {
+      "action": "send",
+      "reason": "PECR reg 22: individual subscriber, no marketing consent on record",
+      "seq": 3
+    },
+    {
+      "action": "write",
+      "reason": "",
+      "seq": 4
+    }
+  ],
+  "log": "log.jsonl",
+  "log_head_hash": "74cf3e088ab10c6cb005008978bb227d26bf24406bfb834d759ee50f7f585088",
+  "log_records": 8,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [
+    "identifier:name",
+    "professional:employer",
+    "professional:job_title"
+  ],
+  "recipients_blocked_not_sent": [
+    {
+      "action": "send",
+      "agent": "acp.outreach-agent-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "professional:job_title",
+        "professional:employer"
+      ],
+      "recipient": "contact:c-001 (synthetic)",
+      "seq": 3
+    }
+  ],
+  "recipients_data_sent_to": [
+    {
+      "action": "model_turn",
+      "agent": "acp.outreach-agent-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 0
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.outreach-agent-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "professional:employer",
+        "professional:job_title"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 2
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.outreach-agent-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "professional:employer",
+        "professional:job_title"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 5
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.outreach-agent-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "professional:employer",
+        "professional:job_title"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 7
+    }
+  ],
+  "refusals": [],
+  "steps": 8,
+  "task": "",
+  "tools_used": {
+    "email_send": 1,
+    "session_store": 2,
+    "template_render": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 71.503,
+  "final": "The intro email to CRM contact c-001 was drafted via template_render and a send was requested via email_send under Art 6(1)(f). The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before anything can be sent. Nothing was sent. A note of what happened was written to session_store as note.md. Next step: a human reviewer needs to approve or reject the drafted message.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 14311,
+  "model_turns": 4,
+  "records": 8
+}

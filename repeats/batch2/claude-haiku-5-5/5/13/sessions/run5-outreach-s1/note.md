@@ -1,0 +1,1 @@
+Intro email to CRM contact c-001 was rendered from the intro template and submitted via email_send under Art 6(1)(f) legitimate interests. The control gate blocked the send with 'blocked_pending_approval': a human must approve this exact message before it can leave. Nothing was sent. Next step: route the rendered draft to a human reviewer for approval, then resubmit if approved.

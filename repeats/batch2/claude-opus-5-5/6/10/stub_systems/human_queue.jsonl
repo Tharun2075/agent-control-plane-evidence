@@ -1,0 +1,3 @@
+{"reason": "Worker classification flagged special category data (Art 9). Needs human handling of the rebooking request.", "ticket_id": "T-103"}
+{"reason": "Worker classification: data rights request (subject access request). Needs human handling within statutory time limits.", "ticket_id": "T-104"}
+{"reason": "Customer requested subscription cancellation effective end of this month. subscription_cancel was blocked pending human approval (irreversible action). Please review and approve or action the cancellation.", "ticket_id": "T-102"}

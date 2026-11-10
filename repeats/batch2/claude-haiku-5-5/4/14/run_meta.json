@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 49.026,
+  "final": "Saved the research brief to brief.md (session_store). ARM LIMITED (02557590) is an active private limited company, incorporated 12 November 1990 as WIDELOGIC LIMITED and renamed ADVANCED RISC MACHINES LIMITED (3 Dec 1990) and then ARM LIMITED (21 May 1998). Its registered office is 110 Fulbourn Road, Cambridge, CB1 9NJ. Its registered SIC code is 82990 (other business support service activities n.e.c.), which is generic and does not describe its actual business. Last accounts were made up to 31 March 2026, and the last confirmation statement is dated 14 November 2025. Officers, PSC, charges and full filing history were not reviewed and are out of scope for this brief.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 13433,
+  "model_turns": 3,
+  "records": 5
+}

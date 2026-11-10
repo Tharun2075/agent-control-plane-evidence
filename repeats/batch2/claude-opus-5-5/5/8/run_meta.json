@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 86.686,
+  "final": "Draft intro email for c-001 prepared from the intro template; email_send was blocked by the control gate (blocked_pending_approval), so nothing was sent. A note is saved to session_store as note.md. It also flags a PECR concern: c-001 is an individual subscriber with marketing_consent null, so consent or corporate-subscriber status should be confirmed before a human approves the send.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 22654,
+  "model_turns": 5,
+  "records": 10
+}

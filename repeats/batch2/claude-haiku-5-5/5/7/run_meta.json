@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 58.921,
+  "final": "Send blocked by the control gate (blocked_pending_approval): a human must approve the exact rendered intro email before it can go out. Nothing was sent. The note with the blocking reason and next steps was written to session_store as note.md.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 14184,
+  "model_turns": 4,
+  "records": 8
+}

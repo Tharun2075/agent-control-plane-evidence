@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 53.14,
+  "final": "The intro email to c-001 was rendered from the template and a send was requested under legitimate_interests. The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before it can be sent. Nothing was sent. A note was written to session_store as note.md.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 14711,
+  "model_turns": 4,
+  "records": 8
+}

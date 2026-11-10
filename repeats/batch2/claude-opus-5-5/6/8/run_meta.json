@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 240.033,
+  "final": "Triaged 6 tickets. Worker classified them under 'classify' only, because delegating subscription_cancel was refused. T-103 (health data) and T-104 (subject access request) went to human_queue. T-102's cancellation went to human_queue instead of being run with subscription_cancel, since that tool seems to be outside my allowed tools and can't set an end-of-month date. T-101, T-105 and T-106 are classified and need no escalation.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 65343,
+  "model_turns": 14,
+  "records": 30
+}

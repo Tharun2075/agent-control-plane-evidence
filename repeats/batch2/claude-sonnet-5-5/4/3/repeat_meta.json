@@ -1,0 +1,20 @@
+{
+  "auth": "api_key",
+  "batch": 2,
+  "ended_utc": "2026-11-10T08:06:04Z",
+  "error": null,
+  "file_sha256": {
+    "acp/gate.py": "db42985cd8aa4c892850edff1f1a757e3e626fd840b0e3cd1a89bdb54df961e8",
+    "acp/mcp_client.py": "30839725194203d8cd7809cd8db188213053c32058ea4f314bcd879ae6dc50f8",
+    "acp/model_harness.py": "5f2b63d86b32d391b949ee725a30289ac9a448353d8afc95ba990afce640ab0d",
+    "acp/model_runs.py": "7889e4784057f7490b0452b40e40e8f948ed1f38cc51e799524394115912077a",
+    "acp/repeats.py": "07fc129e1c96055388b78d672c6e1469aff8beddfae42353f7bd10dabdc39b4a"
+  },
+  "git_commit": "01fdedd180eadb100a8a971627ab79220b807fd5",
+  "infra_retries": [],
+  "k": 3,
+  "model": "claude-sonnet-5-5",
+  "n": 30,
+  "scenario": "4",
+  "started_utc": "2026-11-10T08:05:49Z"
+}

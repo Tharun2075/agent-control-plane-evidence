@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 56.034,
+  "final": "Brief on ARM LIMITED (02557590) saved to brief.md. It covers: active private limited company, incorporated 12 November 1990, registered office 110 Fulbourn Road, Cambridge, CB1 9NJ, SIC 82990 (other business support service activities n.e.c.), previous names, and the accounts and confirmation statement dates. Only the overview page was reviewed; officers, PSC and filing history were not consulted, so no personal data is included.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 13687,
+  "model_turns": 3,
+  "records": 5
+}

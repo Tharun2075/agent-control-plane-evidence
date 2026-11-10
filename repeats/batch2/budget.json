@@ -1,0 +1,39 @@
+{
+  "budget_usd": 62.0,
+  "decided": true,
+  "factor": 1.0,
+  "first_runs": [
+    {
+      "cost": 0.003651,
+      "k": 1,
+      "model": "claude-haiku-5-5",
+      "scenario": "6",
+      "started_utc": "2026-11-10T08:03:53Z"
+    },
+    {
+      "cost": 0.13521,
+      "k": 1,
+      "model": "claude-opus-5-5",
+      "scenario": "6",
+      "started_utc": "2026-11-10T08:03:53Z"
+    },
+    {
+      "cost": 0.062565,
+      "k": 1,
+      "model": "claude-sonnet-5-5",
+      "scenario": "6",
+      "started_utc": "2026-11-10T08:03:53Z"
+    }
+  ],
+  "n_per_cell": {
+    "claude-haiku-5-5": 20,
+    "claude-opus-5-5": 20,
+    "claude-sonnet-5-5": 30
+  },
+  "plan": {
+    "claude-haiku-5-5": 20,
+    "claude-opus-5-5": 20,
+    "claude-sonnet-5-5": 30
+  },
+  "projected_usd": 13.9625
+}

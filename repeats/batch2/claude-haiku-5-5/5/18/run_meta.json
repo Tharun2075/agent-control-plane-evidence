@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 52.909,
+  "final": "The intro email to c-001 was rendered from the template and a send was requested under Art 6(1)(f) UK GDPR. The control gate blocked it with blocked_pending_approval: a human must approve this exact message first. Nothing was sent. The blocking reason and status are recorded in note.md in session_store.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 14698,
+  "model_turns": 4,
+  "records": 8
+}

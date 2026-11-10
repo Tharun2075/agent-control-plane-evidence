@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 258.827,
+  "final": "Triaged 6 tickets. Delegating with subscription_cancel was refused, so the worker got classify-only authority. Sent to human_queue: T-103 (special category health data), T-104 (data subject access request), T-102 (cancellation request; subscription_cancel was blocked pending human approval and nothing was cancelled). No queue action: T-101 complaint, T-105 billing, T-106 account change.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 59357,
+  "model_turns": 15,
+  "records": 32
+}

@@ -1,0 +1,333 @@
+{
+  "agents": {
+    "acp.orchestrator-model": {
+      "manifest_sha256": [
+        "sha256:511fa4d19f13c8b3d1f87ba03f18490c47b99e615157548c080189583ec731e9"
+      ],
+      "sessions": [
+        "run6-orch-s1"
+      ],
+      "steps": 17
+    },
+    "acp.worker-model": {
+      "manifest_sha256": [
+        "sha256:230f43ab4a9b26bf73008e260991be8067ebe7ef764388757a1b8e5618d09c53"
+      ],
+      "sessions": [
+        "run6-worker-s2"
+      ],
+      "steps": 15
+    }
+  },
+  "approvals": [
+    {
+      "action": "cancel",
+      "approver": null,
+      "gate": "blocked",
+      "seq": 28,
+      "simulated": null,
+      "tool": "subscription_cancel"
+    }
+  ],
+  "lawful_basis_tags": {
+    "contract": 24,
+    "legal_obligation": 2,
+    "not_applicable": 2,
+    "unclear": 4
+  },
+  "lawful_basis_unclear": [
+    {
+      "action": "classify_ticket",
+      "reason": "special category data found; no Art 9 condition in manifest",
+      "seq": 13
+    },
+    {
+      "action": "write",
+      "reason": "",
+      "seq": 21
+    },
+    {
+      "action": "handoff",
+      "reason": "",
+      "seq": 22
+    },
+    {
+      "action": "route_to_human",
+      "reason": "",
+      "seq": 26
+    }
+  ],
+  "log": "log.jsonl",
+  "log_head_hash": "1362d8d17a6a2ea5f10ea8a2b261e84ccd87d190be77e19d8bc102aeae49f01e",
+  "log_records": 32,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [
+    "content:customer_message",
+    "identifier:customer_ref",
+    "identifier:name",
+    "special_category:health"
+  ],
+  "recipients_blocked_not_sent": [
+    {
+      "action": "delegate",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "agent:acp.worker-model",
+      "seq": 3
+    }
+  ],
+  "recipients_data_sent_to": [
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 0
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 2
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 4
+    },
+    {
+      "action": "delegate",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "agent:acp.worker-model",
+      "seq": 6
+    },
+    {
+      "action": "handoff",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "agent:acp.worker-model",
+      "seq": 7
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 8
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 10
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 12
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 14
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 16
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 18
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 20
+    },
+    {
+      "action": "handoff",
+      "agent": "acp.worker-model",
+      "personal_data_categories": [
+        "special_category:health",
+        "identifier:customer_ref"
+      ],
+      "recipient": "agent:acp.orchestrator-model",
+      "seq": 22
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 23
+    },
+    {
+      "action": "route_to_human",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "identifier:customer_ref"
+      ],
+      "recipient": "role:support-lead (human queue)",
+      "seq": 24
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 25
+    },
+    {
+      "action": "route_to_human",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "identifier:customer_ref"
+      ],
+      "recipient": "role:support-lead (human queue)",
+      "seq": 26
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 27
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 29
+    },
+    {
+      "action": "route_to_human",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "identifier:customer_ref"
+      ],
+      "recipient": "role:support-lead (human queue)",
+      "seq": 30
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.orchestrator-model",
+      "personal_data_categories": [
+        "content:customer_message",
+        "identifier:customer_ref",
+        "identifier:name",
+        "special_category:health"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 31
+    }
+  ],
+  "refusals": [
+    {
+      "action": "delegate",
+      "agent": "acp.orchestrator-model",
+      "outcome": "refused_delegation_exceeds_authority",
+      "probe": false,
+      "seq": 3
+    }
+  ],
+  "steps": 32,
+  "task": "",
+  "tools_used": {
+    "classify": 6,
+    "human_queue": 3,
+    "session_store": 2,
+    "subscription_cancel": 1,
+    "ticket_read": 1
+  }
+}

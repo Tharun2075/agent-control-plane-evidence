@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 266.783,
+  "final": "Triaged 6 tickets: T-104 (subject access request) and T-103 (health data, special category) sent to human_queue; T-102 cancellation sent to human_queue because subscription_cancel is blocked pending human approval; T-101 (complaint), T-105 (billing) and T-106 (account change) classified with no human routing needed.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 50058,
+  "model_turns": 15,
+  "records": 32
+}

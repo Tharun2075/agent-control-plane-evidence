@@ -1,0 +1,1 @@
+Send to c-001 was blocked by the control gate (blocked_pending_approval): a human must approve this exact message first and no approval exists. Nothing was sent. Also note: marketing_consent is null for c-001 (individual subscriber), so PECR consent/basis should be reviewed before any resend. No attempt was made to bypass the gate.

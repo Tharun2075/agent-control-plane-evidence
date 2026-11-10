@@ -1,0 +1,3 @@
+{"reason": "Special category data flagged by classifier; needs human handling (scheduling request)", "ticket_id": "T-103"}
+{"reason": "Data subject access request (UK GDPR Art 15); needs human handling within the statutory time limit", "ticket_id": "T-104"}
+{"reason": "Customer asked to cancel their subscription at the end of this month. The subscription_cancel call was blocked because cancellation is irreversible and needs human approval first. Nothing has been cancelled yet. Please approve and action it, or decline.", "ticket_id": "T-102"}

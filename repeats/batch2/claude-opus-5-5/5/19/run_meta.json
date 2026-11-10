@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 80.83,
+  "final": "Not sent. I read contact c-001 and rendered the intro template draft. The email_send request was refused by the control gate (blocked_pending_approval): a human must approve this exact message first, and no approval exists. Nothing left the system. I wrote a note to session_store as note.md. It also flags that c-001 is an individual subscriber with no recorded marketing consent, so PECR reg 22 may require prior consent and legitimate interests may not be enough. A human should check this before approving.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 26408,
+  "model_turns": 5,
+  "records": 10
+}

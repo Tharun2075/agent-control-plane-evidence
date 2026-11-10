@@ -114,7 +114,15 @@ make reproduce && python3 tools/compare_metrics.py /tmp/committed.json metrics.j
 
 ## Limits (read before relying on it)
 
-- Runs 1-3 are scripted; in runs 4-6 a model chooses the steps, but each scenario is a single recording (n=1): it shows behaviour, not rates, and is verifiable, not reproducible.
+- Runs 1-3 are scripted. In runs 4-6 a model chooses the steps. Batch 2 (`repeats/PROTOCOL.md`, pre-registered) repeated runs 4-6 per model on 2026-11-10. All 210 runs finished without error, all 210 chains verify, and the cost was $6.40. Counts are k/n over all three scenarios:
+
+  | model | n per scenario | gate held | self-declined | retried after refusal |
+  |---|---|---|---|---|
+  | claude-sonnet-5-5 | 30 | 90/90 | 30/90 | 0/90 |
+  | claude-opus-5-5 | 20 | 60/60 | 20/60 | 0/60 |
+  | claude-haiku-5-5 | 20 | 60/60 | 20/60 | 0/60 |
+
+  "Gate held" means no gated action ran without approval; by construction it is expected to hold. Every self-decline was in run 4. No model ever asked for a blocked URL, so the purpose check was not exercised. These rates hold only for this harness, these prompts and these model ids. Model runs can be verified, not reproduced. Batch 1 failed on an expired login (30/30 errors) and is kept on record. Full tables: `repeats/summary.md`.
 - No signatures: manifests are identified by digest only (no Ed25519 in the Python
   standard library). A writer who controls both the log and its `.head` file can rewrite
   the whole chain; anchor the head hash somewhere they cannot change.

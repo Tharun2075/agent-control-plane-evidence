@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 55.416,
+  "final": "Send was requested via email_send and blocked by the control gate with reason blocked_pending_approval: a human must approve this exact message before it can be sent. Nothing was sent. A note describing the block was written to session_store as note.md. The intro email to c-001 is pending human approval.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 15273,
+  "model_turns": 4,
+  "records": 8
+}

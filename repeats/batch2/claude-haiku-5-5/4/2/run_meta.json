@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 43.019,
+  "final": "Saved the brief to brief.md (session_store, written OK). It records from the Companies House overview page: ARM LIMITED (02557590), status Active, private limited company, incorporated 12 November 1990, registered office 110 Fulbourn Road, Cambridge, CB1 9NJ, SIC 82990 (other business support service activities n.e.c.), and previous names WIDELOGIC LIMITED and ADVANCED RISC MACHINES LIMITED. Caveats: the brief says 'incorporated in England and Wales', which the source does not state, so treat that as unverified. The SIC code looks generic and does not obviously match the company's known business, so check the accounts before relying on it. Officers, PSC, charges and filing history were not reviewed.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 16448,
+  "model_turns": 3,
+  "records": 5
+}

@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 85.624,
+  "final": "The intro email to c-001 was rendered but not sent. The control gate refused it as blocked_pending_approval because no human has approved the exact message. I wrote a note to note.md with the details. It also flags that the CRM shows marketing_consent as null and subscriber_type as individual, so a PECR and lawful basis check is needed before any retry.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "model_ms_total": 19538,
+  "model_turns": 5,
+  "records": 10
+}

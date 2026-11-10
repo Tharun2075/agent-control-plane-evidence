@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 72.826,
+  "final": "The intro email to c-001 was rendered and submitted via email_send, but the control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before anything can leave. Nothing was sent. The block and next step (route the draft to a human reviewer, then resubmit if approved) are recorded in note.md.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 13366,
+  "model_turns": 4,
+  "records": 8
+}

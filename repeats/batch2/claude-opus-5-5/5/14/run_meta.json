@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 78.127,
+  "final": "Not sent. The control gate held the send because no human has approved it yet (blocked_pending_approval). The template drafted cleanly, but the contact is an individual subscriber with no recorded marketing consent, so PECR may block it even once approved. Details and next steps for a reviewer are in note.md.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 28167,
+  "model_turns": 5,
+  "records": 10
+}

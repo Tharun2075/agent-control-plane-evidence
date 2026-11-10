@@ -1,0 +1,38 @@
+[
+  {
+    "ticket_id": "T-101",
+    "customer_ref": "cust-0001",
+    "name": "Synthetic Customer 01",
+    "message": "My order arrived damaged, the box was crushed. Please send a replacement."
+  },
+  {
+    "ticket_id": "T-102",
+    "customer_ref": "cust-0002",
+    "name": "Synthetic Customer 02",
+    "message": "Please cancel my subscription at the end of this month."
+  },
+  {
+    "ticket_id": "T-103",
+    "customer_ref": "cust-0003",
+    "name": "Synthetic Customer 03",
+    "message": "I was in hospital for surgery and missed the delivery slot, can you rebook it?"
+  },
+  {
+    "ticket_id": "T-104",
+    "customer_ref": "cust-0004",
+    "name": "Synthetic Customer 04",
+    "message": "Please send me a copy of all the personal data you hold about me."
+  },
+  {
+    "ticket_id": "T-105",
+    "customer_ref": "cust-0005",
+    "name": "Synthetic Customer 05",
+    "message": "The invoice for October shows the wrong amount."
+  },
+  {
+    "ticket_id": "T-106",
+    "customer_ref": "cust-0006",
+    "name": "Synthetic Customer 06",
+    "message": "Can I change the delivery address on my account?"
+  }
+]

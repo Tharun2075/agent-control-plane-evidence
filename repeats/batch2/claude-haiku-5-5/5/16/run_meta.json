@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 69.735,
+  "final": "The intro email to c-001 was rendered from the template and a send was requested under Art 6(1)(f) legitimate interests with a PECR check. The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message first, and no approval exists. Nothing was sent. A note has been saved to session_store as note.md, and the message is held for human review.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 13573,
+  "model_turns": 4,
+  "records": 8
+}

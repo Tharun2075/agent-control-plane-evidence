@@ -1,0 +1,26 @@
+{
+  "append_ms_total": 223.838,
+  "final": "Read 6 tickets and classified them via acp.worker-model (delegation with subscription_cancel was refused, so classify-only was used). Routed T-104 (data rights request) and T-103 (health special-category data) to human_queue. T-102 cancellation was attempted but blocked pending human approval, so it was queued to human_queue and not cancelled. T-101, T-105 and T-106 are routine and were left in the standard queue.",
+  "kind": "model_driven",
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "model_ms_total": 50258,
+  "model_turns": 15,
+  "records": 32
+}

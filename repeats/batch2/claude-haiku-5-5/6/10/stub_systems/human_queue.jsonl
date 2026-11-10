@@ -1,0 +1,3 @@
+{"reason": "Data rights request: customer asks for a copy of all personal data held about them (subject access request). Needs human handling.", "ticket_id": "T-104"}
+{"reason": "Special category data (health): customer mentions hospital surgery in a delivery rescheduling request. Needs human handling under Art 9 safeguards before any health information is processed.", "ticket_id": "T-103"}
+{"reason": "Subscription cancellation request (end of this month). subscription_cancel is blocked pending human approval because cancellation is irreversible. Needs a human to approve and action it.", "ticket_id": "T-102"}

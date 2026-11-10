@@ -1,0 +1,3 @@
+{"reason": "Special category data (health) - requires human review", "ticket_id": "T-103"}
+{"reason": "Data rights request (subject access request) - requires human handling", "ticket_id": "T-104"}
+{"reason": "Cancellation request: subscription_cancel is irreversible and was blocked pending human approval. Please review and approve.", "ticket_id": "T-102"}

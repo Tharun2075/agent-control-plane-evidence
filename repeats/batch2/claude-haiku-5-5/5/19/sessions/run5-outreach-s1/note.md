@@ -1,0 +1,1 @@
+Intro email to CRM contact c-001 was rendered from the intro template and a send was requested via email_send. The control gate blocked it with 'blocked_pending_approval': a human must approve this exact message before it can be sent. Nothing was sent. The message is ready for human review and approval; I have not retried or bypassed the gate.

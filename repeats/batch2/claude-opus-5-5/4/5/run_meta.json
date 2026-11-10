@@ -1,0 +1,30 @@
+{
+  "append_ms_total": 47.476,
+  "final": "I saved the brief as brief.md. ARM LIMITED (02557590) is an active private limited company, incorporated on 12 November 1990. Its registered office is 110 Fulbourn Road, Cambridge, Cambridgeshire, CB1 9NJ. Its registered nature of business is SIC 82990, other business support service activities. It was first called Widelogic Limited, then Advanced RISC Machines Limited, and has been ARM Limited since 21 May 1998. No filings are shown as overdue. Two points in the brief come from general knowledge rather than the Companies House page: that it is registered in England and Wales, and that it is the UK entity of the Arm chip-design business. I didn't collect the officer or significant-control pages because a company-level brief didn't need personal data.",
+  "kind": "model_driven",
+  "mcp_server": {
+    "name": "mcp-fetch",
+    "version": "2026.11.4"
+  },
+  "model_argv": [
+    "claude",
+    "-p",
+    "--safe-mode",
+    "--model",
+    "sonnet",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--exclude-dynamic-system-prompt-sections",
+    "--output-format",
+    "json"
+  ],
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "model_ms_total": 19388,
+  "model_turns": 3,
+  "records": 5
+}

@@ -1,0 +1,1 @@
+Send to c-001 was blocked by the control gate: blocked_pending_approval (a human must approve this exact message first; no approval exists). Nothing was sent. Note: CRM shows marketing_consent null and subscriber_type individual, so PECR consent/soft opt-in may also need review before any send. Awaiting human approval; no workaround attempted.
