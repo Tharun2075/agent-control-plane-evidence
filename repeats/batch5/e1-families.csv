@@ -3,8 +3,8 @@ approval,before,80,20,3.375,1
 approval,after,80,10,3.263,1
 delegation,before,80,40,2.5,1
 delegation,after,80,0,1.0,1
-logtamper,before,80,40,2.0,4
-logtamper,after,80,0,4.0,4
+logtamper,before,80,40,1.75,4
+logtamper,after,80,0,2.25,4
 session,before,60,20,3.333,1
 session,after,60,20,3.333,1
 url,before,240,42,3.1,1
