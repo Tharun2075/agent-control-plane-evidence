@@ -86,3 +86,85 @@ class TestAggregate(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBatch2(unittest.TestCase):
+    """Batch 2: per model x scenario aggregation, budget projection, API-key client and infra retry rule."""
+
+    def test_aggregate_batch2(self):
+        td = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, td)
+        for m in ("claude-a", "claude-b"):
+            for s in ("4", "5", "6"):
+                d = td / "repeats" / "batch2" / m / s / "1"
+                shutil.copytree(ROOT / "runs" / s, d)
+                (d / "repeat_meta.json").write_text(json.dumps(
+                    {"error": None, "started_utc": "2026-11-10T09:00:00Z", "infra_retries": [{"status": 529}]}))
+                (d / "cost.json").write_text(json.dumps({"total_cost_usd": 0.25}))
+        b = repeats.aggregate(td)["batch2"]
+        self.assertEqual(sorted(b["models"]), ["claude-a", "claude-b"])
+        self.assertEqual(b["cost_usd"], 1.5)
+        self.assertEqual(b["models"]["claude-a"]["infra_retries"], 3)
+        self.assertEqual(b["cross_model"]["claude-a"]["n"], 3)
+        self.assertEqual(b["cross_model"]["claude-a"]["k"], 0)
+        self.assertIn("# Batch 2", repeats.to_markdown(repeats.aggregate(td)))
+
+    def test_projection_cut_equal_per_cell(self):
+        plan = {"m1": 30, "m2": 20}
+        rows = [{"model": "m1", "scenario": "6", "k": 1, "started_utc": "a", "cost": 1.0},
+                {"model": "m2", "scenario": "6", "k": 1, "started_utc": "b", "cost": 0.5},
+                {"model": "m1", "scenario": "4", "k": 1, "started_utc": "c", "cost": 9.0}]
+        self.assertFalse(repeats.b2_projection(plan, rows[:2], 62)["decided"])
+        p = repeats.b2_projection(plan, rows, 62)
+        # m1 mean of its first runs (1.0, 9.0) = 5.0 x 90 runs + m2 0.5 x 60 runs = 480
+        self.assertEqual(p["projected_usd"], 480.0)
+        self.assertEqual(p["n_per_cell"], {"m1": 3, "m2": 2})
+        self.assertEqual(repeats.b2_projection(plan, [dict(r, cost=0.01) for r in rows], 62)["n_per_cell"], plan)
+
+    def _client(self, replies):
+        import subprocess as sp
+        calls = []
+
+        def fake_run(argv, cwd=None, env=None, **kw):
+            calls.append(env)
+            rc, out = replies.pop(0)
+            return sp.CompletedProcess(argv, rc, json.dumps(out), "")
+
+        orig_run, orig_backoff = repeats.subprocess.run, repeats.RETRY_BACKOFF_S
+        repeats.subprocess.run, repeats.RETRY_BACKOFF_S = fake_run, (0, 0, 0)
+        self.addCleanup(setattr, repeats.subprocess, "run", orig_run)
+        self.addCleanup(setattr, repeats, "RETRY_BACKOFF_S", orig_backoff)
+        st = {"model": "claude-x", "key": "test-key-value", "cost_usd": 0.0, "calls": 0, "turns_ok": 0,
+              "infra_retries": []}
+        repeats._tls.state = st
+        self.addCleanup(setattr, repeats._tls, "state", None)
+        return repeats._api_key_client()(), st, calls
+
+    OK = (0, {"result": "{}", "modelUsage": {"claude-x": {}}, "usage": {}, "total_cost_usd": 0.1})
+
+    def test_api_key_only_in_subprocess_env(self):
+        import os
+        c, st, calls = self._client([self.OK])
+        self.assertIn("claude-x", c.argv)
+        r = c.ask("hi")
+        self.assertEqual(r["model_id"], "claude-x")
+        self.assertEqual(calls[0]["ANTHROPIC_API_KEY"], "test-key-value")
+        self.assertNotIn("CLAUDE_CODE_OAUTH_TOKEN", calls[0])
+        self.assertNotEqual(os.environ.get("ANTHROPIC_API_KEY"), "test-key-value")
+        self.assertAlmostEqual(st["cost_usd"], 0.1)
+
+    def test_retry_only_before_first_turn_and_only_infra(self):
+        overloaded = (1, {"is_error": True, "api_error_status": 529, "total_cost_usd": 0})
+        c, st, _ = self._client([overloaded, overloaded, self.OK, overloaded])
+        c.ask("1")
+        self.assertEqual(len(st["infra_retries"]), 2)
+        with self.assertRaises(RuntimeError):  # after the first model turn: recorded, not retried
+            c.ask("2")
+        c, st, _ = self._client([(1, {"is_error": True, "api_error_status": 400})])
+        with self.assertRaises(RuntimeError):
+            c.ask("1")
+        self.assertEqual(st["infra_retries"], [])
+        c, st, _ = self._client([overloaded] * 4)
+        with self.assertRaises(RuntimeError):
+            c.ask("1")
+        self.assertEqual(len(st["infra_retries"]), 3)

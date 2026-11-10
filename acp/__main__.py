@@ -31,9 +31,16 @@ def main(argv=None) -> int:
     p = sub.add_parser("metrics", help="recompute metrics.json / metrics.md from runs/")
     p.add_argument("--out", help="write metrics JSON to this path instead (committed files untouched)")
     p = sub.add_parser("repeat", help="repeat model-driven run 4, 5 or 6 n times (repeats/PROTOCOL.md)")
-    p.add_argument("--scenario", required=True, choices=["4", "5", "6"])
+    p.add_argument("--scenario", action="append", choices=["4", "5", "6"],
+                   help="repeatable; required for batch 1, default 4 5 6 with --model")
     p.add_argument("--n", type=int, default=10)
     p.add_argument("--out", help="default repeats/<scenario>")
+    p.add_argument("--model", action="append",
+                   help="batch 2: exact model id, optionally id:N (default N from the pre-registered plan); repeatable")
+    p.add_argument("--jobs", type=int, default=1, help="batch 2: runs in parallel")
+    p.add_argument("--budget", type=float, default=None, help="batch 2: stop launching at this summed cost (USD)")
+    p.add_argument("--k-max", type=int, default=None, help="batch 2: only repetitions 1..k (smoke runs)")
+    p.add_argument("--key-cmd", help="batch 2: command that prints the API key; read in this process only")
     p = sub.add_parser("repeats-summary", help="aggregate repeats/ into repeats/summary.json + summary.md")
     p.add_argument("--out", help="write the summary JSON to this path instead (committed files untouched)")
     sub.add_parser("mcp-check", help="repeat the MCP provenance check on five public URLs (repeats/mcp/)")
@@ -68,7 +75,9 @@ def main(argv=None) -> int:
     if a.cmd == "verify-all":
         bad = 0
         logs = sorted((ROOT / "runs").glob("*/log.jsonl")) + sorted(
-            (ROOT / "repeats").glob("*/*/log.jsonl"), key=lambda p: (p.parent.parent.name, int(p.parent.name)))
+            (ROOT / "repeats").glob("*/*/log.jsonl"), key=lambda p: (p.parent.parent.name, int(p.parent.name))) + sorted(
+            (ROOT / "repeats" / "batch2").glob("*/*/*/log.jsonl"),
+            key=lambda p: (p.parent.parent.parent.name, p.parent.parent.name, int(p.parent.name)))
         for log in logs:
             r = verify(log)
             bad += not r.ok
@@ -83,10 +92,27 @@ def main(argv=None) -> int:
         return 0
     if a.cmd in ("repeat", "repeats-summary", "mcp-check"):
         from . import repeats
+        if a.cmd == "repeat" and a.model:
+            import shlex
+            import subprocess
+            plan = {}
+            for m in a.model:
+                mid, _, n = m.partition(":")
+                plan[mid] = int(n) if n else repeats.B2_PLAN[mid]
+            if not a.key_cmd:
+                ap.error("--model needs --key-cmd (batch 2 authenticates by API key)")
+            key = subprocess.run(shlex.split(a.key_cmd), capture_output=True, text=True, check=True).stdout.strip()
+            done = repeats.repeat_b2(ROOT, plan, a.scenario or ["4", "5", "6"], a.jobs, key, write_summary,
+                                     a.budget if a.budget is not None else repeats.B2_BUDGET_USD, a.k_max)
+            del key
+            print(f"batch 2: {sum(not d['error'] for d in done)}/{len(done)} without harness error")
+            return 0
         if a.cmd == "repeat":
-            out = Path(a.out) if a.out else ROOT / "repeats" / a.scenario
-            done = repeats.repeat(ROOT, a.scenario, a.n, out, write_summary)
-            print(f"scenario {a.scenario}: {sum(not d['error'] for d in done)}/{len(done)} without harness error")
+            if not a.scenario or len(a.scenario) != 1:
+                ap.error("batch 1 takes exactly one --scenario")
+            out = Path(a.out) if a.out else ROOT / "repeats" / a.scenario[0]
+            done = repeats.repeat(ROOT, a.scenario[0], a.n, out, write_summary)
+            print(f"scenario {a.scenario[0]}: {sum(not d['error'] for d in done)}/{len(done)} without harness error")
             return 0
         if a.cmd == "mcp-check":
             m = repeats.mcp_check(ROOT / "repeats" / "mcp" / "provenance.json")
