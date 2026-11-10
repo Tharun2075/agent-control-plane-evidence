@@ -89,7 +89,8 @@ All runs that start are reported, including errors, provider refusals and runs c
   AgentDojo 0.1.35 calls `MessageParam(...)`, which the installed anthropic SDK defines as a
   Union (`TypeError: Cannot instantiate typing.Union`). 12 runs, 0 tokens, $0.
 - Those 12 records are kept unchanged in `repeats/batch6/pilot-harness-error/` and reported;
-  they are not part of B1 or B2 (pilot runs never were).
+  they are not part of B1 or B2 (no request was made). The re-run pilot writes the first
+  B1 records; the full run resumes from them.
 - Fix: `tools/bench_agentdojo.py` sets `A.MessageParam = dict` (the benchmark only uses it to
   build a plain dict). Nothing else changed: same subset, arms, models, metrics and stop rules.
 - New SHA-256 of `tools/bench_agentdojo.py`: 2d8084b22109440cf1c199315c8237f40f6570974afabaa3147b5a9648a6c6fc
