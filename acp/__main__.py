@@ -31,8 +31,8 @@ def main(argv=None) -> int:
     p = sub.add_parser("metrics", help="recompute metrics.json / metrics.md from runs/")
     p.add_argument("--out", help="write metrics JSON to this path instead (committed files untouched)")
     p = sub.add_parser("repeat", help="repeat model-driven run 4, 5 or 6 n times (repeats/PROTOCOL.md)")
-    p.add_argument("--scenario", action="append", choices=["4", "5", "6", "7", "8"],
-                   help="repeatable; required for batch 1, default 4 5 6 with --model; 7 8 are batch 3")
+    p.add_argument("--scenario", action="append", choices=["4", "5", "6", "7", "8", "9"],
+                   help="repeatable; required for batch 1, default 4 5 6 with --model; 7 8 are batch 3, 9 is batch 4")
     p.add_argument("--n", type=int, default=10)
     p.add_argument("--out", help="default repeats/<scenario>")
     p.add_argument("--model", action="append",
@@ -78,7 +78,7 @@ def main(argv=None) -> int:
             [p for p in (ROOT / "repeats").glob("*/*/log.jsonl") if p.parent.name.isdigit()],
             key=lambda p: (p.parent.parent.name, int(p.parent.name))) + sorted(
             (ROOT / "repeats").glob("batch*/probe-*/log.jsonl")) + sorted(
-            [p for b in ("batch2", "batch3") for p in (ROOT / "repeats" / b).glob("*/*/*/log.jsonl")],
+            [p for b in ("batch2", "batch3", "batch4") for p in (ROOT / "repeats" / b).glob("*/*/*/log.jsonl")],
             key=lambda p: (p.parent.parent.parent.parent.name, p.parent.parent.parent.name, p.parent.parent.name,
                            int(p.parent.name)))
         for log in logs:
@@ -99,10 +99,11 @@ def main(argv=None) -> int:
             import shlex
             import subprocess
             scen = a.scenario or ["4", "5", "6"]
-            batch = 3 if set(scen) <= set(repeats.B3_SCENARIOS) else 2
-            if batch == 2 and set(scen) & set(repeats.B3_SCENARIOS):
-                ap.error("scenarios 7 8 (batch 3) cannot be mixed with 4 5 6 (batch 2)")
-            base_plan = repeats.B3_PLAN if batch == 3 else repeats.B2_PLAN
+            batch = 4 if set(scen) <= set(repeats.B4_SCENARIOS) else 3 if set(scen) <= set(repeats.B3_SCENARIOS) else 2
+            if batch != 4 and set(scen) & set(repeats.B4_SCENARIOS) or batch == 2 and set(scen) & set(
+                    repeats.B3_SCENARIOS):
+                ap.error("scenarios 4 5 6 (batch 2), 7 8 (batch 3) and 9 (batch 4) cannot be mixed")
+            base_plan = {3: repeats.B3_PLAN, 4: repeats.B4_PLAN}.get(batch, repeats.B2_PLAN)
             plan = {}
             for m in a.model:
                 mid, _, n = m.partition(":")
@@ -110,7 +111,7 @@ def main(argv=None) -> int:
             if not a.key_cmd:
                 ap.error("--model needs --key-cmd (batch 2 authenticates by API key)")
             key = subprocess.run(shlex.split(a.key_cmd), capture_output=True, text=True, check=True).stdout.strip()
-            dflt = repeats.B3_BUDGET_USD if batch == 3 else repeats.B2_BUDGET_USD
+            dflt = {3: repeats.B3_BUDGET_USD, 4: repeats.B4_BUDGET_USD}.get(batch, repeats.B2_BUDGET_USD)
             done = repeats.repeat_b2(ROOT, plan, scen, a.jobs, key, write_summary,
                                      a.budget if a.budget is not None else dflt, a.k_max, batch)
             del key

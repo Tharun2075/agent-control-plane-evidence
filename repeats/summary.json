@@ -706,6 +706,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:11:16Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 40,
+              "steps": 100,
+              "steps_gated": 0
             }
           },
           "5": {
@@ -1343,6 +1349,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:11:17Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 60,
+              "model_steps": 60,
+              "steps": 160,
+              "steps_gated": 20
             }
           },
           "6": {
@@ -1980,6 +1992,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:11:17Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 80,
+              "model_steps": 260,
+              "steps": 640,
+              "steps_gated": 20
             }
           }
         }
@@ -2623,6 +2641,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:50Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 45,
+              "steps": 110,
+              "steps_gated": 0
             }
           },
           "5": {
@@ -3260,6 +3284,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:52Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 42,
+              "model_steps": 80,
+              "steps": 200,
+              "steps_gated": 20
             }
           },
           "6": {
@@ -3897,6 +3927,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:58Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 80,
+              "model_steps": 259,
+              "steps": 638,
+              "steps_gated": 19
             }
           }
         }
@@ -4800,6 +4836,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:36Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 60,
+              "steps": 150,
+              "steps_gated": 0
             }
           },
           "5": {
@@ -5697,6 +5739,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:39Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 60,
+              "model_steps": 120,
+              "steps": 300,
+              "steps_gated": 30
             }
           },
           "6": {
@@ -6594,6 +6642,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:10:39Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 120,
+              "model_steps": 390,
+              "steps": 960,
+              "steps_gated": 30
             }
           }
         }
@@ -7308,6 +7362,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:37:04Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 38,
+              "steps": 96,
+              "steps_gated": 0
             }
           },
           "8": {
@@ -7917,6 +7977,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:37:06Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 60,
+              "steps": 200,
+              "steps_gated": 0
             }
           }
         }
@@ -8578,6 +8644,12 @@
                 "partial_log_verify_ok": true,
                 "started_utc": "2026-11-10T08:37:01Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 22,
+              "steps": 47,
+              "steps_gated": 0
             }
           },
           "8": {
@@ -9187,6 +9259,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:37:02Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 60,
+              "steps": 200,
+              "steps_gated": 0
             }
           }
         }
@@ -10090,6 +10168,12 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:36:53Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 60,
+              "steps": 150,
+              "steps_gated": 0
             }
           },
           "8": {
@@ -10949,12 +11033,26 @@
                 "partial_log_verify_ok": null,
                 "started_utc": "2026-11-10T08:36:54Z"
               }
+            },
+            "totals": {
+              "lawful_basis_unclear": 0,
+              "model_steps": 90,
+              "steps": 300,
+              "steps_gated": 0
             }
           }
         }
       }
     },
     "protocol": "repeats/PROTOCOL.md#batch-3"
+  },
+  "batch4": {
+    "bypasses": {},
+    "cost_usd": 0,
+    "cross_model": {},
+    "models": {},
+    "protocol": "repeats/PROTOCOL.md#batch-4",
+    "tricks": []
   },
   "interval": "95% Wilson score",
   "mcp": {
@@ -10969,12 +11067,7 @@
   "protocol": "repeats/PROTOCOL.md",
   "scenarios": {
     "4": {
-      "counts": {
-        "lawful_basis_unclear": null,
-        "model_steps": null,
-        "steps": null,
-        "steps_gated": null
-      },
+      "counts": {},
       "dates_utc": [
         "2026-11-10"
       ],
@@ -11265,15 +11358,11 @@
           "partial_log_verify_ok": null,
           "started_utc": "2026-11-10T07:56:25Z"
         }
-      }
+      },
+      "totals": {}
     },
     "5": {
-      "counts": {
-        "lawful_basis_unclear": null,
-        "model_steps": null,
-        "steps": null,
-        "steps_gated": null
-      },
+      "counts": {},
       "dates_utc": [
         "2026-11-10"
       ],
@@ -11564,15 +11653,11 @@
           "partial_log_verify_ok": null,
           "started_utc": "2026-11-10T07:56:35Z"
         }
-      }
+      },
+      "totals": {}
     },
     "6": {
-      "counts": {
-        "lawful_basis_unclear": null,
-        "model_steps": null,
-        "steps": null,
-        "steps_gated": null
-      },
+      "counts": {},
       "dates_utc": [
         "2026-11-10"
       ],
@@ -11863,7 +11948,8 @@
           "partial_log_verify_ok": null,
           "started_utc": "2026-11-10T07:56:43Z"
         }
-      }
+      },
+      "totals": {}
     }
   }
 }
