@@ -178,11 +178,16 @@ class VerifyResult:
     errors: list[str] = field(default_factory=list)
 
 
-def verify(path, require_head: bool = True) -> VerifyResult:
+def verify(path, require_head: bool = True, anchor: tuple[int, str] | None = None) -> VerifyResult:
+    """Check the chain and the head file. anchor=(count, last_hash) is a head
+    copied earlier to a place the writer cannot change (a pushed commit, a
+    timestamp service, a second party); with it, a rewrite of the chain plus
+    head that drops or changes any of the first count records fails."""
     path = Path(path)
     errors: list[str] = []
     prev = GENESIS
     n = 0
+    hashes: list[str] = []
     for i, raw in enumerate(path.read_bytes().splitlines()):
         try:
             rec = json.loads(raw)
@@ -197,6 +202,7 @@ def verify(path, require_head: bool = True) -> VerifyResult:
         if record_hash(body) != rec.get("hash"):
             errors.append(f"line {i + 1}: hash mismatch (record edited)")
         prev = rec.get("hash", "")
+        hashes.append(prev)
         n += 1
     head_path = path.with_name(path.name + ".head")
     if head_path.exists():
@@ -208,6 +214,11 @@ def verify(path, require_head: bool = True) -> VerifyResult:
             )
     elif require_head:
         errors.append("head file missing")
+    if anchor is not None:
+        count, last_hash = anchor
+        if count > n or (count and hashes[count - 1] != last_hash):
+            errors.append(f"anchor mismatch: record {count - 1} is not the anchored hash "
+                          "(chain rewritten or truncated after the anchor was taken)")
     return VerifyResult(ok=not errors, records=n, last_hash=prev, errors=errors)
 
 

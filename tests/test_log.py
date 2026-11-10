@@ -6,7 +6,8 @@ import time
 import unittest
 from pathlib import Path
 
-from acp.log import ChainLog, FixedStepClock, read_records, verify
+from acp.canon import canonical
+from acp.log import GENESIS, ChainLog, FixedStepClock, read_records, record_hash, verify
 
 PROCS, EACH = 4, 50
 FIELDS = dict(
@@ -43,6 +44,41 @@ class MultiProcessTest(unittest.TestCase):
             self.assertTrue(r.ok, r.errors[:3])
             seqs = [rec["seq"] for rec in read_records(path)]
             self.assertEqual(seqs, list(range(PROCS * EACH)))
+
+
+class AnchorTest(unittest.TestCase):  # batch 5 E1 classes log-truncate-head-rewrite, log-full-rewrite
+    def _log(self, td):
+        log = ChainLog(Path(td) / "log.jsonl", clock=FixedStepClock(), durable=False)
+        for k in range(5):
+            log.append(**{**FIELDS, "detail": {"k": k}})
+        recs = read_records(log.path)
+        return log, recs, (len(recs), recs[-1]["hash"])
+
+    def _write(self, log, recs):
+        prev, out = GENESIS, []
+        for i, r in enumerate(recs):
+            r = {k: v for k, v in r.items() if k != "hash"}
+            r["seq"], r["prev_hash"] = i, prev
+            r["hash"] = prev = record_hash(r)
+            out.append(r)
+        log.path.write_bytes(b"".join(canonical(r) + b"\n" for r in out))
+        log.head_path.write_bytes(canonical({"count": len(out), "last_hash": prev}) + b"\n")
+
+    def test_anchor_catches_what_the_head_cannot(self):
+        with tempfile.TemporaryDirectory() as td:
+            log, recs, anchor = self._log(td)
+            self.assertTrue(verify(log.path, anchor=anchor).ok)
+            self._write(log, recs[:2] + recs[3:])  # drop one record, rehash, rewrite head
+            self.assertTrue(verify(log.path).ok)  # the local head alone is fooled
+            self.assertFalse(verify(log.path, anchor=anchor).ok)
+            self._write(log, recs[:3])  # truncate and rewrite head
+            self.assertFalse(verify(log.path, anchor=anchor).ok)
+
+    def test_records_after_the_anchor_are_fine(self):
+        with tempfile.TemporaryDirectory() as td:
+            log, recs, anchor = self._log(td)
+            log.append(**FIELDS)
+            self.assertTrue(verify(log.path, anchor=anchor).ok)
 
 
 if __name__ == "__main__":
