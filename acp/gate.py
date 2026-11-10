@@ -98,6 +98,22 @@ def recipient_expired(recipient: AgentContext, now) -> bool:
         return True
 
 
+def decided_in_log(log_path: Path, action_sha256: str) -> bool:
+    """True when the hash-chained log already holds a human decision (approved
+    or rejected) for this action. The approvals directory alone can be reset
+    (claim marker deleted, file rewritten); the log record of the first use
+    cannot be removed without verify() failing."""
+    try:
+        raw = Path(log_path).read_bytes().splitlines()
+    except FileNotFoundError:
+        return False
+    for line in raw:
+        d = (json.loads(line).get("detail") or {}) if line.strip() else {}
+        if d.get("action_sha256") == action_sha256 and d.get("gate") in ("approved", "rejected"):
+            return True
+    return False
+
+
 def action_digest(ctx: AgentContext, tool: str, action: str, payload) -> str:
     return digest(
         {"agent": ctx.agent_id, "session": ctx.session_id, "tool": tool, "action": action, "payload": payload}
@@ -307,7 +323,7 @@ class ToolRunner:
             reason = None
             if not appr or appr.get("action_sha256") != a:
                 reason = "no approval record"
-            elif appr.get("consumed") or claim.exists():
+            elif appr.get("consumed") or claim.exists() or decided_in_log(ctx.log.path, a):
                 reason = "approval already used"
             elif appr["decision"] == "approve":
                 try:  # atomic claim: exactly one caller creates the marker

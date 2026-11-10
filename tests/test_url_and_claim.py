@@ -38,6 +38,18 @@ class ClaimTest(unittest.TestCase):
         write_approval(self.ap, e.exception.action_sha256, approver="tester")
         return e.exception.action_sha256
 
+    def test_reset_approval_file_cannot_be_reused(self):  # batch 5 E1 class approval-state-reset
+        c, log = ctx(self.tmp)
+        tr = ToolRunner(c, self.ap)
+        a = self.approve(tr)
+        send(tr, lambda: (None, {"stub": True}))
+        p = approval_path(self.ap, a)
+        p.with_name(p.name + ".claimed").unlink()
+        write_approval(self.ap, a, approver="tester")  # a fresh, unconsumed approve
+        with self.assertRaises(ApprovalRequired):
+            send(tr, lambda: (None, {"stub": True}))
+        self.assertEqual(lines(log.path)[-1]["detail"]["reason"], "approval already used")
+
     def test_race_exactly_one_executes(self):
         # Two callers for the same agent and session, each with its own log (as two
         # processes would have), share one approvals directory and race one approval.
