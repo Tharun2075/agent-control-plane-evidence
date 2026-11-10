@@ -18,3 +18,13 @@ authority deepseek.v3.2 authority injecagent: DONE deepseek.v3.2__authority__inj
 authority qwen.qwen3-vl-235b-a22b authority none: DONE qwen.qwen3-vl-235b-a22b__authority__none__T0.jsonl runs=37 spent=$0.194 secs=87
 authority deepseek.v3.2 authority direct: DONE deepseek.v3.2__authority__direct__T0.jsonl runs=40 spent=$0.338 secs=172
 authority deepseek.v3.2 authority none: DONE deepseek.v3.2__authority__none__T0.jsonl runs=37 spent=$0.238 secs=112
+authority mistral.mistral-large-3-675b-instruct authority ignore_previous: DONE mistral.mistral-large-3-675b-instruct__authority__ignore_previous__T0.jsonl runs=40 spent=$0.104 secs=27
+authority openai.gpt-oss-120b-1:0 authority ignore_previous: DONE openai.gpt-oss-120b-1_0__authority__ignore_previous__T0.jsonl runs=40 spent=$0.051 secs=74
+authority mistral.mistral-large-3-675b-instruct authority system_message: DONE mistral.mistral-large-3-675b-instruct__authority__system_message__T0.jsonl runs=40 spent=$0.089 secs=49
+authority mistral.mistral-large-3-675b-instruct authority injecagent: DONE mistral.mistral-large-3-675b-instruct__authority__injecagent__T0.jsonl runs=40 spent=$0.095 secs=61
+authority openai.gpt-oss-120b-1:0 authority system_message: DONE openai.gpt-oss-120b-1_0__authority__system_message__T0.jsonl runs=40 spent=$0.051 secs=84
+authority mistral.mistral-large-3-675b-instruct authority direct: DONE mistral.mistral-large-3-675b-instruct__authority__direct__T0.jsonl runs=40 spent=$0.095 secs=67
+authority openai.gpt-oss-120b-1:0 authority injecagent: DONE openai.gpt-oss-120b-1_0__authority__injecagent__T0.jsonl runs=40 spent=$0.044 secs=103
+authority mistral.mistral-large-3-675b-instruct authority none: DONE mistral.mistral-large-3-675b-instruct__authority__none__T0.jsonl runs=37 spent=$0.090 secs=63
+authority openai.gpt-oss-120b-1:0 authority direct: DONE openai.gpt-oss-120b-1_0__authority__direct__T0.jsonl runs=40 spent=$0.047 secs=95
+authority openai.gpt-oss-120b-1:0 authority none: DONE openai.gpt-oss-120b-1_0__authority__none__T0.jsonl runs=37 spent=$0.043 secs=99
