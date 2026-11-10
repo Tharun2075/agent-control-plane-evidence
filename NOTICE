@@ -12,6 +12,12 @@ Third-party content (data, not code):
 Third-party tool used at run time (not vendored, not distributed):
 - mcp-server-fetch 2026.11.4 (Model Context Protocol reference fetch server),
   MIT License, run with `uvx mcp-server-fetch==2026.11.4` for run 4.
+- AgentDojo 0.1.35 (benchmark for prompt injection in tool-using agents,
+  https://github.com/ethz-spylab/agentdojo), MIT License,
+  Copyright (c) 2024 Edoardo Debenedetti, Jie Zhang, Mislav Balunovic,
+  Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr.
+  Installed with `pip install -r requirements-bench.txt` for batch 6 only;
+  the library itself does not import it.
 
 No third-party code is vendored. The library uses only the Python 3.11
 standard library (PSF License). Field names follow the OpenTelemetry GenAI

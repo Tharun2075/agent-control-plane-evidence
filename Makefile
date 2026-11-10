@@ -1,6 +1,6 @@
 PY ?= python3
 
-.PHONY: reproduce test check verify repeats
+.PHONY: reproduce test check verify repeats batch6
 reproduce:
 	$(PY) -m acp reproduce
 
@@ -22,6 +22,10 @@ check: test
 repeats:
 	$(PY) -m acp repeats-summary
 
+# Re-aggregate batch 6 (AgentDojo, repeats/batch6/PROTOCOL.md) from the committed run records.
+batch6:
+	$(PY) -m acp batch6-summary
+
 # Re-verify every committed chain (scripted, model-driven and repeats/), recompute metrics
 # from the committed logs and require them to equal the committed metrics.json.
 verify:
@@ -35,3 +39,9 @@ verify:
 	a = json.load(open("repeats/summary.json")); p = Path("repeats/batch4/tricks.md"); \
 	ok = "batch4" not in a or (p.exists() and p.read_text() == tricks_markdown(a["batch4"])); \
 	print("batch-4 tricks identical:", ok); sys.exit(0 if ok else 1)'
+	@if [ -f repeats/batch6/summary.json ]; then \
+	  tmp=$$(mktemp -d -t acp-b6.XXXXXX); $(PY) -m acp batch6-summary --out $$tmp; rc=0; \
+	  for f in summary.json summary.md b1.csv b2.csv; do cmp -s repeats/batch6/$$f $$tmp/repeats/batch6/$$f || { echo "batch6 $$f differs"; rc=1; }; done; \
+	  rm -rf $$tmp; echo "batch6 summary identical: $$( [ $$rc = 0 ] && echo True || echo False)"; \
+	  [ $$rc = 0 ] && $(PY) tools/check_batch6.py; \
+	else echo "batch6: no summary yet"; fi
