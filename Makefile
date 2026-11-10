@@ -52,3 +52,11 @@ verify:
 	  rm -rf $$tmp; echo "batch6 summary identical: $$( [ $$rc = 0 ] && echo True || echo False)"; \
 	  [ $$rc = 0 ] && $(PY) tools/check_batch6.py; \
 	else echo "batch6: no summary yet"; fi
+
+# Batch 7 (AgentDojo on Bedrock, repeats/batch7/PROTOCOL.md): regenerate, compare, verify gate logs.
+.PHONY: batch7 verify-batch7
+batch7:
+	$(PY) tools/batch7_summary.py
+verify-batch7:
+	$(PY) tools/batch7_summary.py --check
+verify: verify-batch7
