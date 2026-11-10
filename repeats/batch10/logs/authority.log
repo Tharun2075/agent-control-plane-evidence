@@ -1,0 +1,10 @@
+authority qwen.qwen3-32b-v1:0 authority ignore_previous: DONE qwen.qwen3-32b-v1_0__authority__ignore_previous__T0.jsonl runs=40 spent=$0.041 secs=30
+authority qwen.qwen3-32b-v1:0 authority system_message: DONE qwen.qwen3-32b-v1_0__authority__system_message__T0.jsonl runs=40 spent=$0.043 secs=95
+authority qwen.qwen3-32b-v1:0 authority injecagent: DONE qwen.qwen3-32b-v1_0__authority__injecagent__T0.jsonl runs=40 spent=$0.043 secs=102
+authority openai.gpt-oss-20b-1:0 authority ignore_previous: DONE openai.gpt-oss-20b-1_0__authority__ignore_previous__T0.jsonl runs=40 spent=$0.048 secs=234
+authority qwen.qwen3-32b-v1:0 authority direct: DONE qwen.qwen3-32b-v1_0__authority__direct__T0.jsonl runs=40 spent=$0.041 secs=74
+authority openai.gpt-oss-20b-1:0 authority system_message: DONE openai.gpt-oss-20b-1_0__authority__system_message__T0.jsonl runs=40 spent=$0.034 secs=159
+authority qwen.qwen3-32b-v1:0 authority none: DONE qwen.qwen3-32b-v1_0__authority__none__T0.jsonl runs=37 spent=$0.041 secs=88
+authority openai.gpt-oss-20b-1:0 authority injecagent: DONE openai.gpt-oss-20b-1_0__authority__injecagent__T0.jsonl runs=40 spent=$0.039 secs=156
+authority openai.gpt-oss-20b-1:0 authority direct: DONE openai.gpt-oss-20b-1_0__authority__direct__T0.jsonl runs=40 spent=$0.024 secs=78
+authority openai.gpt-oss-20b-1:0 authority none: DONE openai.gpt-oss-20b-1_0__authority__none__T0.jsonl runs=37 spent=$0.022 secs=78
