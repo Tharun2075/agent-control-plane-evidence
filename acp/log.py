@@ -128,13 +128,19 @@ class ChainLog:
         # the log file across processes (two ChainLogs on one path).
         self._lock = threading.Lock()
         if self.path.exists() and self.path.stat().st_size:
-            self._resync()
+            # Read the chain under the same locks as append, and take the size
+            # from the locked fd, so seq, last_hash and size describe one state.
+            with self._lock, open(self.path, "ab") as f:
+                if fcntl:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                self._resync(f.fileno())
 
-    def _resync(self) -> None:
+    def _resync(self, fd: int) -> None:
+        """Caller holds self._lock and the flock on fd."""
         res = verify(self.path)
         if not res.ok:
             raise ChainError("refusing to append to a log that fails verify: " + "; ".join(res.errors))
-        self.seq, self.last_hash, self.size = res.records, res.last_hash, self.path.stat().st_size
+        self.seq, self.last_hash, self.size = res.records, res.last_hash, os.fstat(fd).st_size
 
     def append(self, **fields) -> dict:
         check_fields(fields)
@@ -143,7 +149,7 @@ class ChainLog:
             if fcntl:
                 fcntl.flock(f.fileno(), fcntl.LOCK_EX)
             if os.fstat(f.fileno()).st_size != self.size:  # another writer appended: catch up first
-                self._resync()
+                self._resync(f.fileno())
             rec = {"seq": self.seq, "ts": self.clock.now(), **fields, "prev_hash": self.last_hash}
             rec["hash"] = record_hash(rec)
             line = canonical(rec) + b"\n"

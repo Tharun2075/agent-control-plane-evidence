@@ -89,6 +89,27 @@ class StoreAuthorityTest(unittest.TestCase):
         self.assertEqual(last["recipients"], [])
         self.assertFalse((sb.dir / "x.txt").exists())
 
+    def test_handoff_into_int_expires_refused_and_logged(self):
+        a, log = ctx(self.tmp, sid="live")
+        b, _ = ctx(self.tmp, sid="int-exp", log=log)
+        b.manifest["current_task"]["expires"] = 20261110  # not an ISO 8601 string
+        sa, sb = SessionStore(self.tmp / "sessions", a), SessionStore(self.tmp / "sessions", b)
+        sa.write("x.txt", "a's data")
+        self._refused(lambda: sa.handoff("x.txt", sb), "refused_authority_expired", log, "handoff")
+        self.assertEqual(lines(log.path)[-1]["detail"]["expires"], 20261110)
+        self.assertFalse((sb.dir / "x.txt").exists())
+
+    def test_int_expires_on_sender_refused_and_logged(self):
+        a, log = ctx(self.tmp, sid="int-own")
+        a.manifest["current_task"]["expires"] = 20261110
+        sa = SessionStore(self.tmp / "sessions", a)
+        with self.assertRaises(ValueError):
+            sa.write("y.txt", "data")
+        last = lines(log.path)[-1]
+        self.assertEqual(last["outcome"], "refused_authority_expired")
+        self.assertEqual(last["detail"]["reason"], "invalid expires")
+        self.assertTrue(verify(log.path).ok)
+
     def test_undelegated_store_refused(self):
         a, log = ctx(self.tmp, sid="d")
         a.manifest["current_task"]["delegated_authority"] = ["classify"]

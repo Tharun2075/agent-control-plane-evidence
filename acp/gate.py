@@ -36,6 +36,8 @@ from .manifest import tool_spec
 
 
 def _parse(ts: str) -> datetime:
+    if not isinstance(ts, str):  # e.g. an int: invalid, so callers fail closed and log it
+        raise ValueError(f"expires must be an ISO 8601 string, not {type(ts).__name__}")
     return datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
