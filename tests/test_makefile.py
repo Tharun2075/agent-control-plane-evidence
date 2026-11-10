@@ -35,4 +35,15 @@ class TestCheckHistory(unittest.TestCase):
         subprocess.run(self.git + ["branch", "main"], check=True)
         r = self.run_make()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("deny-list hits (tree + git log -p main): 0", r.stdout)
+        self.assertIn("deny-list hits (tree + git log -p main + main..HEAD): 0", r.stdout)
+
+    def test_branch_history_is_scanned(self):  # judge A2 P6: a blob replaced on the work branch
+        subprocess.run(self.git + ["branch", "main"], check=True)
+        (self.tmp / "run.txt").write_text("never-in-this-repo-7f3a\n")
+        subprocess.run(self.git + ["add", "run.txt"], check=True)
+        subprocess.run(self.git + ["commit", "-qm", "leak"], check=True)
+        (self.tmp / "run.txt").write_text("clean\n")
+        subprocess.run(self.git + ["commit", "-qam", "replace"], check=True)
+        r = self.run_make()
+        self.assertNotEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("hits (tree + git log -p main + main..HEAD): 0", r.stdout)
