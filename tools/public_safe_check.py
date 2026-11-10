@@ -9,6 +9,12 @@ ALLOWED_EMAILS = {"info@thatched.ai"}
 # userinfo cases and the 2^32 boundary port numbers. Only these strings, only in this file;
 # the deny-list still applies to it.
 VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com", "www.@pple.com", "4294967295", "4294967296"}}
+# AgentDojo 0.1.35 synthetic benchmark accounts inside batch 10 run records (no personal data):
+# the suites' fake users and company domains (a JSON escape such as u202f or n may be glued on),
+# and one benchmark account number printed with spaces. Only under this path; deny-list still applies.
+AGENTDOJO_RUNS = "repeats/batch10/runs/"
+AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech)\.com)", re.I)
+AGENTDOJO_DIGITS = {"3012400231215421872"}
 RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
 PATTERNS = {
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
@@ -31,6 +37,9 @@ for f in files:
         for m in rx.finditer(text):
             s = m.group(0)
             if s in VENDORED_OK.get(f, ()):
+                continue
+            if f.startswith(AGENTDOJO_RUNS) and (kind == "email" and AGENTDOJO_EMAIL.fullmatch(s)
+                                                 or kind == "phone" and re.sub(r"\D", "", s) in AGENTDOJO_DIGITS):
                 continue
             if kind == "email" and (s in ALLOWED_EMAILS or RESERVED_DOMAIN.search(s)):
                 continue  # RFC 2606 / 6761 reserved names can never reach a real mailbox
