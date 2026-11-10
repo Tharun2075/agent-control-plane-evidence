@@ -1,2 +1,4 @@
 adaptive mistral.mistral-large-3-675b-instruct gated adaptive: DONE mistral.mistral-large-3-675b-instruct__gated__adaptive__T0.jsonl runs=13 spent=$0.145 secs=298
 adaptive openai.gpt-oss-120b-1:0 gated adaptive: DONE openai.gpt-oss-120b-1_0__gated__adaptive__T0.jsonl runs=19 spent=$0.117 secs=436
+adaptiver mistral.mistral-large-3-675b-instruct gated adaptive: DONE mistral.mistral-large-3-675b-instruct__gated__adaptive__T0.jsonl runs=27 spent=$0.493 secs=177
+adaptiver openai.gpt-oss-120b-1:0 gated adaptive: DONE openai.gpt-oss-120b-1_0__gated__adaptive__T0.jsonl runs=20 spent=$0.349 secs=447

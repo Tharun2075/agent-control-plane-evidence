@@ -8,3 +8,13 @@ authority qwen.qwen3-32b-v1:0 authority none: DONE qwen.qwen3-32b-v1_0__authorit
 authority openai.gpt-oss-20b-1:0 authority injecagent: DONE openai.gpt-oss-20b-1_0__authority__injecagent__T0.jsonl runs=40 spent=$0.039 secs=156
 authority openai.gpt-oss-20b-1:0 authority direct: DONE openai.gpt-oss-20b-1_0__authority__direct__T0.jsonl runs=40 spent=$0.024 secs=78
 authority openai.gpt-oss-20b-1:0 authority none: DONE openai.gpt-oss-20b-1_0__authority__none__T0.jsonl runs=37 spent=$0.022 secs=78
+authority qwen.qwen3-vl-235b-a22b authority ignore_previous: DONE qwen.qwen3-vl-235b-a22b__authority__ignore_previous__T0.jsonl runs=40 spent=$0.148 secs=66
+authority deepseek.v3.2 authority ignore_previous: DONE deepseek.v3.2__authority__ignore_previous__T0.jsonl runs=40 spent=$0.295 secs=142
+authority qwen.qwen3-vl-235b-a22b authority system_message: DONE qwen.qwen3-vl-235b-a22b__authority__system_message__T0.jsonl runs=40 spent=$0.211 secs=101
+authority qwen.qwen3-vl-235b-a22b authority injecagent: DONE qwen.qwen3-vl-235b-a22b__authority__injecagent__T0.jsonl runs=40 spent=$0.159 secs=74
+authority deepseek.v3.2 authority system_message: DONE deepseek.v3.2__authority__system_message__T0.jsonl runs=40 spent=$0.329 secs=143
+authority qwen.qwen3-vl-235b-a22b authority direct: DONE qwen.qwen3-vl-235b-a22b__authority__direct__T0.jsonl runs=40 spent=$0.207 secs=91
+authority deepseek.v3.2 authority injecagent: DONE deepseek.v3.2__authority__injecagent__T0.jsonl runs=40 spent=$0.281 secs=128
+authority qwen.qwen3-vl-235b-a22b authority none: DONE qwen.qwen3-vl-235b-a22b__authority__none__T0.jsonl runs=37 spent=$0.194 secs=87
+authority deepseek.v3.2 authority direct: DONE deepseek.v3.2__authority__direct__T0.jsonl runs=40 spent=$0.338 secs=172
+authority deepseek.v3.2 authority none: DONE deepseek.v3.2__authority__none__T0.jsonl runs=37 spent=$0.238 secs=112
