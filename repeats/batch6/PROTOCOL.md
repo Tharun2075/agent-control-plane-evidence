@@ -94,3 +94,13 @@ All runs that start are reported, including errors, provider refusals and runs c
 - Fix: `tools/bench_agentdojo.py` sets `A.MessageParam = dict` (the benchmark only uses it to
   build a plain dict). Nothing else changed: same subset, arms, models, metrics and stop rules.
 - New SHA-256 of `tools/bench_agentdojo.py`: 2d8084b22109440cf1c199315c8237f40f6570974afabaa3147b5a9648a6c6fc
+
+## Amendment 2 (2026-11-10, after all runs; reporting only)
+- No run, subset, arm, model, metric or stop rule changed; `tools/bench_agentdojo.py` still has
+  the SHA-256 of Amendment 1.
+- `repeats/batch6/providers.json` records each B2 provider's outcome (finished, PROVIDER-STOP
+  with the 429 text, or not-run), and the summary adds a table of planned, recorded and not-run
+  B2 runs per provider, as the stop rules require.
+- Outcome: OpenRouter nemotron stopped by 429 after 15 runs, Gemini after 12 runs (all timeout
+  or 500, no answer), Groq at the first request (0 runs); the local MLX server was not run
+  (offloaded by a standing owner order). Non-Claude spend $0.

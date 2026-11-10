@@ -202,6 +202,17 @@ def markdown(summary: dict, title: str) -> str:
     return "\n".join(out) + "\n"
 
 
+def providers_markdown(providers: list[dict]) -> str:
+    if not providers:
+        return ""
+    out = ["", "B2 providers, stops and runs not made (from providers.json and the run records):", "",
+           "| provider | model | date | planned | recorded | not run | status | note |", "|---|---|---|---|---|---|---|---|"]
+    for p in providers:
+        out.append(f"| {p['provider']} | {p['model']} | {p['date']} | {p['planned_b2']} | {p['runs_recorded']} | "
+                   f"{p['not_run']} | {p['status']} | {p['note']} |")
+    return "\n".join(out) + "\n"
+
+
 def load_records(run_dir: Path) -> list[dict]:
     recs = []
     for p in sorted(Path(run_dir).glob("*.jsonl")):
@@ -214,11 +225,19 @@ def build(root: Path) -> dict:
     b6 = Path(root) / "repeats" / "batch6"
     b1 = aggregate([r for r in load_records(b6 / "runs") if r.get("set") == "B1"])
     b2 = aggregate([r for r in load_records(b6 / "runs") if r.get("b2")])
+    prov_path = b6 / "providers.json"
+    providers = json.loads(prov_path.read_text()) if prov_path.exists() else []
+    for p in providers:
+        p["runs_recorded"] = sum(r["runs"] for r in b2["rows"]
+                                 if r["model"] == p["model"] and r["arm"] == "plain")
+        p["not_run"] = max(0, p["planned_b2"] - p["runs_recorded"])
+    b2["providers"] = providers
     summary = {"B1": b1, "B2": b2}
     return {
         "repeats/batch6/summary.json": json.dumps(summary, indent=1, sort_keys=True) + "\n",
         "repeats/batch6/summary.md": markdown(b1, "Batch 6 B1: AgentDojo, plain vs gated")
-        + "\n" + markdown(b2, "Batch 6 B2: one injection set across providers (arm plain)"),
+        + "\n" + markdown(b2, "Batch 6 B2: one injection set across providers (arm plain)")
+        + providers_markdown(providers),
         "repeats/batch6/b1.csv": to_csv(csv_rows(b1)),
         "repeats/batch6/b2.csv": to_csv(csv_rows(b2)),
     }

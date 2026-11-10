@@ -78,6 +78,23 @@ class Outcomes(unittest.TestCase):
         csvrow = g.csv_rows(g.aggregate(recs))[0]
         self.assertEqual((csvrow["errors"], csvrow["provider_refused"]), (2, 1))
 
+    def test_providers_report_runs_not_made(self):
+        with tempfile.TemporaryDirectory() as d:
+            b6 = Path(d) / "repeats" / "batch6"
+            (b6 / "runs").mkdir(parents=True)
+            recs = [self.rec(set="B2", b2=True, arm="plain") for _ in range(3)]
+            (b6 / "runs" / "m__plain__B2.jsonl").write_text("".join(json.dumps(r) + "\n" for r in recs))
+            (b6 / "providers.json").write_text(json.dumps([
+                {"provider": "p", "model": recs[0]["model"], "date": "2026-11-10", "planned_b2": 20,
+                 "status": "PROVIDER-STOP", "note": "429"},
+                {"provider": "q", "model": "absent", "date": "2026-11-10", "planned_b2": 20,
+                 "status": "not-run", "note": "offline"}]))
+            out = g.build(Path(d))
+            prov = json.loads(out["repeats/batch6/summary.json"])["B2"]["providers"]
+            self.assertEqual([(p["runs_recorded"], p["not_run"]) for p in prov], [(3, 17), (0, 20)])
+            self.assertIn("| q | absent | 2026-11-10 | 20 | 0 | 20 | not-run | offline |",
+                          out["repeats/batch6/summary.md"])
+
     def test_markers_and_hits(self):
         m = g.target_markers([("send_money", {"recipient": ATTACKER, "amount": 0.01}),
                               ("get_most_recent_transactions", {"n": 100})], "banking")
