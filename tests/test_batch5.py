@@ -77,10 +77,14 @@ class TestBatch5(unittest.TestCase):
         self.assertIn("approval-file-write bypasses at every adapt >= 1", s["e2p_notes"][0])
         self.assertIn("Note: all-on", batch5.markdown(s))
 
-    def test_bootstrap_ci_brackets_median(self):
-        lo, hi = batch5.bootstrap_ci([1.0, 1.1, 1.2, 1.3, 5.0])
-        self.assertLessEqual(lo, 1.2)
-        self.assertGreaterEqual(hi, 1.2)
+    def test_e3_repeats_report_median_and_range_not_ci(self):  # judge A3 K6
+        s = batch5.build(self.out)
+        v = s["e3_repeats"]["all-on"]["median_ms"]
+        self.assertEqual((v["min"], v["max"]), (min(v["per_repeat"]), max(v["per_repeat"])))
+        md = batch5.markdown(s)
+        self.assertIn("[min, max across reruns]", md)
+        self.assertNotIn("bootstrap", md.lower())
+        self.assertNotIn("bootstrap", s["e3_repeats"]["all-on"]["median_ms"])
 
     def test_check_catches_edited_table(self):
         p = self.out / "e2-ablation.csv"

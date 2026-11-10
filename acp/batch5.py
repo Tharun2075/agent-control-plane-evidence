@@ -346,13 +346,6 @@ def _e3_stats(rows: list[dict]) -> dict:
     return res
 
 
-def bootstrap_ci(xs: list[float], b: int = 10000, seed: int = attacker.SEED) -> list[float]:
-    """95% percentile bootstrap CI of the median of xs (resampling the repeats)."""
-    rng = random.Random(seed)
-    ms = sorted(statistics.median(rng.choices(xs, k=len(xs))) for _ in range(b))
-    return [round(ms[int(0.025 * (b - 1))], 3), round(ms[int(0.975 * (b - 1))], 3)]
-
-
 def _e3_repeats(out: Path) -> dict:
     ds = sorted((out / "e3-repeats").glob("r*/tasks.jsonl"))
     if not ds:
@@ -363,8 +356,7 @@ def _e3_repeats(out: Path) -> dict:
         v = {"ok": [x[arm]["ok"] for x in per], "tasks": [x[arm]["tasks"] for x in per]}
         for m in ("median_ms", "p95_ms"):
             xs = [x[arm][m] for x in per]
-            v[m] = {"per_repeat": xs, "median": round(statistics.median(xs), 3), "boot95": bootstrap_ci(xs),
-                    "range_pct": round(100 * (max(xs) - min(xs)) / statistics.median(xs), 1)}
+            v[m] = {"per_repeat": xs, "median": round(statistics.median(xs), 3), "min": min(xs), "max": max(xs)}
         res[arm] = v
     return res
 
@@ -508,8 +500,8 @@ def tables(s: dict) -> dict[str, str]:
             for m in ("median_ms", "p95_ms"):
                 v = s["e3_repeats"][arm][m]
                 rows += [[arm, m, f"r{i + 1}", x] for i, x in enumerate(v["per_repeat"])]
-                rows += [[arm, m, "median", v["median"]], [arm, m, "boot95_lo", v["boot95"][0]],
-                         [arm, m, "boot95_hi", v["boot95"][1]]]
+                rows += [[arm, m, "median", v["median"]], [arm, m, "min", v["min"]],
+                         [arm, m, "max", v["max"]]]
         t["e3-repeats.csv"] = _csv(rows)
     rows = [["batch", "model", "denominator", "k", "n", "wilson_lo", "wilson_hi", "planned", "finished", "not_finished_provider_refusal", "harness_error"]]
     for b in ("batch2", "batch3", "batch4"):
@@ -588,13 +580,13 @@ def markdown(s: dict) -> str:
                      f"median {v['median_ms']} ms, p95 {v['p95_ms']} ms per task")
         r = s.get("e3_repeats")
         if r:
-            L.append(f"- {r['repeats']} identical reruns (e3-repeats/), median across reruns with 95% bootstrap CI "
-                     "(10000 resamples of the reruns); range = (max - min) / median:")
+            L.append(f"- {r['repeats']} identical reruns (e3-repeats/); per arm: median of "
+                     f"{r['repeats']} reruns [min, max across reruns] (a range, not a confidence interval):")
             for a in E3_ARMS:
                 m, q = r[a]["median_ms"], r[a]["p95_ms"]
                 L.append(f"  - {a}: completed {sorted(set(r[a]['ok']))} of {sorted(set(r[a]['tasks']))}; median "
-                         f"{m['median']} ms {m['boot95']} (range {m['range_pct']}%), p95 {q['median']} ms "
-                         f"{q['boot95']} (range {q['range_pct']}%)")
+                         f"{m['median']} ms [{m['min']}, {m['max']}], p95 {q['median']} ms "
+                         f"[{q['min']}, {q['max']}]")
             L.append("- Wall times are machine noise at this scale; the arms' timing difference is not a result.")
         L.append("")
     e5 = s["e5"]

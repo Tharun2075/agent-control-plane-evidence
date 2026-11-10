@@ -67,9 +67,9 @@ Note: all-on 35/540 vs adaptive 30/540: approval-file-write bypasses at every ad
 ## E3 benign tasks
 - all-on: 500/500 completed (Wilson [0.9924, 1.0]), median 0.972 ms, p95 4.432 ms per task
 - all-off: 500/500 completed (Wilson [0.9924, 1.0]), median 0.745 ms, p95 4.412 ms per task
-- 5 identical reruns (e3-repeats/), median across reruns with 95% bootstrap CI (10000 resamples of the reruns); range = (max - min) / median:
-  - all-on: completed [500] of [500]; median 1.087 ms [1.03, 1.105] (range 6.9%), p95 4.235 ms [4.106, 4.422] (range 7.5%)
-  - all-off: completed [500] of [500]; median 0.865 ms [0.746, 0.917] (range 19.8%), p95 4.132 ms [4.044, 4.579] (range 12.9%)
+- 5 identical reruns (e3-repeats/); per arm: median of 5 reruns [min, max across reruns] (a range, not a confidence interval):
+  - all-on: completed [500] of [500]; median 1.087 ms [1.03, 1.105], p95 4.235 ms [4.106, 4.422]
+  - all-off: completed [500] of [500]; median 0.865 ms [0.746, 0.917], p95 4.132 ms [4.044, 4.579]
 - Wall times are machine noise at this scale; the arms' timing difference is not a result.
 
 ## E5 batches 2-4 (primary outcome, Wilson 95%)
