@@ -1,0 +1,12 @@
+pilot qwen.qwen3-32b-v1:0 plain ignore_previous: DONE qwen.qwen3-32b-v1_0__plain__ignore_previous__T0.jsonl runs=2 spent=$0.001 secs=2
+pilot openai.gpt-oss-120b-1:0 plain ignore_previous: DONE openai.gpt-oss-120b-1_0__plain__ignore_previous__T0.jsonl runs=2 spent=$0.001 secs=3
+pilot mistral.mistral-large-3-675b-instruct plain ignore_previous: DONE mistral.mistral-large-3-675b-instruct__plain__ignore_previous__T0.jsonl runs=2 spent=$0.005 secs=4
+pilot openai.gpt-oss-20b-1:0 plain ignore_previous: DONE openai.gpt-oss-20b-1_0__plain__ignore_previous__T0.jsonl runs=2 spent=$0.001 secs=5
+pilot deepseek.v3.2 plain ignore_previous: DONE deepseek.v3.2__plain__ignore_previous__T0.jsonl runs=2 spent=$0.006 secs=6
+pilot qwen.qwen3-32b-v1:0 gated ignore_previous: DONE qwen.qwen3-32b-v1_0__gated__ignore_previous__T0.jsonl runs=2 spent=$0.001 secs=2
+pilot qwen.qwen3-vl-235b-a22b plain ignore_previous: DONE qwen.qwen3-vl-235b-a22b__plain__ignore_previous__T0.jsonl runs=2 spent=$0.006 secs=6
+pilot mistral.mistral-large-3-675b-instruct gated ignore_previous: DONE mistral.mistral-large-3-675b-instruct__gated__ignore_previous__T0.jsonl runs=2 spent=$0.005 secs=4
+pilot qwen.qwen3-vl-235b-a22b gated ignore_previous: DONE qwen.qwen3-vl-235b-a22b__gated__ignore_previous__T0.jsonl runs=2 spent=$0.006 secs=6
+pilot deepseek.v3.2 gated ignore_previous: DONE deepseek.v3.2__gated__ignore_previous__T0.jsonl runs=2 spent=$0.006 secs=6
+pilot openai.gpt-oss-20b-1:0 gated ignore_previous: DONE openai.gpt-oss-20b-1_0__gated__ignore_previous__T0.jsonl runs=2 spent=$0.001 secs=8
+pilot openai.gpt-oss-120b-1:0 gated ignore_previous: DONE openai.gpt-oss-120b-1_0__gated__ignore_previous__T0.jsonl runs=2 spent=$0.002 secs=11

@@ -1,0 +1,16 @@
+stage1r qwen.qwen3-vl-235b-a22b plain ignore_previous: DONE qwen.qwen3-vl-235b-a22b__plain__ignore_previous__T0.jsonl runs=0 spent=$0.153 secs=0
+stage1r qwen.qwen3-vl-235b-a22b plain system_message: DONE qwen.qwen3-vl-235b-a22b__plain__system_message__T0.jsonl runs=0 spent=$0.197 secs=0
+stage1r qwen.qwen3-vl-235b-a22b plain injecagent: DONE qwen.qwen3-vl-235b-a22b__plain__injecagent__T0.jsonl runs=0 spent=$0.170 secs=0
+stage1r qwen.qwen3-vl-235b-a22b plain direct: DONE qwen.qwen3-vl-235b-a22b__plain__direct__T0.jsonl runs=0 spent=$0.212 secs=0
+stage1r qwen.qwen3-vl-235b-a22b gated ignore_previous: DONE qwen.qwen3-vl-235b-a22b__gated__ignore_previous__T0.jsonl runs=0 spent=$0.166 secs=0
+stage1r qwen.qwen3-vl-235b-a22b gated system_message: DONE qwen.qwen3-vl-235b-a22b__gated__system_message__T0.jsonl runs=4 spent=$0.258 secs=29
+stage1r qwen.qwen3-vl-235b-a22b gated injecagent: DONE qwen.qwen3-vl-235b-a22b__gated__injecagent__T0.jsonl runs=0 spent=$0.200 secs=0
+stage1r deepseek.v3.2 plain ignore_previous: DONE deepseek.v3.2__plain__ignore_previous__T0.jsonl runs=10 spent=$0.272 secs=59
+stage1r qwen.qwen3-vl-235b-a22b gated direct: DONE qwen.qwen3-vl-235b-a22b__gated__direct__T0.jsonl runs=3 spent=$0.229 secs=26
+stage1r deepseek.v3.2 plain system_message: DONE deepseek.v3.2__plain__system_message__T0.jsonl runs=7 spent=$0.287 secs=48
+stage1r deepseek.v3.2 plain injecagent: DONE deepseek.v3.2__plain__injecagent__T0.jsonl runs=7 spent=$0.252 secs=33
+stage1r deepseek.v3.2 plain direct: DONE deepseek.v3.2__plain__direct__T0.jsonl runs=7 spent=$0.257 secs=54
+stage1r deepseek.v3.2 gated ignore_previous: DONE deepseek.v3.2__gated__ignore_previous__T0.jsonl runs=14 spent=$0.346 secs=67
+stage1r deepseek.v3.2 gated system_message: DONE deepseek.v3.2__gated__system_message__T0.jsonl runs=17 spent=$0.439 secs=97
+stage1r deepseek.v3.2 gated injecagent: DONE deepseek.v3.2__gated__injecagent__T0.jsonl runs=12 spent=$0.355 secs=75
+stage1r deepseek.v3.2 gated direct: DONE deepseek.v3.2__gated__direct__T0.jsonl runs=17 spent=$0.361 secs=59
