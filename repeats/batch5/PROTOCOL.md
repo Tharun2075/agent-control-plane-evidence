@@ -51,8 +51,8 @@ no network, no spend: every attempt is scripted, seeded and replayable.
 - Stop and report if E3 all-on drops below 100% benign success after a fix.
 
 ## Corpus reuse
-Searched: WHATWG URL web-platform-tests, curl URL tests, Python urllib tests, OWASP SSRF
-lists. Picked WPT url/resources/urltestdata.json (BSD-3-Clause, commit
+Needed: a public, licence-clean corpus of URL inputs with a reference parse. Picked the
+WHATWG reference corpus (the detailed search log of the earlier session was not kept): WPT url/resources/urltestdata.json (BSD-3-Clause, commit
 86bdb82bd433ffc26f2bdd680d7342b151c7c547), http(s) cases only; licence in
 data/vectors/WPT-LICENSE.md.
 
