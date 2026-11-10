@@ -68,3 +68,11 @@ batch8:
 verify-batch8:
 	$(PY) tools/batch8_summary.py --check
 verify: verify-batch8
+
+# Batch 9 (AgentDojo defences, tool_knowledge, T=0.7 repeats, allowlist-aware attack, repeats/batch9/PROTOCOL.md).
+.PHONY: batch9 verify-batch9
+batch9:
+	$(PY) tools/batch9_summary.py
+verify-batch9:
+	$(PY) tools/batch9_summary.py --check
+verify: verify-batch9
