@@ -74,7 +74,8 @@ def authorise(ctx: AgentContext, tool: str, base: dict, detail: dict) -> None:
     except ValueError:
         ctx.record(**base, outcome="refused_authority_expired",
                    detail={**detail, "gate": "refused", "expires": expires, "reason": "invalid expires"})
-        raise
+        raise PermissionDenied(f"{ctx.agent_id} authority has invalid expires ({expires!r})",
+                               "refused_authority_expired")
     if expired:
         ctx.record(**base, outcome="refused_authority_expired",
                    detail={**detail, "gate": "refused", "expires": expires})

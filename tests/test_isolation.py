@@ -103,7 +103,7 @@ class StoreAuthorityTest(unittest.TestCase):
         a, log = ctx(self.tmp, sid="int-own")
         a.manifest["current_task"]["expires"] = 20261110
         sa = SessionStore(self.tmp / "sessions", a)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(PermissionDenied):
             sa.write("y.txt", "data")
         last = lines(log.path)[-1]
         self.assertEqual(last["outcome"], "refused_authority_expired")

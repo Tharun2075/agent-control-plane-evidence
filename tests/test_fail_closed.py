@@ -87,7 +87,7 @@ class ExpiryAndReplayTest(Tmp):
         m = bind_session(load(ROOT / "manifests" / "outreach-agent.json"), session_id="s", task="t",
                          expires="garbage")
         tr = ToolRunner(AgentContext(log, m, "s"), self.tmp / "ap")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(PermissionDenied):
             tr.call("crm_read", "read", lambda: ("x", {"source": "t"}),
                     personal_data_categories=CATS, lawful_basis="legitimate_interests")
         last = lines(log.path)[-1]
