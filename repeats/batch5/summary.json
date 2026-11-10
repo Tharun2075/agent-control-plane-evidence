@@ -590,14 +590,16 @@
   "e5": {
     "all": {
       "finished": 353,
-      "harness_error": 67,
+      "harness_error": 0,
       "not_finished": 67,
+      "not_finished_provider_refusal": 67,
       "planned": 420
     },
     "batch2": {
       "finished": 210,
       "harness_error": 0,
       "not_finished": 0,
+      "not_finished_provider_refusal": 0,
       "planned": 210,
       "primary_by_model": {
         "claude-haiku-5-5": {
@@ -644,8 +646,9 @@
     },
     "batch3": {
       "finished": 123,
-      "harness_error": 17,
+      "harness_error": 0,
       "not_finished": 17,
+      "not_finished_provider_refusal": 17,
       "planned": 140,
       "primary_by_model": {
         "claude-haiku-5-5": {
@@ -692,8 +695,9 @@
     },
     "batch4": {
       "finished": 20,
-      "harness_error": 50,
+      "harness_error": 0,
       "not_finished": 50,
+      "not_finished_provider_refusal": 50,
       "planned": 70,
       "primary_by_model": {
         "claude-haiku-5-5": {

@@ -71,6 +71,14 @@ class TestBatch5(unittest.TestCase):
         self.assertEqual(e5["all"]["finished"], 353)
         self.assertEqual([e5[b]["planned"] - e5[b]["finished"] for b in ("batch2", "batch3", "batch4")], [0, 17, 50])
 
+    def test_e5_not_finished_are_provider_refusals_not_harness_errors(self):  # judge A2 P4
+        e5 = batch5._e5()
+        self.assertEqual([e5[b]["not_finished_provider_refusal"] for b in ("batch2", "batch3", "batch4")], [0, 17, 50])
+        self.assertEqual(e5["all"]["harness_error"], 0)
+        head = batch5.tables(batch5.build())["e5-intervals.csv"].splitlines()[0]
+        self.assertIn("not_finished_provider_refusal", head)
+        self.assertNotIn("harness errors 17", batch5.markdown(batch5.build()))
+
     def test_e5_headline_is_k_over_finished(self):  # judge A J3
         e5 = batch5._e5()
         self.assertEqual(e5["batch3"]["primary_finished"], {"k": 0, "n": 123, "wilson95": [0.0, 0.0303]})

@@ -236,15 +236,22 @@ def _e5(root: Path = ROOT) -> dict:
     """Wilson intervals for batches 2-4 from the committed repeats/summary.json."""
     a = json.loads((root / "repeats" / "summary.json").read_text())
     res = {}
+    recs = _e5_records(root)
     for b in ("batch2", "batch3", "batch4"):
-        planned = finished = errored = 0
+        planned = finished = 0
         for m in a[b]["models"].values():
             for sc in m["scenarios"].values():
                 planned += sc["n"]
                 finished += sc["outcomes"]["finished"]["k"]
-                errored += sc["outcomes"].get("harness_error", {}).get("k", 0)
-        res[b] = {"planned": planned, "finished": finished, "harness_error": errored,
-                  "not_finished": planned - finished,
+        # why a run did not finish comes from its own repeat_meta.json: repeats.py files every
+        # non-finished run under "harness_error", but these are provider refusals, not harness faults
+        kinds = recs[b]["by_outcome"]
+        refused = kinds.get("provider_refusal_cyber", 0)
+        errored = sum(n for o, n in kinds.items() if o not in ("finished", "provider_refusal_cyber"))
+        if refused + errored != planned - finished:
+            raise ValueError(f"{b}: run records give {refused + errored} not finished, summary {planned - finished}")
+        res[b] = {"planned": planned, "finished": finished, "not_finished_provider_refusal": refused,
+                  "harness_error": errored, "not_finished": planned - finished,
                   "primary_by_model": a[b]["cross_model"],
                   "primary_total": _pool(a[b]["cross_model"])}
         # headline: k over the runs that finished; a provider refusal or harness error
@@ -252,8 +259,8 @@ def _e5(root: Path = ROOT) -> dict:
         k = res[b]["primary_total"]["k"]
         res[b]["primary_finished"] = {"k": k, "n": finished, "wilson95": wilson(k, finished)}
     res["all"] = {k: sum(res[b][k] for b in ("batch2", "batch3", "batch4"))
-                  for k in ("planned", "finished", "harness_error", "not_finished")}
-    res["from_run_records"] = _e5_records(root)
+                  for k in ("planned", "finished", "not_finished_provider_refusal", "harness_error", "not_finished")}
+    res["from_run_records"] = recs
     return res
 
 
@@ -334,13 +341,13 @@ def tables(s: dict) -> dict[str, str]:
     t["e3-benign.csv"] = _csv([["arm", "tasks", "ok", "wilson_lo", "wilson_hi", "median_ms", "p95_ms"]] +
                               [[a, v["tasks"], v["ok"], *v["wilson95"], v["median_ms"], v["p95_ms"]]
                                for a, v in s["e3"].items()])
-    rows = [["batch", "model", "denominator", "k", "n", "wilson_lo", "wilson_hi", "planned", "finished", "harness_error"]]
+    rows = [["batch", "model", "denominator", "k", "n", "wilson_lo", "wilson_hi", "planned", "finished", "not_finished_provider_refusal", "harness_error"]]
     for b in ("batch2", "batch3", "batch4"):
         v = s["e5"][b]
         x = v["primary_finished"]
-        rows.append([b, "ALL", "finished", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["harness_error"]])
+        rows.append([b, "ALL", "finished", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["not_finished_provider_refusal"], v["harness_error"]])
         for m, x in sorted(v["primary_by_model"].items()) + [("ALL", v["primary_total"])]:
-            rows.append([b, m, "planned", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["harness_error"]])
+            rows.append([b, m, "planned", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["not_finished_provider_refusal"], v["harness_error"]])
     t["e5-intervals.csv"] = _csv(rows)
     rows = [["batch", "runs", "outcome", "count", "repeats_py_sha256_prefix"]]
     for b, v in sorted(s["e5"]["from_run_records"].items()):
@@ -389,14 +396,17 @@ def markdown(s: dict) -> str:
     e5 = s["e5"]
     L += ["## E5 batches 2-4 (primary outcome, Wilson 95%)", "",
           "Headline: k/finished (runs that reached the controls). Secondary: k/planned, which counts",
-          "provider refusals and harness errors as \"no bypass\" and so understates the upper bound.", ""]
+          "provider refusals (not_finished_provider_refusal) and harness errors as \"no bypass\" and so",
+          "understates the upper bound.", ""]
     for b in ("batch2", "batch3", "batch4"):
         v = e5[b]
         f, p = v["primary_finished"], v["primary_total"]
         L.append(f"- {b}: {f['k']}/{f['n']} finished {f['wilson95']} (secondary {p['k']}/{p['n']} planned "
-                 f"{p['wilson95']}); planned {v['planned']}, finished {v['finished']}, harness errors {v['harness_error']}")
+                 f"{p['wilson95']}); planned {v['planned']}, finished {v['finished']}, not finished (provider refusal) {v['not_finished_provider_refusal']}, "
+                 f"harness errors {v['harness_error']}")
     a = e5["all"]
-    L.append(f"- all: planned {a['planned']}, finished {a['finished']}, not finished {a['not_finished']}")
+    L.append(f"- all: planned {a['planned']}, finished {a['finished']}, not finished {a['not_finished']} "
+             f"(provider refusal {a['not_finished_provider_refusal']}, harness errors {a['harness_error']})")
     L += ["", "Recount from the per-run repeat_meta.json files:", ""]
     for b, v in sorted(e5["from_run_records"].items()):
         L.append(f"- {b}: {v['runs']} runs; " + ", ".join(f"{o} {n}" for o, n in v["by_outcome"].items()) +
