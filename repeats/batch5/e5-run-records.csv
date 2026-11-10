@@ -1,0 +1,7 @@
+batch,runs,outcome,count,repeats_py_sha256_prefix
+batch1,30,oauth_session_expired,30,
+batch2,210,finished,210,07fc129e=210
+batch3,140,finished,123,53455a38=140
+batch3,140,provider_refusal_cyber,17,53455a38=140
+batch4,70,finished,20,4e6c5e6c=21;6beab888=49
+batch4,70,provider_refusal_cyber,50,4e6c5e6c=21;6beab888=49

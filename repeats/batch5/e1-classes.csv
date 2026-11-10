@@ -1,0 +1,9 @@
+class,fixable,bypass_before,bypass_after
+approval-forgery,False,10,10
+approval-state-reset,True,10,0
+child-outlives-parent,True,20,0
+log-full-rewrite,True,20,0
+log-truncate-head-rewrite,True,20,0
+naive-tz,True,20,0
+tool-direct-file-access,False,20,20
+url-unchecked-key,True,42,0

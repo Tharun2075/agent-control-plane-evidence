@@ -1,0 +1,7 @@
+arm,actions,executed,matches_logged,stopped
+all-on,19,16,19,5:send;6:cancel;6:delegate
+gate-off,19,18,17,6:delegate
+allowlist-off,19,16,19,5:send;6:cancel;6:delegate
+expiry-off,19,16,19,5:send;6:cancel;6:delegate
+authority-off,19,17,18,5:send;6:cancel
+all-off,19,19,16,
