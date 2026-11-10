@@ -25,6 +25,28 @@ class ChainTest(unittest.TestCase):
     def _write(self, ls):
         self.path.write_bytes(b"".join(ls))
 
+    def test_concurrent_appends_keep_one_chain(self):
+        # Fix 4: 8 threads on one ChainLog, plus a second ChainLog on the same file
+        # (as a second process would have): seq stays unique and the chain verifies.
+        import threading
+        from acp.log import FixedStepClock
+        other = ChainLog(self.path, clock=FixedStepClock(), durable=False)
+        c, _ = ctx(self.tmp, log=self.log)
+        c2, _ = ctx(self.tmp, sid="test-s2", log=other)
+
+        def work(cx):
+            for i in range(10):
+                cx.record(operation="execute_tool", tool="crm_read", action=f"t{i}", outcome="ok")
+
+        ts = [threading.Thread(target=work, args=(c2 if i % 4 == 0 else c,)) for i in range(8)]
+        for t in ts:
+            t.start()
+        for t in ts:
+            t.join()
+        r = verify(self.path)
+        self.assertTrue(r.ok, r.errors[:3])
+        self.assertEqual(r.records, 6 + 80)
+
     def test_unchanged_passes(self):
         r = verify(self.path)
         self.assertTrue(r.ok, r.errors)

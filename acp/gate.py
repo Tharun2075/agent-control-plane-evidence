@@ -28,7 +28,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from .agent import AgentContext
 from .canon import canonical, digest
@@ -81,6 +81,17 @@ def authorise(ctx: AgentContext, tool: str, base: dict, detail: dict) -> None:
     if tool not in allowed or tool not in authority:
         ctx.record(**base, outcome="refused_not_permitted", detail={**detail, "gate": "refused"})
         raise PermissionDenied(f"{ctx.agent_id} may not use {tool}")
+
+
+def recipient_expired(recipient: AgentContext, now) -> bool:
+    """True when the recipient's current_task.expires has passed, is missing
+    or is invalid (fail closed). Used by SessionStore.handoff so a valid
+    session cannot push data into an expired session's store."""
+    expires = recipient.manifest["current_task"].get("expires")
+    try:
+        return not expires or now >= _parse(expires)
+    except ValueError:
+        return True
 
 
 def action_digest(ctx: AgentContext, tool: str, action: str, payload) -> str:
@@ -162,6 +173,14 @@ def normalise_url(url: str) -> tuple[str, str, int, str, str]:
     if any(x in (".", "..") for x in path.split("/")):
         raise UrlRefused("dot segment in path")
     return scheme, host, port or DEFAULT_PORTS[scheme], path, unquote(u.query)
+
+
+def normalised_url_string(url: str) -> str:
+    """normalise_url() as one URL string (default port dropped, path and query
+    decoded), for the log: it shows the target the gate judged."""
+    scheme, host, port, path, query = normalise_url(url)
+    netloc = host if port == DEFAULT_PORTS[scheme] else f"{host}:{port}"
+    return urlunsplit((scheme, netloc, path, query, ""))
 
 
 def _has_run(segs: list[str], run: list[str]) -> bool:
@@ -251,6 +270,10 @@ class ToolRunner:
             ctx.record(**base, outcome="refused_purpose_limitation",
                        detail={**detail, "gate": "refused", "url": url, "matched": bad[1]})
             raise PermissionDenied(f"{url} refused: {bad[0]} {bad[1]}")
+        if url:  # log the decoded target next to the raw URL, only when they differ
+            norm = normalised_url_string(url)
+            if norm != url:
+                detail["normalised_url"] = norm
 
         decision_mode, approval_ref = "automated", None
         if self.requires_approval(tool):

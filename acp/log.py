@@ -17,12 +17,18 @@ from __future__ import annotations
 import json
 import os
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .canon import canonical, sha256_hex
+
+try:
+    import fcntl
+except ImportError:  # not POSIX: in-process lock only
+    fcntl = None
 
 GENESIS = "0" * 64
 # UK GDPR Article 6(1)(a)-(f)
@@ -117,33 +123,45 @@ class ChainLog:
         self.append_ns: list[int] = []
         self.seq = 0
         self.last_hash = GENESIS
+        self.size = 0
+        # One writer at a time: a thread lock inside this process, plus flock on
+        # the log file across processes (two ChainLogs on one path).
+        self._lock = threading.Lock()
         if self.path.exists() and self.path.stat().st_size:
-            res = verify(self.path)
-            if not res.ok:
-                raise ChainError("refusing to append to a log that fails verify: " + "; ".join(res.errors))
-            self.seq, self.last_hash = res.records, res.last_hash
+            self._resync()
+
+    def _resync(self) -> None:
+        res = verify(self.path)
+        if not res.ok:
+            raise ChainError("refusing to append to a log that fails verify: " + "; ".join(res.errors))
+        self.seq, self.last_hash, self.size = res.records, res.last_hash, self.path.stat().st_size
 
     def append(self, **fields) -> dict:
         check_fields(fields)
         t0 = time.perf_counter_ns()
-        rec = {"seq": self.seq, "ts": self.clock.now(), **fields, "prev_hash": self.last_hash}
-        rec["hash"] = record_hash(rec)
-        with open(self.path, "ab") as f:
-            f.write(canonical(rec) + b"\n")
+        with self._lock, open(self.path, "ab") as f:
+            if fcntl:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            if os.fstat(f.fileno()).st_size != self.size:  # another writer appended: catch up first
+                self._resync()
+            rec = {"seq": self.seq, "ts": self.clock.now(), **fields, "prev_hash": self.last_hash}
+            rec["hash"] = record_hash(rec)
+            line = canonical(rec) + b"\n"
+            f.write(line)
             f.flush()
             if self.durable:
-                if sys.platform == "darwin":  # macOS fsync() does not flush the drive cache
-                    import fcntl
+                if sys.platform == "darwin" and fcntl:  # macOS fsync() does not flush the drive cache
                     fcntl.fcntl(f.fileno(), fcntl.F_FULLFSYNC)
                 else:
                     os.fsync(f.fileno())
-        tmp = self.head_path.with_name(self.head_path.name + ".tmp")
-        tmp.write_bytes(canonical({"count": self.seq + 1, "last_hash": rec["hash"]}) + b"\n")
-        os.replace(tmp, self.head_path)
-        self.append_ns.append(time.perf_counter_ns() - t0)
-        self.seq += 1
-        self.last_hash = rec["hash"]
-        return rec
+            tmp = self.head_path.with_name(self.head_path.name + ".tmp")
+            tmp.write_bytes(canonical({"count": self.seq + 1, "last_hash": rec["hash"]}) + b"\n")
+            os.replace(tmp, self.head_path)
+            self.append_ns.append(time.perf_counter_ns() - t0)
+            self.seq += 1
+            self.last_hash = rec["hash"]
+            self.size += len(line)
+            return rec  # flock is released when the file closes
 
 
 @dataclass

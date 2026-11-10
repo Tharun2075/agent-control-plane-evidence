@@ -170,6 +170,19 @@ class UrlCheckTest(unittest.TestCase):
         same = lambda: ("overview", {"source": "t"}, {"detail": {"final_url": ALLOW[0] + "/"}})
         self.assertEqual(tr.call("mcp_fetch", "fetch", same, payload={"url": ALLOW[0]}), "overview")
 
+    def test_log_shows_normalised_url_only_when_it_differs(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        c, log = ctx(Path(td.name), name="research-agent-model")
+        tr = ToolRunner(c, Path(td.name) / "ap")
+        ok = lambda: ("overview", {"source": "t"})
+        tr.call("mcp_fetch", "fetch", ok, payload={"url": ALLOW[0]})
+        self.assertNotIn("normalised_url", lines(log.path)[-1]["detail"])
+        odd = HOST.upper() + ":443/company/%30%32557590"
+        tr.call("mcp_fetch", "fetch", ok, payload={"url": odd})
+        self.assertEqual(lines(log.path)[-1]["detail"]["normalised_url"], ALLOW[0])
+        self.assertTrue(verify(log.path).ok)
+
 
 if __name__ == "__main__":
     unittest.main()

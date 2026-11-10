@@ -77,6 +77,18 @@ class StoreAuthorityTest(unittest.TestCase):
         self._refused(lambda: sa.handoff("x.txt", sb), "refused_authority_expired", log, "handoff")
         self.assertFalse((sb.dir / "x.txt").exists())
 
+    def test_handoff_into_expired_recipient_refused_and_logged(self):
+        a, log = ctx(self.tmp, sid="live")
+        b, _ = ctx(self.tmp, sid="expired", log=log, expires="2026-11-09T00:00:00Z")
+        sa, sb = SessionStore(self.tmp / "sessions", a), SessionStore(self.tmp / "sessions", b)
+        sa.write("x.txt", "a's data")
+        self._refused(lambda: sa.handoff("x.txt", sb), "refused_authority_expired", log, "handoff")
+        last = lines(log.path)[-1]
+        self.assertEqual(last["gen_ai.conversation.id"], "live")
+        self.assertEqual(last["detail"]["reason"], "recipient authority expired")
+        self.assertEqual(last["recipients"], [])
+        self.assertFalse((sb.dir / "x.txt").exists())
+
     def test_undelegated_store_refused(self):
         a, log = ctx(self.tmp, sid="d")
         a.manifest["current_task"]["delegated_authority"] = ["classify"]

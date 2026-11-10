@@ -8,6 +8,7 @@ which copies one file and logs the recipient agent on the sender's log.
 Every write, read and handoff first passes gate.authorise(), the same
 authority check as ToolRunner.call (tool name session_store, checked on the
 acting session): an expired or undelegated session is refused and logged.
+handoff() also refuses, logged, a recipient whose authority has expired.
 
 Limit: this is an in-process check, not an OS sandbox. A tool that opens files
 itself bypasses it; production use needs OS-level isolation (separate user,
@@ -20,7 +21,7 @@ from pathlib import Path
 
 from .agent import AgentContext
 from .canon import sha256_hex
-from .gate import authorise
+from .gate import PermissionDenied, authorise, recipient_expired
 
 
 class IsolationError(Exception):
@@ -94,6 +95,16 @@ class SessionStore:
                        personal_data_categories=personal_data_categories, lawful_basis=lawful_basis,
                        recipients=[]),
                   {**(detail or {}), "requested": name, "to_session": to.ctx.session_id})
+        if recipient_expired(to.ctx, self.ctx.log.clock.current()):
+            expires = to.ctx.manifest["current_task"].get("expires")
+            self.ctx.record(operation="invoke_agent", tool=None, action="handoff",
+                            outcome="refused_authority_expired",
+                            personal_data_categories=personal_data_categories, lawful_basis=lawful_basis,
+                            recipients=[], detail={**(detail or {}), "gate": "refused", "requested": name,
+                                                   "to_session": to.ctx.session_id,
+                                                   "reason": "recipient authority expired", "expires": expires})
+            raise PermissionDenied(f"handoff refused: recipient {to.ctx.agent_id} authority expired ({expires})",
+                                   "refused_authority_expired")
         src = (self.dir / name).resolve()
         dst = to.dir / name
         bad = None
