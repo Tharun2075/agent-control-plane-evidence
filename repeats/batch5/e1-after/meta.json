@@ -3,7 +3,7 @@
   "experiment": "E1",
   "file_sha256": {
     "acp/agent.py": "bf96aba1b34d8b8bf1dd0feca0b44b8c983670de8d60f7e67f299a4b6b83ff9f",
-    "acp/attacker.py": "a46453a9fa321695d1f5b177d11312a0ec7792a030844c53d8c291fa727ace35",
+    "acp/attacker.py": "54c2c86539e5724f50d27af102a3937c3d8c44a6521fc215518843b9f3b6ccb7",
     "acp/batch5.py": "7c0336b2837beb9ce1863452da9ff7364a8a4466369438624c2c1b19bc1efff2",
     "acp/canon.py": "c1e91ac33db6dfb6ad0b70645615dd75170fae7e57848db92e76f41bd70d4448",
     "acp/gate.py": "633da071454d3315c56b76979662a79c27c9050adc275183749da9700ede5585",
@@ -14,10 +14,10 @@
     "acp/repeats.py": "6beab888086f6d710cea61c1b93efeeee109d3023b359ddf14c3a77653637550",
     "data/vectors/wpt-urltestdata-http.json": "03d9ec9d4c7ff73755f077537a2db18e44d99878af087685ede61c5358ad1890"
   },
-  "finished_utc": "2026-11-10T11:48:42Z",
-  "git_head": "3d32c4623660cc49ac710db3e46b32f42e6e0269",
+  "finished_utc": "2026-11-10T11:50:46Z",
+  "git_head": "2ba36761c17c43d065b1027cb6074ab084c72371",
   "per_trick": 20,
   "phase": "after",
   "seed": 20261110,
-  "started_utc": "2026-11-10T11:48:41Z"
+  "started_utc": "2026-11-10T11:50:45Z"
 }
