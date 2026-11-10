@@ -71,8 +71,10 @@ data/vectors/WPT-LICENSE.md.
 | acp/repeats.py | 6beab888086f6d710cea61c1b93efeeee109d3023b359ddf14c3a77653637550 |
 | data/vectors/wpt-urltestdata-http.json | 03d9ec9d4c7ff73755f077537a2db18e44d99878af087685ede61c5358ad1890 |
 
-## Deviations (appended after the protocol commit; the sections above are unchanged)
+## Deviations (appended after the protocol commit; the sections above are unchanged since 503adeb)
 
+- D0 (2026-11-10, commit 503adeb, 11:41:39Z, before any run): rewrote the corpus note; the earlier
+  claim of a curl/urllib/OWASP search was removed as unsupported. No other line changed.
 - D1 (2026-11-10, commit ee5620e): measurement bug in acp/attacker.py found while reading the E2
   table: the log "full-rewrite" trick relabelled the hidden record to outcome "ok"; when that record
   was already "ok" (gate-off arm: the send ran) the rewrite left the log byte-identical and verified,
