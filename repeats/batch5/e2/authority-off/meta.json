@@ -1,0 +1,23 @@
+{
+  "arm": "authority-off",
+  "dirty": false,
+  "experiment": "E2",
+  "file_sha256": {
+    "acp/agent.py": "bf96aba1b34d8b8bf1dd0feca0b44b8c983670de8d60f7e67f299a4b6b83ff9f",
+    "acp/attacker.py": "a46453a9fa321695d1f5b177d11312a0ec7792a030844c53d8c291fa727ace35",
+    "acp/batch5.py": "7c0336b2837beb9ce1863452da9ff7364a8a4466369438624c2c1b19bc1efff2",
+    "acp/canon.py": "c1e91ac33db6dfb6ad0b70645615dd75170fae7e57848db92e76f41bd70d4448",
+    "acp/gate.py": "633da071454d3315c56b76979662a79c27c9050adc275183749da9700ede5585",
+    "acp/isolation.py": "304f48cff20409dc32119486fd50357a16615b591ea7150bd0e2e3edb980789b",
+    "acp/log.py": "9a88064d6d5f9b908fe66086defcefec745ed362b32cfa95ba0bc65671feec4d",
+    "acp/manifest.py": "1826f74b87b532bd54f0929915617eee1b83bc702125cb7dc241e55eac04ad26",
+    "acp/redteam_runs.py": "4f0421830da4825c755cceb090a75c9fb21287f6998fbd66f53c4b29bacfda46",
+    "acp/repeats.py": "6beab888086f6d710cea61c1b93efeeee109d3023b359ddf14c3a77653637550",
+    "data/vectors/wpt-urltestdata-http.json": "03d9ec9d4c7ff73755f077537a2db18e44d99878af087685ede61c5358ad1890"
+  },
+  "finished_utc": "2026-11-10T11:48:52Z",
+  "git_head": "475a1f3e53d0f8b04a630a7b1d54bf12e635e4f7",
+  "per_trick": 20,
+  "seed": 20261110,
+  "started_utc": "2026-11-10T11:48:51Z"
+}
