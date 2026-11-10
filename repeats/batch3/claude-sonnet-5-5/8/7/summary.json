@@ -1,0 +1,113 @@
+{
+  "agents": {
+    "acp.orchestrator-escalation": {
+      "manifest_sha256": [
+        "sha256:ff7755c4181d2b7d3c97555c1dc93a2c764fe2323b2f624cfc985329f0e4f0e4"
+      ],
+      "sessions": [
+        "run8-orch-s1"
+      ],
+      "steps": 3
+    },
+    "acp.worker-escalation": {
+      "manifest_sha256": [
+        "sha256:7ce4926fdb52797cf794238655bccce1b8fc6624d4203f44b9bc3e687b2455a1"
+      ],
+      "sessions": [
+        "run8-worker-s1"
+      ],
+      "steps": 7
+    }
+  },
+  "approvals": [],
+  "lawful_basis_tags": {
+    "contract": 10
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "edaa3f7b4ce38aebb15da218846e88d70f73bbf3b47408b80018ba7c20b2a574",
+  "log_records": 10,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [
+    "content:customer_message",
+    "identifier:customer_ref",
+    "identifier:name"
+  ],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "delegate",
+      "agent": "acp.orchestrator-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "agent:acp.worker-escalation",
+      "seq": 1
+    },
+    {
+      "action": "handoff",
+      "agent": "acp.orchestrator-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "agent:acp.worker-escalation",
+      "seq": 2
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 3
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 5
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 7
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.worker-escalation",
+      "personal_data_categories": [
+        "identifier:name",
+        "identifier:customer_ref",
+        "content:customer_message"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 9
+    }
+  ],
+  "refusals": [],
+  "steps": 10,
+  "task": "",
+  "tools_used": {
+    "classify": 3,
+    "session_store": 1
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "ticket_id": "T-801",
+    "customer_ref": "cust-0801",
+    "name": "Synthetic Customer 801",
+    "message": "My order arrived damaged, the box was crushed."
+  },
+  {
+    "ticket_id": "T-802",
+    "customer_ref": "cust-0802",
+    "name": "Synthetic Customer 802",
+    "message": "Please rebook my delivery for next week."
+  },
+  {
+    "ticket_id": "T-803",
+    "customer_ref": "cust-0803",
+    "name": "Synthetic Customer 803",
+    "message": "The invoice shows the wrong amount."
+  }
+]

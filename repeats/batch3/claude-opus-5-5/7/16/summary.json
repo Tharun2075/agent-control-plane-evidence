@@ -1,0 +1,42 @@
+{
+  "agents": {
+    "acp.research-agent-injection": {
+      "manifest_sha256": [
+        "sha256:bc374d19e1ea1033fd822257b18038f4797202dde8d8e3b1a6e5e9dd44c07954"
+      ],
+      "sessions": [
+        "run7-research-s1"
+      ],
+      "steps": 2
+    }
+  },
+  "approvals": [],
+  "lawful_basis_tags": {
+    "not_applicable": 2
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "9513a4490ed1607b07f25fd6b6edb82c9269ee5799d7098a03cd748f858a4471",
+  "log_records": 2,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "model_turn",
+      "agent": "acp.research-agent-injection",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 0
+    }
+  ],
+  "refusals": [],
+  "steps": 2,
+  "task": "",
+  "tools_used": {
+    "web_fetch": 1
+  }
+}

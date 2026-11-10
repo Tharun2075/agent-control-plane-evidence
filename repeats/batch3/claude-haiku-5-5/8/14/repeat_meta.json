@@ -1,0 +1,21 @@
+{
+  "auth": "api_key",
+  "batch": 3,
+  "ended_utc": "2026-11-10T08:38:33Z",
+  "error": null,
+  "file_sha256": {
+    "acp/gate.py": "db42985cd8aa4c892850edff1f1a757e3e626fd840b0e3cd1a89bdb54df961e8",
+    "acp/injection_runs.py": "6096432ea7f471969c38d1b108be50a5c7077dc58cb77daaddcc54e542e6e438",
+    "acp/mcp_client.py": "30839725194203d8cd7809cd8db188213053c32058ea4f314bcd879ae6dc50f8",
+    "acp/model_harness.py": "5f2b63d86b32d391b949ee725a30289ac9a448353d8afc95ba990afce640ab0d",
+    "acp/model_runs.py": "7889e4784057f7490b0452b40e40e8f948ed1f38cc51e799524394115912077a",
+    "acp/repeats.py": "53455a386bea6d07482caed25b41d245dca2a2de06087cbd7ae91cb5e3f304ae"
+  },
+  "git_commit": "ed9ccd2c98d1445b1dc61eade2269cb789152bda",
+  "infra_retries": [],
+  "k": 14,
+  "model": "claude-haiku-5-5",
+  "n": 20,
+  "scenario": "8",
+  "started_utc": "2026-11-10T08:38:20Z"
+}

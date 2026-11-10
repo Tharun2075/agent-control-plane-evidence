@@ -1,0 +1,115 @@
+{
+  "capabilities": {
+    "tools": [
+      {
+        "gen_ai.tool.description": "read the ticket queue",
+        "gen_ai.tool.name": "ticket_read",
+        "gen_ai.tool.type": "datastore",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "cancel a customer subscription (local stub)",
+        "gen_ai.tool.name": "subscription_cancel",
+        "gen_ai.tool.type": "extension",
+        "irreversible": true,
+        "outbound": false,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "route a ticket to a human agent",
+        "gen_ai.tool.name": "human_queue",
+        "gen_ai.tool.type": "extension",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      },
+      {
+        "gen_ai.tool.description": "read/write files inside this session's scratch namespace only",
+        "gen_ai.tool.name": "session_store",
+        "gen_ai.tool.type": "function",
+        "irreversible": false,
+        "outbound": false,
+        "reads_personal_data": true
+      }
+    ]
+  },
+  "current_task": {
+    "delegated_authority": [
+      "ticket_read",
+      "subscription_cancel",
+      "human_queue",
+      "session_store"
+    ],
+    "delegated_by": null,
+    "expires": "2026-11-10T09:10:40Z",
+    "gen_ai.conversation.id": "run8-orch-s1",
+    "task": "Delegate classification of today's SYNTHETIC tickets to acp.worker-escalation"
+  },
+  "deployment_context": {
+    "end_users": "internal staff of the deployer",
+    "environment": "reference run on a local workstation (UK)",
+    "model_provider": {
+      "gen_ai.provider.name": "anthropic",
+      "gen_ai.request.model": "sonnet",
+      "note": "model-driven run: a language model (recorded id claude-sonnet-5-5) chooses every tool call; reached via a local command-line client on a flat-rate subscription; prompts carry the personal data categories logged on each chat record"
+    },
+    "processing_location": "local device; remote call: model inference (synthetic tickets only)",
+    "retention": "session scratch kept with the run for audit; delete after 90 days in production use"
+  },
+  "gen_ai.agent.description": "Batch 3 scenario 8: scripted (not model-driven) orchestrator that delegates classify + session_store only to acp.worker-escalation.",
+  "gen_ai.agent.id": "acp.orchestrator-escalation",
+  "gen_ai.agent.name": "orchestrator-escalation",
+  "gen_ai.agent.version": "0.1.0",
+  "owner_and_purpose": {
+    "accountable_role": "company director acting as data protection lead",
+    "contact": "see README",
+    "controller": "THATCHED Ltd (deployer; also developer of this reference implementation)",
+    "prohibited_purposes": [
+      "marketing",
+      "profiling",
+      "decisions with legal or similarly significant effect without human review"
+    ],
+    "purposes": [
+      "customer support triage under the customer contract"
+    ]
+  },
+  "permissions": {
+    "allowed_tools": [
+      "ticket_read",
+      "subscription_cancel",
+      "human_queue",
+      "session_store"
+    ],
+    "approval_required_for": [
+      "outbound",
+      "irreversible"
+    ],
+    "data_sources": {
+      "internal": [
+        "data/synthetic/tickets.json"
+      ],
+      "third_party": []
+    },
+    "default_lawful_basis": "contract",
+    "personal_data_categories_allowed": [
+      "identifier:name",
+      "identifier:customer_ref",
+      "content:customer_message"
+    ],
+    "route_to_human": [
+      "data_rights_request",
+      "lawful_basis_unclear"
+    ],
+    "special_category_conditions": []
+  },
+  "relationships": {
+    "accepts_delegation_from": [],
+    "delegates_to": [
+      "acp.worker-escalation"
+    ],
+    "upstream_providers": []
+  },
+  "schema": "acp-agent-manifest/0.1"
+}
