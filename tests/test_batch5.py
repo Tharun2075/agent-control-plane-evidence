@@ -14,7 +14,9 @@ class TestBatch5(unittest.TestCase):
         (cls.out / "PROTOCOL.md").write_text("test protocol\n")
         batch5.run_e1("before", cls.out, per_trick=1)
         batch5.run_e2(cls.out, per_trick=1)
+        batch5.run_e2p(cls.out, per_trick=1)
         batch5.run_e3(cls.out, n=3)
+        batch5.run_e3_repeats(cls.out, reps=2)
         batch5.write_summary(cls.out)
 
     @classmethod
@@ -23,6 +25,47 @@ class TestBatch5(unittest.TestCase):
 
     def test_check_passes_on_fresh_output(self):
         self.assertEqual(batch5.check(self.out), [])
+
+    def test_e2p_payload_hashes_equal_across_arms(self):
+        r = batch5._e2p(self.out)
+        self.assertTrue(r["payload_hashes_equal"])
+        self.assertEqual(set(r["arms"]), set(attacker.ablation.ARMS))
+        self.assertTrue((self.out / "e2p-paired.csv").exists())
+
+    def test_e2p_check_catches_changed_payload(self):
+        p = self.out / "e2p" / "gate-off" / "attempts.jsonl"
+        good = p.read_text()
+        try:
+            p.write_text(good.replace('"payload_sha256": "', '"payload_sha256": "0', 1))
+            self.assertTrue(any("payload hashes differ" in e for e in batch5.check(self.out)))
+        finally:
+            p.write_text(good)
+
+    def test_run_paired_is_arm_independent_and_reproducible(self):
+        d = Path(tempfile.mkdtemp())
+        try:
+            rows = {}
+            for arm in ("all-on", "all-off", "all-on"):
+                attacker.run_paired(d / arm, batch5.ROOT, per_trick=1, ablate=arm)
+                rows.setdefault(arm, []).append([(r["id"], r["payload_sha256"]) for r in
+                                                 batch5._read_rows(d / arm / "attempts.jsonl")])
+            self.assertEqual(rows["all-on"][0], rows["all-on"][1])
+            self.assertEqual(rows["all-on"][0], rows["all-off"][0])
+            self.assertTrue(all(a == k % 4 for _, _, k, a in attacker.paired_plan(2, attacker.SEED)))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_mcnemar_exact_and_holm(self):
+        self.assertEqual(batch5.mcnemar_exact(0, 0), 1.0)
+        self.assertAlmostEqual(batch5.mcnemar_exact(0, 5), 2 / 32)
+        self.assertAlmostEqual(batch5.mcnemar_exact(1, 9), 2 * 11 / 1024)
+        self.assertEqual(batch5.mcnemar_exact(3, 3), 1.0)
+        self.assertEqual(batch5.holm({"a": 0.01, "b": 0.04, "c": 0.03}), {"a": 0.03, "b": 0.06, "c": 0.06})
+
+    def test_bootstrap_ci_brackets_median(self):
+        lo, hi = batch5.bootstrap_ci([1.0, 1.1, 1.2, 1.3, 5.0])
+        self.assertLessEqual(lo, 1.2)
+        self.assertGreaterEqual(hi, 1.2)
 
     def test_check_catches_edited_table(self):
         p = self.out / "e2-ablation.csv"
@@ -55,6 +98,11 @@ class TestBatch5(unittest.TestCase):
         notes = "\n".join(s["e2_notes"])
         if "all-off" in s["e2"] and "allowlist-off" in s["e2"]:
             self.assertIn("one seeded random stream", notes)
+            ra, rb = (batch5._read_rows(self.out / "e2" / a / "attempts.jsonl") for a in ("all-off", "allowlist-off"))
+            pay = next((x["id"] for x, y in zip(ra, rb) if x["payload"] != y["payload"]), None)
+            if pay:  # the note names the first payload divergence, not the first outcome difference
+                self.assertIn(f"payloads diverge from attempt {pay} ", notes)
+        self.assertIn("SECONDARY", notes)
         for fam in attacker.FAMILIES:
             counts = {(v["families"][fam]["bypass"], v["families"][fam]["attempts"]) for v in s["e2"].values()}
             self.assertEqual(len(counts) == 1, f"- {fam}: " in notes, fam)

@@ -562,6 +562,58 @@ def run(out: Path, repo: Path, per_trick: int = PER_TRICK, seed: int = SEED, abl
     return {"rows": rows, "logs": {f: str(w.log.path) for f, w in worlds.items()}}
 
 
+class _TapeRandom(random.Random):
+    """random.Random that keeps every value it hands out (E2p payload hash)."""
+
+    def __init__(self, x):
+        self.tape: list = []
+        super().__init__(x)
+
+    def random(self):
+        v = super().random()
+        self.tape.append(v)
+        return v
+
+    def getrandbits(self, k):
+        v = super().getrandbits(k)
+        self.tape.append(v)
+        return v
+
+
+def paired_plan(per_trick: int = PER_TRICK, seed: int = SEED) -> list[tuple[str, str, int, int]]:
+    """E2p (repeats/batch5/PROTOCOL-E2p.md): (family, trick, k, adapt) with adapt = k % 4,
+    fixed in advance; nothing an attempt observes changes another attempt."""
+    return [(fam, t, k, k % 4) for fam, t, k in plan(per_trick, seed)]
+
+
+def payload_hash(fam: str, trick: str, k: int, adapt: int, tape: list, payload) -> str:
+    return sha256_hex(json.dumps([fam, trick, k, adapt, tape, payload], sort_keys=True, default=str).encode())
+
+
+def run_paired(out: Path, repo: Path, per_trick: int = PER_TRICK, seed: int = SEED, ablate: str = "all-on") -> dict:
+    """E2p: like run() but each attempt has its own RNG random.Random(f"{seed}:{fam}:{trick}:{k}")
+    and the plan's adapt level, so every arm makes the same 540 attempts. run() is unchanged."""
+    out = Path(out)
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    worlds = {f: World(out / f, repo) for f in FAMILIES}
+    rows = []
+    with ablation(ablate):
+        for i, (fam, trick, k, adapt) in enumerate(paired_plan(per_trick, seed)):
+            rng = _TapeRandom(f"{seed}:{fam}:{trick}:{k}")
+            r = ATTACK[fam](worlds[fam], trick, rng, adapt)
+            rows.append({"id": f"{i:04d}", "family": fam, "trick": trick, "k": k, "adapt": adapt,
+                         "outcome": r["outcome"], "payload": r.get("payload"),
+                         "payload_sha256": payload_hash(fam, trick, k, adapt, rng.tape, r.get("payload")),
+                         "records": r["records"], "checks_reached": r["checks_reached"], "bypass": r["bypass"],
+                         "class": r["cls"]})
+    with open(out / "attempts.jsonl", "w") as f:
+        for r in rows:
+            f.write(json.dumps(r, sort_keys=True) + "\n")
+    return {"rows": rows, "logs": {f: str(w.log.path) for f, w in worlds.items()}}
+
+
 class ablation:
     """Context manager that switches one control off for E2 (in-process monkeypatch)."""
     ARMS = ("all-on", "gate-off", "allowlist-off", "expiry-off", "authority-off", "all-off")
