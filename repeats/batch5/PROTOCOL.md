@@ -70,3 +70,15 @@ data/vectors/WPT-LICENSE.md.
 | acp/redteam_runs.py | 4f0421830da4825c755cceb090a75c9fb21287f6998fbd66f53c4b29bacfda46 |
 | acp/repeats.py | 6beab888086f6d710cea61c1b93efeeee109d3023b359ddf14c3a77653637550 |
 | data/vectors/wpt-urltestdata-http.json | 03d9ec9d4c7ff73755f077537a2db18e44d99878af087685ede61c5358ad1890 |
+
+## Deviations (appended after the protocol commit; the sections above are unchanged)
+
+- D1 (2026-11-10, commit ee5620e): measurement bug in acp/attacker.py found while reading the E2
+  table: the log "full-rewrite" trick relabelled the hidden record to outcome "ok"; when that record
+  was already "ok" (gate-off arm: the send ran) the rewrite left the log byte-identical and verified,
+  which was scored as a bypass. Fix: the edit always changes the record, and an unchanged log raises
+  instead of scoring. The fix draws no extra random numbers, so the attempt plan is unchanged. All
+  runs were repeated with the fixed attacker: e1-before on the core code at 503adeb (meta dirty=true:
+  only acp/attacker.py differs, its SHA-256 is in meta.json), e1-after, E2 and E3 on HEAD. The first
+  runs are kept in git history (ea5138e, 475a1f3 and the two runs after it) and gave the same E1
+  before/after counts (162/540, 30/540); only the E2 logtamper column changed.
