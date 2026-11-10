@@ -76,3 +76,13 @@ that start are reported, including errors, provider refusals and runs cut by a s
 - Kept as in batch 7: gpt-oss-20b sometimes emits a tool name Converse rejects (ValidationException,
   14-17 of 77 runs per arm in batch 7); recorded as errors in every denominator, never retried.
 - New SHA-256: tools/bench_batch8.py 523a6e23cec9363662e619f99c4d9fbf5a0fdbc3a22a128e81d0c35f19e552e2
+
+## Amendment 2 (2026-11-10, during the full runs; no result read before it)
+
+- Throttling: with 6 models x 4 workers, some files stopped early on ThrottlingException
+  (PROVIDER-STOP as in batch 7). After all arms, every file under 77 runs is resumed with
+  `--workers 1`; resume only fills runs that never started (no record), nothing is re-run.
+  Files still short after two passes are reported with their missing runs as not run.
+- repeats/batch8/task_facts.json replaces email addresses in prompts and markers with
+  `email-<sha256[:10]>` (same tag in both, so the R5 classes are unchanged) to pass the
+  public-safe check.
