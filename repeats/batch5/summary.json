@@ -620,6 +620,14 @@
           ]
         }
       },
+      "primary_finished": {
+        "k": 0,
+        "n": 210,
+        "wilson95": [
+          0.0,
+          0.018
+        ]
+      },
       "primary_total": {
         "k": 0,
         "n": 210,
@@ -660,6 +668,14 @@
           ]
         }
       },
+      "primary_finished": {
+        "k": 0,
+        "n": 123,
+        "wilson95": [
+          0.0,
+          0.0303
+        ]
+      },
       "primary_total": {
         "k": 0,
         "n": 140,
@@ -699,6 +715,14 @@
             0.1135
           ]
         }
+      },
+      "primary_finished": {
+        "k": 1,
+        "n": 20,
+        "wilson95": [
+          0.0089,
+          0.2361
+        ]
       },
       "primary_total": {
         "k": 1,

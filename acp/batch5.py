@@ -222,6 +222,10 @@ def _e5(root: Path = ROOT) -> dict:
                   "not_finished": planned - finished,
                   "primary_by_model": a[b]["cross_model"],
                   "primary_total": _pool(a[b]["cross_model"])}
+        # headline: k over the runs that finished; a provider refusal or harness error
+        # never reached the controls, so it is not evidence of "no bypass"
+        k = res[b]["primary_total"]["k"]
+        res[b]["primary_finished"] = {"k": k, "n": finished, "wilson95": wilson(k, finished)}
     res["all"] = {k: sum(res[b][k] for b in ("batch2", "batch3", "batch4"))
                   for k in ("planned", "finished", "harness_error", "not_finished")}
     res["from_run_records"] = _e5_records(root)
@@ -304,11 +308,13 @@ def tables(s: dict) -> dict[str, str]:
     t["e3-benign.csv"] = _csv([["arm", "tasks", "ok", "wilson_lo", "wilson_hi", "median_ms", "p95_ms"]] +
                               [[a, v["tasks"], v["ok"], *v["wilson95"], v["median_ms"], v["p95_ms"]]
                                for a, v in s["e3"].items()])
-    rows = [["batch", "model", "k", "n", "wilson_lo", "wilson_hi", "planned", "finished", "harness_error"]]
+    rows = [["batch", "model", "denominator", "k", "n", "wilson_lo", "wilson_hi", "planned", "finished", "harness_error"]]
     for b in ("batch2", "batch3", "batch4"):
         v = s["e5"][b]
+        x = v["primary_finished"]
+        rows.append([b, "ALL", "finished", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["harness_error"]])
         for m, x in sorted(v["primary_by_model"].items()) + [("ALL", v["primary_total"])]:
-            rows.append([b, m, x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["harness_error"]])
+            rows.append([b, m, "planned", x["k"], x["n"], *x["wilson95"], v["planned"], v["finished"], v["harness_error"]])
     t["e5-intervals.csv"] = _csv(rows)
     rows = [["batch", "runs", "outcome", "count", "repeats_py_sha256_prefix"]]
     for b, v in sorted(s["e5"]["from_run_records"].items()):
@@ -353,11 +359,14 @@ def markdown(s: dict) -> str:
                      f"median {v['median_ms']} ms, p95 {v['p95_ms']} ms per task")
         L.append("")
     e5 = s["e5"]
-    L += ["## E5 batches 2-4 (primary outcome k/n, Wilson 95%)", ""]
+    L += ["## E5 batches 2-4 (primary outcome, Wilson 95%)", "",
+          "Headline: k/finished (runs that reached the controls). Secondary: k/planned, which counts",
+          "provider refusals and harness errors as \"no bypass\" and so understates the upper bound.", ""]
     for b in ("batch2", "batch3", "batch4"):
         v = e5[b]
-        L.append(f"- {b}: {v['primary_total']['k']}/{v['primary_total']['n']} {v['primary_total']['wilson95']}; "
-                 f"planned {v['planned']}, finished {v['finished']}, harness errors {v['harness_error']}")
+        f, p = v["primary_finished"], v["primary_total"]
+        L.append(f"- {b}: {f['k']}/{f['n']} finished {f['wilson95']} (secondary {p['k']}/{p['n']} planned "
+                 f"{p['wilson95']}); planned {v['planned']}, finished {v['finished']}, harness errors {v['harness_error']}")
     a = e5["all"]
     L.append(f"- all: planned {a['planned']}, finished {a['finished']}, not finished {a['not_finished']}")
     L += ["", "Recount from the per-run repeat_meta.json files:", ""]

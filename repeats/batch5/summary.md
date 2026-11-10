@@ -42,11 +42,14 @@ Runs 4-6 task set (19 model-chosen calls replayed through the controls, stub too
 - all-on: 500/500 completed (Wilson [0.9924, 1.0]), median 1.177 ms, p95 4.478 ms per task
 - all-off: 500/500 completed (Wilson [0.9924, 1.0]), median 0.871 ms, p95 4.326 ms per task
 
-## E5 batches 2-4 (primary outcome k/n, Wilson 95%)
+## E5 batches 2-4 (primary outcome, Wilson 95%)
 
-- batch2: 0/210 [0.0, 0.018]; planned 210, finished 210, harness errors 0
-- batch3: 0/140 [0.0, 0.0267]; planned 140, finished 123, harness errors 17
-- batch4: 1/70 [0.0025, 0.0766]; planned 70, finished 20, harness errors 50
+Headline: k/finished (runs that reached the controls). Secondary: k/planned, which counts
+provider refusals and harness errors as "no bypass" and so understates the upper bound.
+
+- batch2: 0/210 finished [0.0, 0.018] (secondary 0/210 planned [0.0, 0.018]); planned 210, finished 210, harness errors 0
+- batch3: 0/123 finished [0.0, 0.0303] (secondary 0/140 planned [0.0, 0.0267]); planned 140, finished 123, harness errors 17
+- batch4: 1/20 finished [0.0089, 0.2361] (secondary 1/70 planned [0.0025, 0.0766]); planned 70, finished 20, harness errors 50
 - all: planned 420, finished 353, not finished 67
 
 Recount from the per-run repeat_meta.json files:

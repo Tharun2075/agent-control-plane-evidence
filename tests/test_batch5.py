@@ -61,6 +61,15 @@ class TestBatch5(unittest.TestCase):
         self.assertEqual(e5["all"]["finished"], 353)
         self.assertEqual([e5[b]["planned"] - e5[b]["finished"] for b in ("batch2", "batch3", "batch4")], [0, 17, 50])
 
+    def test_e5_headline_is_k_over_finished(self):  # judge A J3
+        e5 = batch5._e5()
+        self.assertEqual(e5["batch3"]["primary_finished"], {"k": 0, "n": 123, "wilson95": [0.0, 0.0303]})
+        self.assertEqual(e5["batch4"]["primary_finished"], {"k": 1, "n": 20, "wilson95": [0.0089, 0.2361]})
+        self.assertEqual(e5["batch4"]["primary_total"]["n"], 70)  # k/planned stays as the secondary
+        md = batch5.markdown(batch5.build())
+        self.assertIn("batch3: 0/123 finished [0.0, 0.0303]", md)
+        self.assertIn("batch4: 1/20 finished [0.0089, 0.2361]", md)
+
     def test_e5_run_records_explain_the_gaps(self):  # T8
         r = batch5._e5()["from_run_records"]
         self.assertEqual(r["batch1"]["by_outcome"], {"oauth_session_expired": 30})
