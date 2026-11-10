@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import copy
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -72,6 +73,15 @@ def validate(m: dict) -> list[str]:
     return errors
 
 
+def _later(a: str, b: str) -> bool:
+    """True when a is after b, or when either is not an offset-aware ISO 8601 time (fail closed)."""
+    try:
+        x, y = (datetime.fromisoformat(t.replace("Z", "+00:00")) for t in (a, b))
+        return x.tzinfo is None or y.tzinfo is None or x > y
+    except (AttributeError, ValueError):
+        return True
+
+
 def bind_session(
     template: dict,
     *,
@@ -80,6 +90,7 @@ def bind_session(
     delegated_by: str | None = None,
     delegated_authority: list[str] | None = None,
     expires: str | None = None,
+    parent_expires: str | None = None,
 ) -> dict:
     """Fill part 6 (current task / session / delegated authority).
 
@@ -87,6 +98,9 @@ def bind_session(
     needs an explicit delegated_authority, a delegator listed in
     relationships.accepts_delegation_from, and authority within allowed_tools.
     Only a non-delegated session with no delegated_authority gets allowed_tools.
+    A delegated session given parent_expires (the delegator's own
+    current_task.expires) never outlives it: expires becomes the earlier of
+    the two, or parent_expires when either cannot be compared.
 
     The digest of the bound manifest changes per session, so a log record's
     agent_manifest_sha256 pins both who the agent is and what it was allowed
@@ -103,6 +117,8 @@ def bind_session(
             raise ValueError(f"{m['gen_ai.agent.id']} does not accept delegation from {delegated_by!r}")
         if delegated_authority is None:
             raise ValueError("a delegation must state delegated_authority explicitly")
+    if parent_expires is not None and _later(expires, parent_expires):
+        expires = parent_expires
     authority = allowed if delegated_authority is None else list(delegated_authority)
     extra = [t for t in authority if t not in allowed]
     if extra:

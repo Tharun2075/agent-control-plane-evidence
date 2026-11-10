@@ -51,6 +51,15 @@ class DelegationTest(Tmp):
                          delegated_by="acp.orchestrator", delegated_authority=[])
         self.assertEqual(m["current_task"]["delegated_authority"], [])
 
+    def test_child_cannot_outlive_parent(self):  # batch 5 E1 class child-outlives-parent
+        kw = dict(session_id="s", task="t", delegated_by="acp.orchestrator", delegated_authority=[])
+        m = bind_session(self.worker(), expires="2026-12-31T00:00:00Z", parent_expires="2026-11-10T09:00:00Z", **kw)
+        self.assertEqual(m["current_task"]["expires"], "2026-11-10T09:00:00Z")
+        m = bind_session(self.worker(), expires="2026-11-10T08:00:00Z", parent_expires="2026-11-10T09:00:00Z", **kw)
+        self.assertEqual(m["current_task"]["expires"], "2026-11-10T08:00:00Z")
+        m = bind_session(self.worker(), expires="garbage", parent_expires="2026-11-10T09:00:00Z", **kw)
+        self.assertEqual(m["current_task"]["expires"], "2026-11-10T09:00:00Z")
+
     def test_gate_denies_when_authority_missing(self):
         c, log = ctx(self.tmp)
         del c.manifest["current_task"]["delegated_authority"]
