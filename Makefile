@@ -60,3 +60,9 @@ batch7:
 verify-batch7:
 	$(PY) tools/batch7_summary.py --check
 verify: verify-batch7
+.PHONY: batch9 verify-batch9
+batch9:
+	$(PY) tools/batch9_summary.py
+verify-batch9:
+	$(PY) tools/batch9_summary.py --check
+verify: verify-batch9
