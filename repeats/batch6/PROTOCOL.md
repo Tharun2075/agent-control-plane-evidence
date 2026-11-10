@@ -104,3 +104,9 @@ All runs that start are reported, including errors, provider refusals and runs c
 - Outcome: OpenRouter nemotron stopped by 429 after 15 runs, Gemini after 12 runs (all timeout
   or 500, no answer), Groq at the first request (0 runs); the local MLX server was not run
   (offloaded by a standing owner order). Non-Claude spend $0.
+- `acp/bench_gate.py` changed after all runs (reporting only: providers_markdown() and
+  providers.json loading in build(); review/classify/aggregate unchanged); new SHA-256
+  d7322fd0cc8c87cebcd78e3619107fcb5cc1c54b593963e656ad13b892238aed; every run used
+  2a858f3751507867907ff743d9c8921aaf6d23cd016da2c034b1a593f8d0c25a (= 9429a50).
+- 9429a50 (11:00:07Z) edited one protocol line 45 s after the first B1 run: pilot wording
+  only, no run, subset, arm, model, metric or stop rule changed.
