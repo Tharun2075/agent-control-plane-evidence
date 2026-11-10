@@ -171,6 +171,14 @@ def run_e3_repeats(out: Path = OUT, reps: int = E3_REPEATS) -> None:
 
 # ---------------------------------------------------------------- summary
 
+OUT_OF_SCOPE_TRICKS = ("approval-file-write", "tool-direct-file-access")
+
+
+def in_scope_n(rows: list[dict]) -> int:
+    """In-scope attempts: every attempt whose trick is not declared out of scope, whatever its outcome."""
+    return sum(r["trick"] not in OUT_OF_SCOPE_TRICKS for r in rows)
+
+
 def _e1(d: Path) -> dict | None:
     if not (d / "attempts.jsonl").exists():
         return None
@@ -183,9 +191,9 @@ def _e1(d: Path) -> dict | None:
             s["by_class"][r["class"]] = s["by_class"].get(r["class"], 0) + 1
     out_scope = {c for c, fx in attacker.FIXABLE.items() if not fx}
     k = sum(n for c, n in s["by_class"].items() if c not in out_scope)
-    n = sum(not (r["bypass"] and r["class"] in out_scope) for r in rows)
+    n = in_scope_n(rows)
     s["in_scope"] = {"k": k, "n": n, "wilson95": wilson(k, n), "out_of_scope_classes": sorted(out_scope),
-                     "out_of_scope_bypass": len(rows) - n}
+                     "out_of_scope_bypass": sum(bool(r["bypass"]) for r in rows) - k}
     s["session_log"] = _session_log_gap(d, rows)
     return s
 

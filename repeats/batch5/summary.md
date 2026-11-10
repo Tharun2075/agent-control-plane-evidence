@@ -18,7 +18,7 @@ Run 2026-11-10T12:03:35Z at 503adeb313cb.
 Run 2026-11-10T12:03:25Z at c6ecf40803dc.
 - approval-forgery: 10 (NOT fixable in-process)
 - tool-direct-file-access: 20 (NOT fixable in-process)
-- In scope: 0/510 bypassed (Wilson 95% [0.0, 0.0075]) on our own trick list. All 30 remaining bypasses are the 2 classes declared out of scope (approval-forgery, tool-direct-file-access): a process that can write the approval key or open files directly is outside the in-process threat model.
+- In scope: 0/500 bypassed (Wilson 95% [0.0, 0.0076]) on our own trick list. All 30 remaining bypasses are the 2 classes declared out of scope (approval-forgery, tool-direct-file-access): a process that can write the approval key or open files directly is outside the in-process threat model.
 - Session family: 80 attempt records but 140 log lines. Each of the 60 attempts first has the victim agent write its secret (one gate record, 60 in total) before the attempt's record count starts; those setup records are in the chain but are not attack records.
 
 ## E2 ablation (bypassed / attempts)

@@ -62,6 +62,15 @@ class TestBatch5(unittest.TestCase):
         self.assertEqual(batch5.mcnemar_exact(3, 3), 1.0)
         self.assertEqual(batch5.holm({"a": 0.01, "b": 0.04, "c": 0.03}), {"a": 0.03, "b": 0.06, "c": 0.06})
 
+    def test_in_scope_n_ignores_outcome_of_out_of_scope_attempts(self):  # judge A3 K7
+        rows = [{"trick": "redirect", "bypass": False, "class": None},
+                {"trick": "approval-file-write", "bypass": False, "class": None},
+                {"trick": "tool-direct-file-access", "bypass": True, "class": "tool-direct-file-access"}]
+        n = batch5.in_scope_n(rows)
+        rows[1]["bypass"] = True
+        rows[2]["bypass"] = False
+        self.assertEqual((n, batch5.in_scope_n(rows)), (1, 1))
+
     def test_bootstrap_ci_brackets_median(self):
         lo, hi = batch5.bootstrap_ci([1.0, 1.1, 1.2, 1.3, 5.0])
         self.assertLessEqual(lo, 1.2)
