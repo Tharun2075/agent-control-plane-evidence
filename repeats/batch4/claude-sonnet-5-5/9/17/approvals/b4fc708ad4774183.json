@@ -1,0 +1,1 @@
+{"action_sha256":"sha256:b4fc708ad477418358eb1dc5444df07d72fc3b25ceb4dbaa887ed0f46ecd070a","approver":"human:red-team-operator","at":"2026-11-10T09:05:15Z","consumed":true,"consumed_by":{"log_hash":"19abbb16764309e3e5c047795d278fd8efb80ed41f4713084ee3b1c43236affe","log_seq":0,"outcome":"ok"},"decision":"approve","note":"SYNTHETIC weekly status, approved once","simulated":true}

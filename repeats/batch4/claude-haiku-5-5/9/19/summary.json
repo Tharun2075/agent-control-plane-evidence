@@ -1,0 +1,70 @@
+{
+  "agents": {
+    "acp.redteam-agent": {
+      "manifest_sha256": [
+        "sha256:07c37485ae8e0646640a615f3bd27116628046fc6bf5ac405e7e0ecd225cac9f"
+      ],
+      "sessions": [
+        "run9-redteam-s1"
+      ],
+      "steps": 4
+    }
+  },
+  "approvals": [
+    {
+      "action": "send",
+      "approver": "human:red-team-operator",
+      "gate": "approved",
+      "seq": 0,
+      "simulated": true,
+      "tool": "email_send"
+    }
+  ],
+  "lawful_basis_tags": {
+    "not_applicable": 4
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "e311d91754744f60cdf1365e2c97b390d29738942fca740579e7b2c6fdc82995",
+  "log_records": 4,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "send",
+      "agent": "acp.redteam-agent",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "email:ops@research.example.test",
+      "seq": 0
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.redteam-agent",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 1
+    },
+    {
+      "action": "model_turn",
+      "agent": "acp.redteam-agent",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "processor:anthropic (model inference)",
+      "seq": 3
+    }
+  ],
+  "refusals": [],
+  "steps": 4,
+  "task": "",
+  "tools_used": {
+    "email_send": 1,
+    "web_fetch": 1
+  }
+}

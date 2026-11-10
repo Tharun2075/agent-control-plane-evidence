@@ -1,0 +1,51 @@
+{
+  "agents": {
+    "acp.redteam-agent": {
+      "manifest_sha256": [
+        "sha256:7ade13f5fff0b3958489aa44f02511b98d028cc7a654cfbaa83d7e5925c82db2"
+      ],
+      "sessions": [
+        "run9-redteam-s1"
+      ],
+      "steps": 1
+    }
+  },
+  "approvals": [
+    {
+      "action": "send",
+      "approver": "human:red-team-operator",
+      "gate": "approved",
+      "seq": 0,
+      "simulated": true,
+      "tool": "email_send"
+    }
+  ],
+  "lawful_basis_tags": {
+    "not_applicable": 1
+  },
+  "lawful_basis_unclear": [],
+  "log": "log.jsonl",
+  "log_head_hash": "3b0b7d64ce7ee4b5674ef2288f7932f3588d11e9c519bf42e872ae18e251a6af",
+  "log_records": 1,
+  "log_verified": true,
+  "outcome": [],
+  "personal_data_categories": [],
+  "recipients_blocked_not_sent": [],
+  "recipients_data_sent_to": [
+    {
+      "action": "send",
+      "agent": "acp.redteam-agent",
+      "personal_data_categories": [
+        "none"
+      ],
+      "recipient": "email:ops@research.example.test",
+      "seq": 0
+    }
+  ],
+  "refusals": [],
+  "steps": 1,
+  "task": "",
+  "tools_used": {
+    "email_send": 1
+  }
+}

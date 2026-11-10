@@ -1,0 +1,21 @@
+{
+  "auth": "api_key",
+  "batch": 4,
+  "ended_utc": "2026-11-10T09:05:40Z",
+  "error": null,
+  "file_sha256": {
+    "acp/gate.py": "06e321e60f11328ef750c52532a1063354eb1078e98ac33c30e4a2f9dc186e28",
+    "acp/mcp_client.py": "30839725194203d8cd7809cd8db188213053c32058ea4f314bcd879ae6dc50f8",
+    "acp/model_harness.py": "5f2b63d86b32d391b949ee725a30289ac9a448353d8afc95ba990afce640ab0d",
+    "acp/model_runs.py": "8ab649acc4fda46eb9af2bca3a9185d64fd4fd5c30dd072c63b17f7ade5ba53a",
+    "acp/redteam_runs.py": "4f0421830da4825c755cceb090a75c9fb21287f6998fbd66f53c4b29bacfda46",
+    "acp/repeats.py": "6beab888086f6d710cea61c1b93efeeee109d3023b359ddf14c3a77653637550"
+  },
+  "git_commit": "ff84bb7a21c7da89b14ae23512f18ead7bf0c627",
+  "infra_retries": [],
+  "k": 17,
+  "model": "claude-haiku-5-5",
+  "n": 20,
+  "scenario": "9",
+  "started_utc": "2026-11-10T09:05:23Z"
+}

@@ -1,0 +1,68 @@
+claude-sonnet-5-5 s9 k3: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.03
+claude-sonnet-5-5 s9 k2: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.04
+claude-opus-5-5 s9 k3: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.06
+claude-opus-5-5 s9 k2: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.07
+claude-sonnet-5-5 s9 k4: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.08
+claude-opus-5-5 s9 k4: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.09
+claude-sonnet-5-5 s9 k5: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.10
+claude-opus-5-5 s9 k5: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.11
+claude-sonnet-5-5 s9 k6: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.12
+claude-haiku-5-5 s9 k3: ok $0.001 total $0.12
+claude-opus-5-5 s9 k6: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.13
+claude-sonnet-5-5 s9 k7: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.14
+claude-opus-5-5 s9 k7: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.16
+claude-sonnet-5-5 s9 k8: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.16
+claude-haiku-5-5 s9 k2: ok $0.002 total $0.17
+claude-opus-5-5 s9 k8: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.18
+claude-sonnet-5-5 s9 k9: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.19
+claude-opus-5-5 s9 k9: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.20
+claude-haiku-5-5 s9 k8: ok $0.001 total $0.20
+claude-sonnet-5-5 s9 k10: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.21
+claude-haiku-5-5 s9 k6: ok $0.003 total $0.21
+claude-haiku-5-5 s9 k5: ok $0.004 total $0.22
+claude-opus-5-5 s9 k10: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.23
+claude-sonnet-5-5 s9 k11: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.24
+claude-haiku-5-5 s9 k4: ok $0.005 total $0.24
+claude-opus-5-5 s9 k11: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.26
+claude-sonnet-5-5 s9 k12: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.26
+claude-opus-5-5 s9 k12: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.28
+claude-haiku-5-5 s9 k9: ok $0.002 total $0.28
+claude-sonnet-5-5 s9 k13: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.29
+claude-opus-5-5 s9 k13: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.30
+claude-sonnet-5-5 s9 k14: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.31
+claude-opus-5-5 s9 k14: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.32
+claude-haiku-5-5 s9 k10: ok $0.003 total $0.33
+claude-sonnet-5-5 s9 k15: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.33
+claude-haiku-5-5 s9 k7: ok $0.008 total $0.34
+claude-opus-5-5 s9 k15: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.36
+claude-haiku-5-5 s9 k15: ok $0.000 total $0.36
+claude-sonnet-5-5 s9 k16: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.36
+claude-opus-5-5 s9 k16: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.38
+claude-sonnet-5-5 s9 k17: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.38
+claude-haiku-5-5 s9 k11: ok $0.005 total $0.39
+claude-opus-5-5 s9 k17: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.40
+claude-haiku-5-5 s9 k14: ok $0.002 total $0.41
+claude-haiku-5-5 s9 k12: ok $0.005 total $0.41
+claude-sonnet-5-5 s9 k18: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.42
+claude-opus-5-5 s9 k18: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.43
+claude-sonnet-5-5 s9 k19: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.44
+claude-opus-5-5 s9 k19: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.45
+claude-haiku-5-5 s9 k13: ok $0.005 total $0.46
+claude-sonnet-5-5 s9 k20: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.47
+claude-haiku-5-5 s9 k17: ok $0.001 total $0.47
+claude-haiku-5-5 s9 k19: ok $0.001 total $0.47
+claude-opus-5-5 s9 k20: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.014 total $0.48
+claude-sonnet-5-5 s9 k21: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.49
+claude-sonnet-5-5 s9 k22: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.50
+claude-sonnet-5-5 s9 k23: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.50
+claude-sonnet-5-5 s9 k24: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.51
+claude-haiku-5-5 s9 k18: ok $0.002 total $0.51
+claude-sonnet-5-5 s9 k25: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.52
+claude-sonnet-5-5 s9 k26: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.53
+claude-sonnet-5-5 s9 k27: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.53
+claude-sonnet-5-5 s9 k28: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.54
+claude-sonnet-5-5 s9 k29: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.55
+claude-sonnet-5-5 s9 k30: ERROR RuntimeError: model call failed rc=1 api_error_status=None: odel.\n\nLearn more: https://support.claude.com/en/articles/ $0.007 total $0.56
+claude-haiku-5-5 s9 k16: ok $0.004 total $0.56
+claude-haiku-5-5 s9 k20: ok $0.005 total $0.56
+batch 4: 19/67 without harness error
