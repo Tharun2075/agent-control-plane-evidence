@@ -478,6 +478,7 @@ import _imp  # noqa: E402
 import _posixsubprocess  # noqa: E402
 import multiprocessing.process  # noqa: E402
 import importlib.machinery  # noqa: E402
+import importlib.util  # noqa: E402
 _ModuleSpec = importlib.machinery.ModuleSpec
 _imp.create_builtin = _guard_create(_imp.create_builtin)
 _imp.create_dynamic = _guard_create(_imp.create_dynamic)
@@ -526,6 +527,7 @@ for _name in ("enable", "register", "dump_traceback_later"):
 
 _MODULE_DICT = types.ModuleType.__dict__["__dict__"].__get__  # a module's own dict, read past type(o)
 _SET_CLASS = object.__dict__["__class__"].__set__
+_LAZY_MODULE = importlib.util._LazyModule  # LazyLoader modules: a plain module after first use
 
 
 def _attr(o, a):  # an attribute: the same object is put back; a module's is read and written in its own dict
@@ -545,22 +547,46 @@ def _attr(o, a):  # an attribute: the same object is put back; a module's is rea
 
 def _classes_snap():
     """(name, object, class) for every module in sys.modules, every logger and placeholder, the root logger and
-    its manager: a class the tool body swaps (a module or logger can lie about every attribute) is put back."""
+    its manager: a class the tool body swaps (a module or logger can lie about every attribute) is put back.
+    Also the classes a module or logger made during the call may have (checked after the call)."""
     root = logging.root
-    objs = [("logging.root", root), ("logging.root.manager", root.manager), *list(_MODULES.items())]
-    objs += [("logger " + n, o) for n, o in list(root.manager.loggerDict.items())]
-    return [(n, o, type(o)) for n, o in objs]
+    manager = root.manager
+    objs = [("logging.root", root), ("logging.root.manager", manager), *list(_MODULES.items())]
+    loggers = manager.loggerDict
+    objs += [("logger " + n, o) for n, o in list(loggers.items())]
+    rows = [(n, o, type(o)) for n, o in objs]
+    mods = {types.ModuleType, _LAZY_MODULE, *(t for n, o, t in rows[2:] if not n.startswith("logger "))}
+    lg = logging.getLoggerClass()
+    lgs = {lg, logging.PlaceHolder, *(t for n, o, t in rows if n.startswith("logger "))}
+    return rows, {id(o) for n, o, t in rows}, mods, lgs, lg, manager, loggers
 
 
 def _classes_restore(snap):  # the names it put back, each refused
+    rows, seen, mods, lgs, lg, manager, loggers = snap
     moved = []
-    for n, o, t in snap:
+
+    def put(n, o, t):
+        try:
+            _SET_CLASS(o, t)
+            moved.append(f"type({n})")
+        except BaseException:
+            moved.append(f"type({n}) (not restored)")
+    for n, o, t in rows:
         if type(o) is not t:
-            try:
-                _SET_CLASS(o, t)
-                moved.append(f"type({n})")
-            except BaseException:
-                moved.append(f"type({n}) (not restored)")
+            put(n, o, t)
+    # Modules and loggers first made during the call: a module's class must be a plain module class, a logger's
+    # the logger class of the snapshot (or a placeholder); any other class is put back and the call refused.
+    for n, o in list(_MODULES.items()):
+        t = type(o)
+        if id(o) not in seen and t not in mods and issubclass(t, types.ModuleType):
+            put(n, o, types.ModuleType)
+    now = manager.loggerDict  # the manager's class is real again (it is a snapshot row)
+    for d in (loggers,) if now is loggers else (loggers, now):
+        for n, o in list(d.items()):
+            t = type(o)
+            if id(o) not in seen and t not in lgs:
+                ph = logging.PlaceHolder in type.__dict__["__mro__"].__get__(t)
+                put(f"logger {n}", o, logging.PlaceHolder if ph else lg)
     return moved
 
 
