@@ -107,3 +107,4 @@ batch12:
 	$(PY) tools/batch12.py run
 verify-batch12:
 	$(PY) tools/batch12.py --check
+verify: verify-batch12
