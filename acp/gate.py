@@ -23,6 +23,8 @@ Every tool call goes through ToolRunner.call(). It
 """
 from __future__ import annotations
 
+import atexit
+import gc
 import hashlib
 import hmac
 import json
@@ -30,8 +32,10 @@ import os
 import pathlib
 import re
 import secrets
+import signal
 import sys
 import threading
+import weakref
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -74,11 +78,14 @@ class ToolFileAccessDenied(PermissionDenied):
 # argument is relative or resolves outside the allowed dirs (checked as a write). Native calls that touch
 # files or start processes without an audit event (_posixsubprocess.fork_exec, os.mkfifo, os.mknod,
 # readline history files, dbm) are wrapped or refused at import.
+# No tool code runs after the window: signal handlers and timers, atexit, threads, trace/profile hooks,
+# weakref.finalize and changed interpreter hooks are refused; the result leaves as JSON data only and the
+# body's objects are collected inside the window, so their __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
-# (its globals, the hook, a removed sqlite authorizer, the wrapped functions). os.stat, os.lstat,
-# os.access and os.path.exists raise no audit event, so a tool body can learn whether a path outside the
-# session exists, its size, times and access bits; it cannot read, write, list or remove it. An OS
-# sandbox per tool is the next step.
+# (its globals, the hook, a removed sqlite authorizer, the wrapped functions) or with shared interpreter
+# state the host later runs (ctypes, object-graph walking, patched modules). Metadata calls (os.stat,
+# os.access, os.path.exists) raise no audit event, and file descriptors the host already holds are not
+# tracked. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
 _PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
                   | {Path(__file__).resolve().parent})
@@ -100,16 +107,19 @@ _PATH_EVENTS = {
     "shutil.copyfile": ((1,), True, ()), "shutil.copymode": ((1,), True, ()), "shutil.copystat": ((1,), True, ()),
     "shutil.copytree": ((1,), True, ()), "shutil.move": ((0, 1), True, ()), "shutil.rmtree": ((0,), True, (1,)),
 }
-# Events a tool body may not raise at all: new processes, threads the guard cannot follow, cwd changes, native code.
+# Events a tool body may not raise at all: new processes, threads the guard cannot follow, cwd changes, native code,
+# and code the host would run after the body returns (trace/profile functions, audit and async-generator hooks).
 # Python < 3.13 raises no audit event for a thread start; there the thread-start functions are wrapped below.
 _DENY_EVENTS = {"os.chdir", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.fork", "os.forkpty",
                 "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen",
-                "ctypes.dlsym", "sqlite3.enable_load_extension", "sqlite3.load_extension"}
+                "ctypes.dlsym", "sqlite3.enable_load_extension", "sqlite3.load_extension", "sys.setprofile",
+                "sys.settrace", "sys.addaudithook", "sys.set_asyncgen_hooks_firstiter",
+                "sys.set_asyncgen_hooks_finalizer", "sys.monitoring.register_callback"}
 # Events whose arguments are code, names, data or network addresses, never file paths: they pass.
 # Every event not handled by name in _open_hook and not listed here is checked argument by argument.
 _SAFE_EVENTS = {"import", "exec", "compile", "code.__new__", "function.__new__", "marshal.loads", "marshal.dumps",
                 "marshal.load", "pickle.find_class", "object.__getattr__", "object.__setattr__",
-                "object.__delattr__", "sys._getframe", "sys.setprofile", "sys.settrace", "array.__new__",
+                "object.__delattr__", "sys._getframe", "array.__new__",
                 "fcntl.fcntl", "fcntl.ioctl", "fcntl.flock", "fcntl.lockf", "socket.__new__", "builtins.input",
                 "builtins.input/result", "socket.getaddrinfo", "socket.gethostbyname", "socket.gethostbyname_ex",
                 "socket.gethostbyaddr", "socket.getnameinfo", "socket.getservbyname", "socket.getservbyport",
@@ -124,7 +134,8 @@ _NATIVE_FILE_MODULES = {"readline": ("read_history_file", "write_history_file", 
                         "_dbm": ("open",), "dbm.ndbm": ("open",), "_gdbm": ("open",), "dbm.gnu": ("open",)}
 # C modules a tool body may not load: file access without an audit event, or a fresh copy that would lack
 # the wrappers installed below. Refused by name at import and at _imp.create_builtin/create_dynamic.
-_NATIVE_GUARDED = {"readline", "_dbm", "_gdbm", "_posixsubprocess", "posix", "nt", "_thread", "_imp"}
+_NATIVE_GUARDED = {"readline", "_dbm", "_gdbm", "_posixsubprocess", "posix", "nt", "_thread", "_imp", "_signal",
+                   "atexit"}
 _SQLITE_MEMORY = ("", ":memory:")
 _SQLITE_SIDE = ("", "-journal", "-wal", "-shm")  # SQLite opens these beside the database without an audit event
 
@@ -244,9 +255,10 @@ def _open_hook(event, args):
         _GUARD.sqlite_pending = getattr(_GUARD, "sqlite_pending", []) + [(args[0], _sqlite_authorizer(g))]
         if sys.getprofile() is not _sqlite_profile:
             _GUARD.sqlite_prev_profile = sys.getprofile()
-            sys.setprofile(_sqlite_profile)
+            _set_profile(_sqlite_profile)
     elif event in _DENY_EVENTS:
-        _deny(event)
+        if not (event == "sys.setprofile" and getattr(_GUARD, "internal", False)):  # the gate's own sqlite hook
+            _deny(event)
     elif event in _SOCKET_EVENTS:
         addr = args[1]
         if addr is not None and not isinstance(addr, tuple):  # inet addresses are tuples; anything else is a file path
@@ -287,7 +299,15 @@ def _sqlite_profile(frame, event, arg):
             waiting.append((conn, auth))
     _GUARD.sqlite_pending = waiting
     if not waiting:
-        sys.setprofile(getattr(_GUARD, "sqlite_prev_profile", None))
+        _set_profile(getattr(_GUARD, "sqlite_prev_profile", None))
+
+
+def _set_profile(fn):
+    _GUARD.internal = True
+    try:
+        sys.setprofile(fn)
+    finally:
+        _GUARD.internal = False
 
 
 def _guard_call(fn, what, check=None):
@@ -398,6 +418,66 @@ import sqlite3  # noqa: E402
 builtins.open = io.open = _guard_paths(io.open, 1)  # pathlib's Path.open calls io.open
 sqlite3.connect = _guard_paths(sqlite3.connect, 1)
 _guard_native()
+# Code the host would run after the body returns, with no audit event: signal handlers and timers, exit
+# functions, finalizers, trace/profile functions for new threads. Refused inside a tool body.
+import _signal  # noqa: E402
+for _mod in (signal, _signal):
+    for _name in ("signal", "setitimer", "alarm", "set_wakeup_fd"):
+        _wrap(_mod, _name, f"deferred code: signal.{_name}")
+_wrap(atexit, "register", "deferred code: atexit.register")
+_wrap(threading, "_register_atexit", "deferred code: threading._register_atexit")
+for _name in ("setprofile", "settrace", "setprofile_all_threads", "settrace_all_threads"):
+    _wrap(threading, _name, f"deferred code: threading.{_name}")
+_wrap(weakref.finalize, "__init__", "deferred code: weakref.finalize")
+# Interpreter hooks the host calls later: a tool body that changes one is refused and the hook restored.
+_HOOKS = ((gc, "callbacks"), (sys, "meta_path"), (sys, "path_hooks"), (sys, "excepthook"), (sys, "unraisablehook"),
+          (sys, "displayhook"), (sys, "breakpointhook"), (threading, "excepthook"), (threading, "_profile_hook"),
+          (threading, "_trace_hook"))
+
+
+def _hook_snapshot():
+    return [(o, a, v, list(v) if type(v) is list else None) for o, a in _HOOKS for v in [getattr(o, a, None)]]
+
+
+def _hook_restore(snap):
+    changed = []
+    for o, a, v, items in snap:
+        if getattr(o, a, None) is not v:
+            setattr(o, a, v)
+            changed.append(f"{o.__name__}.{a}")
+        if items is not None and (len(v) != len(items) or any(x is not y for x, y in zip(v, items))):
+            v[:] = items
+            changed.append(f"{o.__name__}.{a}")
+    return changed
+
+
+def _plain_result(out):
+    """The result leaves the tool body as JSON data only: no object of the body outlives the guard window."""
+    try:
+        return json.loads(json.dumps(out))
+    except (TypeError, ValueError, RecursionError):
+        _deny(f"non-JSON tool result ({type(out).__name__})")
+
+
+def _plain_error(e):
+    """A fresh copy of the body's exception with JSON-only args: no traceback, frame or object of the body."""
+    cls = type(e)
+    try:
+        mod, name = type.__dict__["__module__"].__get__(cls), type.__dict__["__qualname__"].__get__(cls)
+        known = isinstance(mod, str) and isinstance(name, str) and (
+            (mod == "builtins" and vars(builtins).get(name) is cls)
+            or (mod.startswith("acp.") and getattr(sys.modules.get(mod), name, None) is cls))
+        args, attrs = json.loads(json.dumps(e.args)), json.loads(json.dumps(vars(e)))
+        msg = json.loads(json.dumps(str(e)))
+    except Exception:
+        known, msg = False, cls.__name__
+    if not known:
+        return RuntimeError(f"tool error: {msg}")
+    err = cls.__new__(cls, *args)
+    err.args = tuple(args)
+    vars(err).update(attrs)
+    return err
+
 
 _SYS_PATH = tuple(sys.path)  # snapshot at install: a tool body that edits sys.path gains nothing
 sys.addaudithook(_open_hook)
@@ -642,20 +722,41 @@ class ToolRunner:
             return fn()
         _guard_native()
         prev = getattr(_GUARD, "allow", None)
+        gc.collect()  # host garbage dies outside the window
+        hooks = _hook_snapshot()
         _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
+        out = err = None
         try:
-            out = fn()
-        except Exception:
-            if not _GUARD.denied:
-                raise
-            out = None  # a refusal caused this error (e.g. sqlite "not authorized"): report the refusal
+            try:
+                out = _plain_result(fn())
+            except BaseException as e:  # a refusal caused it (e.g. sqlite "not authorized"): report the refusal
+                try:
+                    err = None if _GUARD.denied else _plain_error(e)
+                except BaseException:
+                    err = RuntimeError("tool error")
         finally:
-            _GUARD.allow = prev
+            try:
+                changed = []
+                rounds, found = 0, 1
+                while found:  # the body's objects die inside the window: their __del__ runs guarded;
+                    rounds += 1  # the window stays shut until no garbage is left (a chain only hangs, like a busy loop)
+                    found = gc.collect()
+                    step = _hook_restore(hooks)
+                    changed += step
+                    found = found or step
+                if rounds > 4:  # finalizers kept making garbage
+                    changed.append("finalizer chain")
+                if changed and not _GUARD.denied:
+                    _GUARD.denied = "deferred code: " + ", ".join(dict.fromkeys(changed))
+            finally:
+                _GUARD.allow = prev
             if getattr(_GUARD, "sqlite_pending", None):  # fail closed: a connection ran without its authorizer
                 _GUARD.sqlite_pending = []
                 _GUARD.denied = _GUARD.denied or "sqlite authorizer not installed"
         if _GUARD.denied:  # the tool swallowed the denial: still refuse its result
             raise ToolFileAccessDenied(_GUARD.denied)
+        if err is not None:
+            raise err from None
         return out
 
     def requires_approval(self, tool: str) -> bool:
