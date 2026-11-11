@@ -29,7 +29,6 @@ import json
 import os
 import re
 import secrets
-import socket
 import sys
 import threading
 from datetime import datetime, timezone
@@ -115,13 +114,16 @@ _SAFE_EVENTS = {"import", "exec", "compile", "code.__new__", "function.__new__",
                 "socket.gethostbyaddr", "socket.getnameinfo", "socket.getservbyname", "socket.getservbyport",
                 "http.client.connect", "http.client.send", "urllib.Request", "smtplib.connect", "smtplib.send",
                 "os.putenv", "os.unsetenv"}
-# Socket events carry a file path only for AF_UNIX sockets: (sock, address).
+# Socket events (sock, address): a str/bytes/path address is an AF_UNIX file path, whatever the socket claims.
 _SOCKET_EVENTS = {"socket.bind", "socket.connect", "socket.sendto", "socket.sendmsg"}
 # Modules that create or read files in C without an audit event: their import is refused in a tool body,
 # and if one was imported before, its file functions are wrapped (see _guard_native).
 _NATIVE_FILE_MODULES = {"readline": ("read_history_file", "write_history_file", "append_history_file",
                                      "read_init_file"),
                         "_dbm": ("open",), "dbm.ndbm": ("open",), "_gdbm": ("open",), "dbm.gnu": ("open",)}
+# C modules a tool body may not load: file access without an audit event, or a fresh copy that would lack
+# the wrappers installed below. Refused by name at import and at _imp.create_builtin/create_dynamic.
+_NATIVE_GUARDED = {"readline", "_dbm", "_gdbm", "_posixsubprocess", "posix", "nt", "_thread", "_imp"}
 _SQLITE_MEMORY = ("", ":memory:")
 _SQLITE_SIDE = ("", "-journal", "-wal", "-shm")  # SQLite opens these beside the database without an audit event
 
@@ -220,12 +222,10 @@ def _open_hook(event, args):
     elif event in _DENY_EVENTS:
         _deny(event)
     elif event in _SOCKET_EVENTS:
-        if getattr(args[0], "family", None) == getattr(socket, "AF_UNIX", None) and args[1] is not None:
-            _check_arg(g, event, args[1])  # an AF_UNIX address is a file path (bind creates the socket file)
+        if isinstance(args[1], (str, bytes, os.PathLike)):
+            _check_arg(g, event, args[1])  # bind creates the socket file
     elif event == "import":
-        name = args[0] if args else ""
-        if name.split(".")[0] in ("readline", "_dbm", "_gdbm"):
-            _deny(f"import {name}: reads and writes files in C without an audit event")
+        _check_module(g, args[0] if args else "")
     elif event not in _SAFE_EVENTS:  # deny by default: any other event with an outside path argument is refused
         _check_args(g, event, args)
 
@@ -278,6 +278,12 @@ def _guard_thread_start(start):
     return _guard_call(start, "thread start")
 
 
+def _check_module(g, name, *a, **kw):
+    name = getattr(name, "name", name) or ""  # a module spec or a module name
+    if name.rpartition(".")[2] in _NATIVE_GUARDED:  # the C init symbol is PyInit_<last name part>
+        _deny(f"loading {name}: native file or process access without an audit event")
+
+
 def _check_node(g, path, *a, dir_fd=None, **kw):
     if dir_fd is not None or isinstance(path, int):
         _deny("mkfifo/mknod with dir_fd")
@@ -307,8 +313,11 @@ if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it a
 
 # Process starts that raise no audit event (_posixsubprocess.fork_exec backs subprocess and multiprocessing
 # spawn/forkserver) and file nodes created in C without one (mkfifo, mknod): refused or checked at the call.
+import _imp  # noqa: E402
 import _posixsubprocess  # noqa: E402
 import multiprocessing.process  # noqa: E402
+_wrap(_imp, "create_builtin", None, _check_module)
+_wrap(_imp, "create_dynamic", None, _check_module)
 _wrap(_posixsubprocess, "fork_exec", "process start")
 _wrap(multiprocessing.process.BaseProcess, "start", "process start")
 for _mod in {os, sys.modules[os.name]}:
