@@ -38,3 +38,4 @@ regenerates from the records.
 - Metadata calls (os.stat, os.access, os.path.exists) and file descriptors the host already holds
   are outside the guard.
 - The attacker is the scripted one only; model runs at this code are the owner's rerun.
+- 2026-11-11: d8f1843 re-registered the gate.py hash after 2c80bb7 (collect-until-clean), before any run; predictions, attacker and seeds unchanged.
