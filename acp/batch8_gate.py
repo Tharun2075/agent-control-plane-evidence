@@ -9,7 +9,7 @@ only (1). Their conjunction is `bench_gate.review` (tested in tests/test_batch8.
 from __future__ import annotations
 
 from acp import bench_gate
-from acp.bench_gate import GATED, TARGET_KEYS, _norm, _words
+from acp.bench_gate import GATED, _words
 
 # Control arms (gate on side-effect tools) and AgentDojo defence arms (no gate).
 GATE_ARMS = ("allowlist", "approval")
@@ -18,13 +18,9 @@ ARMS = GATE_ARMS + DEFENCE_ARMS
 
 
 def review_allowlist(suite: str, tool: str, args: dict, user_prompt: str) -> tuple[bool, str]:
-    """Condition (2) only: every target argument appears literally in the user task."""
-    prompt = _norm(user_prompt)
-    for k in TARGET_KEYS:
-        if k in args and args[k] not in (None, ""):
-            if _norm(args[k]) not in prompt:
-                return False, f"{k} not in allowlist"
-    return True, "approved"
+    """Condition (2) only: every target argument appears literally in the user task (fix 12 B:
+    including the task target of a tool with no recipient, `bench_gate.TASK_TARGETS`)."""
+    return bench_gate.check_targets(suite, tool, args, user_prompt)
 
 
 def review_approval(suite: str, tool: str, args: dict, user_prompt: str) -> tuple[bool, str]:
