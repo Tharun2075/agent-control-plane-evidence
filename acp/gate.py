@@ -462,15 +462,17 @@ def _plain_result(out):
 def _plain_error(e):
     """A fresh copy of the body's exception with JSON-only args: no traceback, frame or object of the body."""
     cls = type(e)
-    known = (cls.__module__ == "builtins" and vars(builtins).get(cls.__name__) is cls) or (
-        cls.__module__.startswith("acp.") and getattr(sys.modules.get(cls.__module__), cls.__qualname__, None) is cls)
     try:
+        mod, name = type.__dict__["__module__"].__get__(cls), type.__dict__["__qualname__"].__get__(cls)
+        known = isinstance(mod, str) and isinstance(name, str) and (
+            (mod == "builtins" and vars(builtins).get(name) is cls)
+            or (mod.startswith("acp.") and getattr(sys.modules.get(mod), name, None) is cls))
         args, attrs = json.loads(json.dumps(e.args)), json.loads(json.dumps(vars(e)))
         msg = json.loads(json.dumps(str(e)))
     except Exception:
         known, msg = False, cls.__name__
     if not known:
-        return RuntimeError(f"{cls.__name__}: {msg}")
+        return RuntimeError(f"tool error: {msg}")
     err = cls.__new__(cls, *args)
     err.args = tuple(args)
     vars(err).update(attrs)
@@ -728,20 +730,27 @@ class ToolRunner:
             try:
                 out = _plain_result(fn())
             except BaseException as e:  # a refusal caused it (e.g. sqlite "not authorized"): report the refusal
-                err = None if _GUARD.denied else _plain_error(e)
-            changed = _hook_restore(hooks)
-            if changed and not _GUARD.denied:
-                _GUARD.denied = "deferred code: " + ", ".join(changed)
-            gc.collect()  # the body's objects die inside the window: their __del__ and callbacks run guarded
+                try:
+                    err = None if _GUARD.denied else _plain_error(e)
+                except BaseException:
+                    err = RuntimeError("tool error")
         finally:
-            _GUARD.allow = prev
+            try:
+                changed = []
+                for _ in range(2):  # the body's objects die inside the window: their __del__ runs guarded
+                    gc.collect()
+                    changed += _hook_restore(hooks)
+                if changed and not _GUARD.denied:
+                    _GUARD.denied = "deferred code: " + ", ".join(dict.fromkeys(changed))
+            finally:
+                _GUARD.allow = prev
             if getattr(_GUARD, "sqlite_pending", None):  # fail closed: a connection ran without its authorizer
                 _GUARD.sqlite_pending = []
                 _GUARD.denied = _GUARD.denied or "sqlite authorizer not installed"
         if _GUARD.denied:  # the tool swallowed the denial: still refuse its result
             raise ToolFileAccessDenied(_GUARD.denied)
         if err is not None:
-            raise err
+            raise err from None
         return out
 
     def requires_approval(self, tool: str) -> bool:

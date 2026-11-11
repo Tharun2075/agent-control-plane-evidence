@@ -360,6 +360,7 @@ class ToolPathGuardTest(unittest.TestCase):
             os.close(fd)
 
     def test_stdlib_paths_still_work(self):
+        """Positive control: ordinary file work inside the session still succeeds under the guard."""
         d = self.store.dir
 
         def use():
@@ -371,6 +372,63 @@ class ToolPathGuardTest(unittest.TestCase):
             os.remove(d / "b.txt")
             return text + str(sorted(os.listdir(d / "sub")))
         self.assertEqual(self.read(use), "one[]")
+
+    def test_deferred_signal_handler_refused(self):
+        import signal
+        import time
+        got = []
+
+        def handler(*_):
+            got.append(open(self.secret).read())
+
+        def body():
+            signal.signal(signal.SIGALRM, handler)
+            signal.setitimer(signal.ITIMER_REAL, 0.05)
+            return "ok"
+        try:
+            self.assertDenied(body)
+            time.sleep(0.2)
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, signal.SIG_DFL)
+        self.assertEqual(got, [])
+
+    def test_returned_object_del_refused(self):
+        import gc
+        got, secret = [], self.secret
+
+        class Later:
+            def __del__(self):
+                try:
+                    got.append(open(secret).read())
+                except Exception:
+                    pass
+        self.assertDenied(Later)
+        gc.collect()
+        self.assertEqual(got, [])
+
+    def test_atexit_thread_finalize_refused(self):
+        import atexit
+        import threading
+        import weakref
+        got = []
+
+        def f(*_):
+            got.append(open(self.secret).read())
+
+        class Obj:
+            pass
+        keep = Obj()
+        try:
+            self.assertDenied(lambda: atexit.register(f) and None)
+            self.assertDenied(lambda: threading.Thread(target=f).start())
+            self.assertDenied(lambda: weakref.finalize(keep, f) and None)
+            self.assertDenied(lambda: threading.settrace(f))
+        finally:
+            atexit.unregister(f)
+            threading.settrace(None)
+        del keep
+        self.assertEqual(got, [])
 
 
 if __name__ == "__main__":
