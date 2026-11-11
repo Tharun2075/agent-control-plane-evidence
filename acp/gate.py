@@ -39,6 +39,7 @@ import secrets
 import signal
 import sys
 import threading
+import types
 import weakref
 from datetime import datetime, timezone
 from pathlib import Path
@@ -87,12 +88,13 @@ class ToolFileAccessDenied(PermissionDenied):
 # os.register_at_fork, codecs.register/register_error, faulthandler.enable/register/dump_traceback_later);
 # the rest are SNAPSHOT before the body and RESTORED after it (the _RESTORED table below: interpreter hooks,
 # import finders and path state, sys.path, os.environ, std streams, profile/trace, the root logger's handlers,
-# filters and level, the log record factory, gc.callbacks, copyreg). The result
+# filters and level, the root logger binding and logging.disable, the log record factory, gc.callbacks, copyreg;
+# a module or logger whose class was swapped is put back and the call refused). The result
 # leaves as JSON data only and the body's objects are collected inside the window, so __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
 # (its globals, the hook, a removed sqlite authorizer, the wrapped functions) or with shared interpreter
 # state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules,
-# objects reachable from restored state that are mutated in place, other class or module attributes).
+# objects reachable from restored state that are mutated in place, attributes not on that list).
 # Metadata calls (os.stat, os.access, os.path.exists) raise no audit event, and file descriptors the host
 # already holds are not tracked. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
@@ -454,20 +456,41 @@ for _name in ("enable", "register", "dump_traceback_later"):
     _wrap(faulthandler, _name, f"deferred code: faulthandler.{_name}")
 
 
-def _attr(o, a):  # an attribute: the same object is put back
+_MODULE_DICT = types.ModuleType.__dict__["__dict__"].__get__  # a module's own dict, read past type(o)
+_SET_CLASS = object.__dict__["__class__"].__set__
+
+
+def _attr(o, a):  # an attribute: the same object is put back; a module's is read and written in its own dict
+    if type(o) is types.ModuleType:
+        d = _MODULE_DICT(o)
+        get, put = (lambda: d.get(a)), (lambda v: d.__setitem__(a, v))
+    else:
+        get, put = (lambda: getattr(o, a, None)), (lambda v: setattr(o, a, v))
+
     def restore(v):
-        if getattr(o, a, None) is v:
+        if get() is v:
             return False
-        setattr(o, a, v)
+        put(v)
         return True
-    return lambda: getattr(o, a, None), restore
+    return get, restore
+
+
+def _class_of(o):  # an object's class (a swapped one can lie about every attribute): it is put back first
+    t = type(o)
+
+    def restore(_):
+        if type(o) is t:
+            return False
+        _SET_CLASS(o, t)
+        return True
+    return lambda: t, restore
 
 
 def _held(o, a):  # a list or dict attribute: the same object is put back, holding the same items
-    put = _attr(o, a)[1]
+    get, put = _attr(o, a)
 
     def snap():
-        v = getattr(o, a)
+        v = get()
         return v, dict(v) if type(v) is dict else list(v)
 
     def restore(snap):
@@ -543,6 +566,15 @@ def _class_dict(cls):  # a class's own attributes (import finders): changed or a
     return lambda: dict(vars(cls)), restore
 
 
+def _disable_restore(v):  # logging.disable: the level is put back and the loggers' cached checks dropped
+    m = logging.root.manager
+    if type(m.disable) is int and m.disable == v:
+        return False
+    m.disable = v
+    m._clear_cache()
+    return True
+
+
 def _level_restore(v):
     cur = logging.root.level
     if type(cur) is int and cur == v:
@@ -554,7 +586,12 @@ def _level_restore(v):
 # Process-global state the host uses after a tool body returns: snapshot before the call, restored after it, even
 # when the body raises. One row per channel: (name, snapshot, restore -> changed, a change refuses the call).
 # Code hooks refuse the call; data a tool may legitimately touch (imports, environment, log level) is only put back.
-_RESTORED = (
+_RESTORED = (  # the class rows come first, so every later row reads and writes through the real class
+    *((f"type({n})", *_class_of(o), True) for n, o in (("sys", sys), ("logging", logging), ("threading", threading),
+                                                         ("os", os), ("gc", gc), ("copyreg", copyreg))),
+    *((f"type({n})", *_class_of(o), True) for n, o in (("logging.root", logging.root),
+                                                         ("logging.root.manager", logging.root.manager),
+                                                         ("os.environ", os.environ))),
     ("sys.asyncgen_hooks", *_pair(sys.get_asyncgen_hooks, lambda f, g: sys.set_asyncgen_hooks(f, g)), True),
     *((f"sys.{a}", *_attr(sys, a), True) for a in ("excepthook", "unraisablehook", "displayhook", "breakpointhook")),
     ("threading.excepthook", *_attr(threading, "excepthook"), True),
@@ -569,14 +606,21 @@ _RESTORED = (
     ("copyreg.dispatch_table", *_held(copyreg, "dispatch_table"), True),
     *((f"importlib.machinery.{c.__name__}", *_class_dict(c), True) for c in (importlib.machinery.PathFinder,
                                                                           importlib.machinery.FileFinder)),
+    *((f"importlib.machinery.{c.__name__}", *_class_dict(c), True) for c in (importlib.machinery.BuiltinImporter,
+                                                                          importlib.machinery.FrozenImporter)),
+    *((n, *_attr(o, "root"), True) for n, o in (("logging.root", logging), ("logging.Logger.root", logging.Logger),
+                                                ("logging.root.manager.root", logging.root.manager))),
+    ("logging.Logger.manager", *_attr(logging.Logger, "manager"), True),
     ("logging.root.handlers", *_held(logging.root, "handlers"), True),
     ("logging.root.filters", *_held(logging.root, "filters"), True),
     ("logging record factory", *_attr(logging, "_logRecordFactory"), True),
     ("logging handler list", *_held(logging, "_handlerList"), False),  # logging.shutdown closes these at exit
     ("logging.root.level", lambda: logging.root.level, _level_restore, False),
+    ("logging.root.manager.disable", lambda: logging.root.manager.disable, _disable_restore, False),
     ("sys.path_importer_cache", *_held(sys, "path_importer_cache"), False),
     ("sys.path", *_held(sys, "path"), False),
     *((f"sys.{a}", *_attr(sys, a), False) for a in ("stdin", "stdout", "stderr")),
+    *((f"sys.{a}", *_attr(sys, a), False) for a in ("__stdin__", "__stdout__", "__stderr__")),
     ("os.environ", _env_snap, _env_restore, False),
 )
 
