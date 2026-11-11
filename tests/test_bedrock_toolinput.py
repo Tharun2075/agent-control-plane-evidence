@@ -41,6 +41,16 @@ def recorded_errors():
     return out
 
 
+def recorded_error_runs():
+    """Number of recorded gpt-oss-120b runs (rows) with at least one toolUse.input error."""
+    n = 0
+    for f in sorted(glob.glob(str(ROOT / "repeats" / "batch*" / "runs" / "*gpt-oss-120b*"))):
+        for line in open(f, encoding="utf-8"):
+            row = json.loads(line)
+            n += any(PATH.search(e or "") for e in ([t.get("error") for t in row["tries"]] if row.get("tries") else [row.get("error")]))
+    return n
+
+
 def empty_keys(v, where="input"):
     if isinstance(v, dict):
         return [where] * ("" in v) + [p for k, x in v.items() for p in empty_keys(x, f"{where}.{k}")]
@@ -85,6 +95,7 @@ class ToolInputReplay(unittest.TestCase):
         errs = recorded_errors()
         self.assertEqual(len(errs), 92)  # refused calls: b7 5, b8 10, b9 30, b10 43, b14 4; all at messages.1.content.0
         self.assertEqual({(i, k) for _, i, k in errs}, {(1, 0)})
+        self.assertEqual(recorded_error_runs(), 85)  # runs with >= 1 refused call
         for bad in BAD:
             with self.subTest(bad=bad):
                 self.assertTrue(empty_keys(bad))  # the old adapter sent these verbatim
