@@ -468,13 +468,18 @@ def _held(o, a):  # a list or dict attribute: the same object is put back, holdi
     def restore(snap):
         v, items = snap
         changed = put(v)
-        if type(v) is dict and (v.keys() != items.keys() or any(v[k] is not items[k] for k in items)):
+        try:  # a planted key may break the comparison: then the items are put back without comparing
+            same = (v.keys() == items.keys() and all(v[k] is items[k] for k in items) if type(v) is dict
+                    else len(v) == len(items) and all(x is y for x, y in zip(v, items)))
+        except Exception:
+            same = False
+        if same:
+            return changed
+        if type(v) is dict:
             v.clear()
             v.update(items)
-        elif type(v) is not dict and (len(v) != len(items) or any(x is not y for x, y in zip(v, items))):
-            v[:] = items
         else:
-            return changed
+            v[:] = items
         return True
     return snap, restore
 
@@ -506,9 +511,17 @@ def _env_snap():
 def _env_restore(snap):  # os.environ and the process environment (raw os.putenv keys come from the audit hook)
     env, held, data = snap
     changed = _attr(os, "environ")[1](env) | _attr(env, "_data")[1](held)
-    keys = {k for k in data.keys() | held.keys() if held.get(k) is not data.get(k)} | _GUARD.env_raw
+    try:
+        keys = {k for k in data.keys() | held.keys() if held.get(k) is not data.get(k)} | _GUARD.env_raw
+    except Exception:  # a planted key broke the comparison: put every snapshot key back
+        keys = set(data) | _GUARD.env_raw
+        held.clear()
     _GUARD.env_raw = set()
     for k in keys:
+        if type(k) is not type(next(iter(data), k)):  # only exact str/bytes keys reach the raw setters
+            held.pop(k, None)
+            changed = True
+            continue
         if k in data:
             _quiet(os.putenv, k, data[k])
             held[k] = data[k]
