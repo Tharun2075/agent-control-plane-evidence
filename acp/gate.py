@@ -38,6 +38,7 @@ from urllib.parse import unquote, urlsplit, urlunsplit
 
 from .agent import AgentContext
 from .canon import canonical, digest
+from .log import _WRITING as _LOG_WRITING
 from .manifest import tool_spec
 
 
@@ -78,23 +79,58 @@ def _under(p: Path, roots) -> bool:
     return any(p == r or r in p.parents for r in roots)
 
 
-def _open_hook(event, args):
-    if event != "open":
+# Audit events the guard checks. Path events: (event -> (path arg indexes, writes?, dir_fd arg indexes)).
+_PATH_EVENTS = {
+    "os.remove": ((0,), True, (1,)), "os.rmdir": ((0,), True, (1,)), "os.mkdir": ((0,), True, (2,)),
+    "os.rename": ((0, 1), True, (2, 3)), "os.link": ((0, 1), True, (2, 3)), "os.symlink": ((1,), True, (2,)),
+    "os.chmod": ((0,), True, (2,)), "os.chown": ((0,), True, (3,)), "os.truncate": ((0,), True, ()),
+    "os.utime": ((0,), True, (3,)), "os.listdir": ((0,), False, ()), "os.scandir": ((0,), False, ()),
+}
+# Events a tool body may not raise at all: new processes, threads the guard cannot follow, cwd changes, native code.
+# Python < 3.13 raises no audit event for a thread start, so there a thread started by a tool body is not guarded.
+_DENY_EVENTS = {"os.chdir", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.fork", "os.forkpty",
+                "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen", "ctypes.dlsym"}
+
+
+def _deny(what: str):
+    _GUARD.denied = what
+    raise ToolFileAccessDenied(what)
+
+
+def _check_path(g, path, writes: bool):
+    if isinstance(path, int):  # an fd that was already checked when it was opened
         return
-    g = getattr(_GUARD, "allow", None)
-    if g is None:
-        return
-    path, mode, flags = args
-    if isinstance(path, int) or path is None:  # fdopen of an fd that was already checked
-        return
-    target = os.path.realpath(os.fsdecode(path))  # symlinks and '..' resolved before the check
+    raw = os.fsdecode(path if path is not None else ".")
+    target = os.path.realpath(raw)  # symlinks and '..' resolved before the check
     p = Path(target)
-    writes = bool(mode and any(c in mode for c in "wax+")) or bool(flags and flags & _WRITE_FLAGS)
     session, reads, writes_ok = g
     if _under(p, (session,)) or (_under(p, writes_ok) if writes else _under(p, reads + _PY_ROOTS)):
         return
-    _GUARD.denied = target
-    raise ToolFileAccessDenied(target)
+    if not writes and raw in sys.path:  # the import system lists sys.path entries; names only
+        return
+    _deny(target)
+
+
+def _open_hook(event, args):
+    g = getattr(_GUARD, "allow", None)
+    if g is None or getattr(_LOG_WRITING, "on", False):
+        return
+    if event == "open":
+        path, mode, flags = args
+        if path is None:
+            return
+        if not isinstance(path, int) and not os.path.isabs(os.fsdecode(path)):
+            _deny(f"relative path {os.fsdecode(path)!r}")  # dir_fd is not in the event: refuse relative opens
+        writes = bool(mode and any(c in mode for c in "wax+")) or bool(flags and flags & _WRITE_FLAGS)
+        _check_path(g, path, writes)
+    elif event in _PATH_EVENTS:
+        idx, writes, fds = _PATH_EVENTS[event]
+        if any(i < len(args) and args[i] not in (None, -1) for i in fds):
+            _deny(f"{event} with dir_fd")
+        for i in idx:
+            _check_path(g, args[i], writes)
+    elif event in _DENY_EVENTS:
+        _deny(event)
 
 
 sys.addaudithook(_open_hook)
@@ -331,10 +367,8 @@ class ToolRunner:
         self.ctx = ctx
         self.approvals_dir = Path(approvals_dir)
         self.session_dir = Path(session_dir).resolve() if session_dir else None
-        lp = Path(ctx.log.path).resolve()  # the gate's own log + head sidecar, if a tool body logs
-        own_log = (lp, lp.with_name(lp.name + ".head"), lp.with_name(lp.name + ".head.tmp"))
-        self.read_roots = tuple(Path(r).resolve() for r in read_roots) + own_log
-        self.write_roots = tuple(Path(r).resolve() for r in write_roots) + own_log
+        self.read_roots = tuple(Path(r).resolve() for r in read_roots)  # the log itself is never a root:
+        self.write_roots = tuple(Path(r).resolve() for r in write_roots)  # only ChainLog.append may write it
 
     def _run_guarded(self, fn):
         if self.session_dir is None:

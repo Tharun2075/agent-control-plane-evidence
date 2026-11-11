@@ -25,6 +25,8 @@ from pathlib import Path
 
 from .canon import canonical, sha256_hex
 
+_WRITING = threading.local()  # set only while ChainLog.append runs
+
 try:
     import fcntl
 except ImportError:  # not POSIX: in-process lock only
@@ -143,6 +145,13 @@ class ChainLog:
         self.seq, self.last_hash, self.size = res.records, res.last_hash, os.fstat(fd).st_size
 
     def append(self, **fields) -> dict:
+        _WRITING.on = True  # lets the tool-runner path guard tell the logger's own I/O from a tool body's
+        try:
+            return self._append(**fields)
+        finally:
+            _WRITING.on = False
+
+    def _append(self, **fields) -> dict:
         check_fields(fields)
         t0 = time.perf_counter_ns()
         with self._lock, open(self.path, "ab") as f:

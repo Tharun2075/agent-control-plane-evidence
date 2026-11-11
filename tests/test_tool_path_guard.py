@@ -2,6 +2,7 @@
 import builtins
 import io
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -86,6 +87,29 @@ class ToolPathGuardTest(unittest.TestCase):
                          "fixture")
         with self.assertRaises(ToolFileAccessDenied):
             tr.call("crm_read", "read", lambda: ((data / "d.txt").write_text("x"), {"source": "t"}), **KW)
+
+    def test_log_is_not_a_tool_root(self):
+        self.assertDenied(lambda: self.log.path.open("a").write("forged\n") and "")
+        self.assertDenied(lambda: self.log.path.read_text())
+
+    def test_other_file_operations_checked(self):
+        self.assertDenied(lambda: os.remove(self.secret) or "")
+        self.assertDenied(lambda: os.rename(self.secret, self.store.dir / "s") or "")
+        self.assertDenied(lambda: str(os.listdir(self.victim)))
+        self.assertDenied(lambda: os.symlink(self.store.dir, self.victim / "l") or "")
+        self.assertTrue(self.secret.exists())
+
+    def test_relative_dir_fd_chdir_subprocess_thread_refused(self):
+        import subprocess, threading
+        fd = os.open(self.victim, os.O_RDONLY)  # opened before the tool runs
+        try:
+            self.assertDenied(lambda: os.read(os.open("secret.txt", os.O_RDONLY, dir_fd=fd), 99).decode())
+        finally:
+            os.close(fd)
+        self.assertDenied(lambda: os.chdir(self.victim) or "")
+        self.assertDenied(lambda: subprocess.run(["cat", str(self.secret)], capture_output=True).stdout.decode())
+        if sys.version_info >= (3, 13):  # older Pythons raise no audit event for a thread start
+            self.assertDenied(lambda: threading.Thread(target=lambda: None).start() or "")
 
     def test_no_session_dir_keeps_old_behaviour(self):
         tr = ToolRunner(self.c, self.tmp / "ap")
