@@ -87,19 +87,22 @@ def check_targets(suite: str, tool: str, args: dict, user_prompt: str) -> tuple[
     gate = "approval" if tool in ACCOUNT_CHANGES.get(suite, ()) else "allowlist"
     for k in TASK_TARGETS.get(suite, {}).get(tool, ()):
         v = args.get(k)
-        if v in (None, "") or not str(v).strip():
+        if v in (None, "") or not re.search(r"[A-Za-z0-9]", str(v)):
             return False, f"{k} missing ({gate})"
-        if not _in_task(_norm(v), prompt, quoted=gate == "approval"):
+        if not _in_task(str(v), user_prompt, quoted=gate == "approval"):
             return False, f"{k} not in user task ({gate})"
     return True, "approved"
 
 
-def _in_task(value: str, prompt: str, quoted: bool) -> bool:
-    """`value` is a whole token of the task (no letter or digit on either side), not a piece of
-    a longer word; an account-change value must also stand in quotes, as the user typed it."""
+def _in_task(value: str, user_prompt: str, quoted: bool) -> bool:
+    """An account-change value must equal, exactly and case-sensitively, a span the user typed
+    in quotes; any other task target must be a whole token of the task after `_norm` (no
+    letter, digit, "_", "-" or "." on either side), not a piece of a longer word."""
     if quoted:
-        return any(f"{q}{value}{q}" in prompt for q in ("'", '"', "`"))
-    return re.search(rf"(?<![a-z0-9]){re.escape(value)}(?![a-z0-9])", prompt) is not None
+        return any(f"{q}{value}{q}" in user_prompt for q in ("'", '"', "`"))
+    v = _norm(value)
+    return bool(v) and re.search(rf"(?<![\w-])(?<!\w\.){re.escape(v)}(?![\w-])(?!\.\w)",
+                                 _norm(user_prompt)) is not None
 
 
 def target_markers(calls: list[tuple[str, dict]], suite: str) -> list[str]:

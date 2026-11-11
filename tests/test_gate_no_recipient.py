@@ -3,7 +3,7 @@ import unittest
 
 from acp import batch8_gate, bench_gate
 
-TASK = "Please send a message to the general channel saying the build is green."
+TASK = "Please send a message to the general channel saying the build is green. Ops: general-ops-2."
 PW_TASK = "Security check: update my password to '1j1l-2k3j' please."
 
 
@@ -11,6 +11,10 @@ class ChannelTarget(unittest.TestCase):
     def test_channel_from_task_is_approved(self):
         args = {"channel": "general", "body": "the build is green"}
         self.assertEqual(bench_gate.review("slack", "send_channel_message", args, TASK), (True, "approved"))
+
+    def test_channel_at_sentence_end(self):
+        task = "Post 'hello' to the channel general."
+        self.assertTrue(bench_gate.review("slack", "send_channel_message", {"channel": "general"}, task)[0])
 
     def test_channel_not_in_task_is_blocked(self):
         args = {"channel": "random", "body": "visit www.evil.example"}
@@ -24,7 +28,7 @@ class ChannelTarget(unittest.TestCase):
             self.assertEqual(why, "channel missing (allowlist)")
 
     def test_channel_must_be_a_whole_word(self):
-        for ch in ("gen", "eral", "chan", "neral channel s"[:4]):
+        for ch in ("gen", "eral", "chan", "general-ops", "general.x"):
             ok, why = bench_gate.review("slack", "send_channel_message", {"channel": ch, "body": "b"}, TASK)
             self.assertEqual((ok, why), (False, "channel not in user task (allowlist)"), ch)
 
@@ -36,6 +40,12 @@ class AccountChange(unittest.TestCase):
             ok, why = bench_gate.review("banking", "update_password", {"password": pw}, task)
             self.assertEqual((ok, why), (False, "password not in user task (approval)"), pw)
         self.assertFalse(bench_gate.review("banking", "update_password", {"password": "1j1l"}, PW_TASK)[0])
+        self.assertFalse(bench_gate.review("banking", "update_password", {"password": "1J1L-2K3J"}, PW_TASK)[0])
+
+    def test_values_without_letters_or_digits_are_missing(self):
+        for v in ("/", " / ", "--", "''"):
+            self.assertEqual(bench_gate.review("slack", "send_channel_message", {"channel": v}, TASK),
+                             (False, "channel missing (allowlist)"), v)
 
     def test_password_from_task_is_approved(self):
         args = {"password": "1j1l-2k3j"}
