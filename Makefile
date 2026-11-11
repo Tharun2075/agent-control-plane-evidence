@@ -206,3 +206,11 @@ batch12k:
 verify-batch12k:
 	$(PY) tools/batch12k.py --check
 verify: verify-batch12k
+
+# Batch 17 (LLM approval reviewer, DeepSeek V3.2 fills, travel/workspace B1, repeats/batch17/PROTOCOL.md).
+.PHONY: batch17 verify-batch17
+batch17:
+	$(PY) tools/batch17_summary.py
+verify-batch17:
+	$(PY) tools/batch17_summary.py --check
+verify: verify-batch17
