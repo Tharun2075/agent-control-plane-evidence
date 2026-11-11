@@ -24,10 +24,14 @@ Every tool call goes through ToolRunner.call(). It
 from __future__ import annotations
 
 import atexit
+import codecs
+import copyreg
+import faulthandler
 import gc
 import hashlib
 import hmac
 import json
+import logging
 import os
 import pathlib
 import re
@@ -78,14 +82,17 @@ class ToolFileAccessDenied(PermissionDenied):
 # argument is relative or resolves outside the allowed dirs (checked as a write). Native calls that touch
 # files or start processes without an audit event (_posixsubprocess.fork_exec, os.mkfifo, os.mknod,
 # readline history files, dbm) are wrapped or refused at import.
-# No tool code runs after the window: signal handlers and timers, atexit, threads, trace/profile hooks,
-# weakref.finalize and changed interpreter hooks are refused; the result leaves as JSON data only and the
-# body's objects are collected inside the window, so their __del__ runs guarded.
+# One rule for process-global hooks a tool body could leave behind: irreversible ones are REFUSED while the
+# body runs (signal handlers and timers, atexit, thread starts, weakref.finalize, sys.addaudithook,
+# os.register_at_fork, codecs.register/register_error, faulthandler.enable/register/dump_traceback_later);
+# the rest are SNAPSHOT before the body and RESTORED after it (the _RESTORED table below: interpreter hooks,
+# import machinery, sys.path, os.environ, profile/trace, root logging, gc.callbacks, copyreg). The result
+# leaves as JSON data only and the body's objects are collected inside the window, so __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
 # (its globals, the hook, a removed sqlite authorizer, the wrapped functions) or with shared interpreter
-# state the host later runs (ctypes, object-graph walking, patched modules). Metadata calls (os.stat,
-# os.access, os.path.exists) raise no audit event, and file descriptors the host already holds are not
-# tracked. An OS sandbox per tool is the next step.
+# state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules).
+# Metadata calls (os.stat, os.access, os.path.exists) raise no audit event, and file descriptors the host
+# already holds are not tracked. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
 _PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
                   | {Path(__file__).resolve().parent})
@@ -222,6 +229,9 @@ def _sqlite_authorizer(g):
 def _open_hook(event, args):
     g = getattr(_GUARD, "allow", None)
     if g is None or getattr(_LOG_WRITING, "on", False):
+        return
+    if event in ("os.putenv", "os.unsetenv"):  # raw environment edits: the key is put back after the call
+        _GUARD.env_raw.add(os.fsencode(args[0]))
         return
     if event == "open":
         path, mode, flags = args
@@ -429,26 +439,120 @@ _wrap(threading, "_register_atexit", "deferred code: threading._register_atexit"
 for _name in ("setprofile", "settrace", "setprofile_all_threads", "settrace_all_threads"):
     _wrap(threading, _name, f"deferred code: threading.{_name}")
 _wrap(weakref.finalize, "__init__", "deferred code: weakref.finalize")
-# Interpreter hooks the host calls later: a tool body that changes one is refused and the hook restored.
-_HOOKS = ((gc, "callbacks"), (sys, "meta_path"), (sys, "path_hooks"), (sys, "excepthook"), (sys, "unraisablehook"),
-          (sys, "displayhook"), (sys, "breakpointhook"), (threading, "excepthook"), (threading, "_profile_hook"),
-          (threading, "_trace_hook"))
+for _mod in {os, sys.modules[os.name]}:
+    _wrap(_mod, "register_at_fork", "deferred code: os.register_at_fork")
+import _codecs  # noqa: E402
+for _mod in (codecs, _codecs):
+    for _name in ("register", "register_error"):
+        _wrap(_mod, _name, f"deferred code: codecs.{_name}")
+for _name in ("enable", "register", "dump_traceback_later"):
+    _wrap(faulthandler, _name, f"deferred code: faulthandler.{_name}")
 
 
-def _hook_snapshot():
-    return [(o, a, v, list(v) if type(v) is list else None) for o, a in _HOOKS for v in [getattr(o, a, None)]]
+def _attr(o, a):  # an attribute: the same object is put back
+    def restore(v):
+        if getattr(o, a, None) is v:
+            return False
+        setattr(o, a, v)
+        return True
+    return lambda: getattr(o, a, None), restore
 
 
-def _hook_restore(snap):
-    changed = []
-    for o, a, v, items in snap:
-        if getattr(o, a, None) is not v:
-            setattr(o, a, v)
-            changed.append(f"{o.__name__}.{a}")
-        if items is not None and (len(v) != len(items) or any(x is not y for x, y in zip(v, items))):
+def _held(o, a):  # a list or dict attribute: the same object is put back, holding the same items
+    put = _attr(o, a)[1]
+
+    def snap():
+        v = getattr(o, a)
+        return v, dict(v) if type(v) is dict else list(v)
+
+    def restore(snap):
+        v, items = snap
+        changed = put(v)
+        if type(v) is dict and (v.keys() != items.keys() or any(v[k] is not items[k] for k in items)):
+            v.clear()
+            v.update(items)
+        elif type(v) is not dict and (len(v) != len(items) or any(x is not y for x, y in zip(v, items))):
             v[:] = items
-            changed.append(f"{o.__name__}.{a}")
-    return changed
+        else:
+            return changed
+        return True
+    return snap, restore
+
+
+def _pair(get, put):  # a getter/setter pair of two hooks
+    def restore(v):
+        if all(x is y for x, y in zip(get(), v)):
+            return False
+        put(*v)
+        return True
+    return lambda: tuple(get()), restore
+
+
+def _env_snap():
+    _GUARD.env_raw = set()
+    return os.environ, dict(os.environ._data)
+
+
+def _env_restore(snap):  # os.environ and the process environment (raw os.putenv keys come from the audit hook)
+    env, data = snap
+    changed = _attr(os, "environ")[1](env)
+    keys = {k for k in data.keys() | env._data.keys() if env._data.get(k) != data.get(k)} | _GUARD.env_raw
+    _GUARD.env_raw = set()
+    for k in keys:
+        if k in data:
+            os.putenv(k, data[k])
+            env._data[k] = data[k]
+        else:
+            os.unsetenv(k)
+            env._data.pop(k, None)
+    return changed or bool(keys)
+
+
+def _level_restore(v):
+    if logging.root.level == v:
+        return False
+    logging.root.setLevel(v)
+    return True
+
+
+# Process-global state the host uses after a tool body returns: snapshot before the call, restored after it, even
+# when the body raises. One row per channel: (name, snapshot, restore -> changed, a change refuses the call).
+# Code hooks refuse the call; data a tool may legitimately touch (imports, environment, log level) is only put back.
+_RESTORED = (
+    ("sys.asyncgen_hooks", *_pair(sys.get_asyncgen_hooks, lambda f, g: sys.set_asyncgen_hooks(f, g)), True),
+    *((f"sys.{a}", *_attr(sys, a), True) for a in ("excepthook", "unraisablehook", "displayhook", "breakpointhook")),
+    ("threading.excepthook", *_attr(threading, "excepthook"), True),
+    ("sys.profile/trace", *_pair(lambda: (sys.getprofile(), sys.gettrace()),
+                                 lambda f, g: (sys.setprofile(f), sys.settrace(g))), True),
+    ("threading.profile/trace", *_pair(lambda: (threading._profile_hook, threading._trace_hook),
+                                       lambda f, g: (setattr(threading, "_profile_hook", f),
+                                                     setattr(threading, "_trace_hook", g))), True),
+    ("sys.meta_path", *_held(sys, "meta_path"), True),
+    ("sys.path_hooks", *_held(sys, "path_hooks"), True),
+    ("gc.callbacks", *_held(gc, "callbacks"), True),
+    ("copyreg.dispatch_table", *_held(copyreg, "dispatch_table"), True),
+    ("logging.root.handlers", *_held(logging.root, "handlers"), True),
+    ("logging handler list", *_held(logging, "_handlerList"), False),  # logging.shutdown closes these at exit
+    ("logging.root.level", lambda: logging.root.level, _level_restore, False),
+    ("sys.path_importer_cache", *_held(sys, "path_importer_cache"), False),
+    ("sys.path", *_held(sys, "path"), False),
+    ("os.environ", _env_snap, _env_restore, False),
+)
+
+
+def _restore(snaps):
+    """Put every _RESTORED row back; return (names of changed code hooks, whether anything changed)."""
+    code, moved, on = [], False, getattr(_LOG_WRITING, "on", False)
+    _LOG_WRITING.on = True  # the restore itself sets hooks the audit hook refuses inside the window
+    try:
+        for (name, _, restore, refuse), snap in zip(_RESTORED, snaps):
+            if restore(snap):
+                moved = True
+                if refuse:
+                    code.append(name)
+    finally:
+        _LOG_WRITING.on = on
+    return code, moved
 
 
 def _plain_result(out):
@@ -723,7 +827,7 @@ class ToolRunner:
         _guard_native()
         prev = getattr(_GUARD, "allow", None)
         gc.collect()  # host garbage dies outside the window
-        hooks = _hook_snapshot()
+        snaps = [snap() for _, snap, _, _ in _RESTORED]
         _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
         out = err = None
         try:
@@ -741,9 +845,9 @@ class ToolRunner:
                 while found:  # the body's objects die inside the window: their __del__ runs guarded;
                     rounds += 1  # the window stays shut until no garbage is left (a chain only hangs, like a busy loop)
                     found = gc.collect()
-                    step = _hook_restore(hooks)
+                    step, moved = _restore(snaps)
                     changed += step
-                    found = found or step
+                    found = found or moved
                 if rounds > 4:  # finalizers kept making garbage
                     changed.append("finalizer chain")
                 if changed and not _GUARD.denied:
