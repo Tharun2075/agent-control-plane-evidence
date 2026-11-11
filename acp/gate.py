@@ -222,10 +222,16 @@ def _open_hook(event, args):
     elif event in _DENY_EVENTS:
         _deny(event)
     elif event in _SOCKET_EVENTS:
-        if isinstance(args[1], (str, bytes, os.PathLike)):
-            _check_arg(g, event, args[1])  # bind creates the socket file
+        addr = args[1]
+        if addr is not None and not isinstance(addr, tuple):  # inet addresses are tuples; anything else is a file path
+            if not isinstance(addr, (str, bytes, os.PathLike)):
+                try:
+                    addr = bytes(memoryview(addr))
+                except TypeError:
+                    _deny(f"{event} with an unreadable address")
+            _check_arg(g, event, addr)  # bind creates the socket file
     elif event == "import":
-        _check_module(g, args[0] if args else "")
+        _check_module(g, args[0] if args else "")  # first load only: re-import of a loaded module raises no event
     elif event not in _SAFE_EVENTS:  # deny by default: any other event with an outside path argument is refused
         _check_args(g, event, args)
 
@@ -278,10 +284,27 @@ def _guard_thread_start(start):
     return _guard_call(start, "thread start")
 
 
-def _check_module(g, name, *a, **kw):
-    name = getattr(name, "name", name) or ""  # a module spec or a module name
+def _check_module(g, name):
+    if type(name) is not str:
+        _deny("import with a non-str module name")
     if name.rpartition(".")[2] in _NATIVE_GUARDED:  # the C init symbol is PyInit_<last name part>
         _deny(f"loading {name}: native file or process access without an audit event")
+
+
+def _guard_create(fn):
+    """_imp.create_builtin/create_dynamic inside a tool body: check the name, then load from a fresh spec built
+    from the values checked, so a spec whose attributes change between reads cannot slip a guarded module in."""
+    def guarded(spec, *a):
+        g = getattr(_GUARD, "allow", None)
+        if g is None or getattr(_LOG_WRITING, "on", False):
+            return fn(spec, *a)
+        name, origin = getattr(spec, "name", None), getattr(spec, "origin", None)
+        _check_module(g, name)
+        if origin is not None and type(origin) is not str:
+            _deny("native module load with a non-str origin")
+        return fn(importlib.machinery.ModuleSpec(name, None, origin=origin), *a)
+    guarded._acp_guard = True
+    return guarded
 
 
 def _check_node(g, path, *a, dir_fd=None, **kw):
@@ -316,8 +339,9 @@ if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it a
 import _imp  # noqa: E402
 import _posixsubprocess  # noqa: E402
 import multiprocessing.process  # noqa: E402
-_wrap(_imp, "create_builtin", None, _check_module)
-_wrap(_imp, "create_dynamic", None, _check_module)
+import importlib.machinery  # noqa: E402
+_imp.create_builtin = _guard_create(_imp.create_builtin)
+_imp.create_dynamic = _guard_create(_imp.create_dynamic)
 _wrap(_posixsubprocess, "fork_exec", "process start")
 _wrap(multiprocessing.process.BaseProcess, "start", "process start")
 for _mod in {os, sys.modules[os.name]}:

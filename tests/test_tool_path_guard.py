@@ -175,9 +175,8 @@ class ToolPathGuardTest(unittest.TestCase):
     def test_no_session_dir_keeps_old_behaviour(self):
         tr = ToolRunner(self.c, self.tmp / "ap")
         self.assertEqual(tr.call("crm_read", "read", lambda: (self.secret.read_text(), {"source": "t"}), **KW),
-
-
                          "TOP-SECRET")
+
     # C13 escapes: each of these passed through the per-event guard of db42c16.
     def test_spawned_process_cannot_read_outside(self):
         import multiprocessing
