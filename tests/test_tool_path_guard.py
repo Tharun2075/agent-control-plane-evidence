@@ -980,5 +980,126 @@ class ToolPathGuardTest(unittest.TestCase):
         logging.root.manager.loggerDict.pop("acp.fix12j.new", None)
         logging.root.manager.loggerDict.pop("acp.fix12j", None)
 
+    # fix12k: a placeholder or lazy-module class passes only when its contents are real (C22)
+    def _drop_loggers(self, *names):
+        import logging
+        for n in names:
+            logging.root.manager.loggerDict.pop(n, None)
+
+    def test_existing_logger_swapped_to_placeholder_restored_and_refused(self):  # C22 (a)
+        import logging
+        self._drop_loggers("jc22.old")
+        lg = logging.getLogger("jc22.old")
+
+        def body():
+            object.__setattr__(lg, "__class__", logging.PlaceHolder)
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(logger jc22.old)", str(cm.exception))
+            self.assertIs(type(lg), logging.Logger)
+        finally:
+            object.__setattr__(lg, "__class__", logging.Logger)
+            self._drop_loggers("jc22.old", "jc22")
+
+    def test_new_logger_swapped_to_placeholder_restored_and_refused(self):  # C22 (b)
+        import logging
+        self._drop_loggers("jc22.new", "jc22")
+        box = {}
+
+        def body():
+            lg = box["l"] = logging.getLogger("jc22.new")
+            object.__setattr__(lg, "__class__", logging.PlaceHolder)
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(logger jc22.new)", str(cm.exception))
+            self.assertIs(type(box["l"]), logging.Logger)
+        finally:
+            if "l" in box:
+                object.__setattr__(box["l"], "__class__", logging.Logger)
+            self._drop_loggers("jc22.new", "jc22")
+
+    def test_placeholder_with_foreign_loggermap_key_refused(self):  # C22 (c)
+        import logging
+        self._drop_loggers("jc22.ph.child", "jc22.ph", "jc22")
+        reads = []
+
+        class Evil:
+            @property
+            def parent(self):
+                reads.append(1)
+                return logging.root
+
+        def body():
+            logging.getLogger("jc22.ph.child")
+            logging.root.manager.loggerDict["jc22.ph"].loggerMap[Evil()] = None
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(logger jc22.ph)", str(cm.exception))
+            ph = logging.root.manager.loggerDict["jc22.ph"]
+            self.assertIs(type(ph), logging.PlaceHolder)
+            self.assertFalse([k for k in ph.loggerMap if type(k) is Evil])
+            logging.getLogger("jc22.ph")  # logging fixes up the children: no foreign code runs
+            self.assertEqual(reads, [])
+        finally:
+            self._drop_loggers("jc22.ph.child", "jc22.ph", "jc22")
+
+    def test_new_module_swapped_to_lazy_module_restored_and_refused(self):  # C22 (d)
+        import importlib.util
+        import types
+        self._fresh("colorsys", "")
+        box = {}
+
+        def body():
+            import colorsys
+            box["m"] = colorsys
+            object.__setattr__(colorsys, "__class__", importlib.util._LazyModule)
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(colorsys)", str(cm.exception))
+            self.assertIs(type(box["m"]), types.ModuleType)
+        finally:
+            if "m" in box:
+                object.__setattr__(box["m"], "__class__", types.ModuleType)
+
+    def test_real_lazy_import_still_works(self):  # control
+        import importlib.util
+        self._fresh("colorsys", "")
+        box = {}
+
+        def body():
+            spec = importlib.util.find_spec("colorsys")
+            loader = importlib.util.LazyLoader(spec.loader)
+            spec.loader = loader
+            m = box["m"] = importlib.util.module_from_spec(spec)
+            sys.modules["colorsys"] = m
+            loader.exec_module(m)
+            return "ok"
+        out = self.read(body)
+        self.assertEqual(out[0] if isinstance(out, tuple) else out, "ok")
+        self.assertIs(type(box["m"]), importlib.util._LazyModule)
+        self.assertEqual(box["m"].rgb_to_hsv(0, 0, 0), (0.0, 0.0, 0))
+        sys.modules.pop("colorsys", None)
+
+    def test_getlogger_placeholders_still_work(self):  # control
+        import logging
+        self._drop_loggers("jc22ok.b.c", "jc22ok.b.d", "jc22ok.b", "jc22ok")
+
+        def body():
+            logging.getLogger("jc22ok.b.c")
+            logging.getLogger("jc22ok.b.d")
+            return "ok"
+        out = self.read(body)
+        self.assertEqual(out[0] if isinstance(out, tuple) else out, "ok")
+        self.assertIs(type(logging.root.manager.loggerDict["jc22ok.b"]), logging.PlaceHolder)
+        self._drop_loggers("jc22ok.b.c", "jc22ok.b.d", "jc22ok.b", "jc22ok")
+
 if __name__ == "__main__":
     unittest.main()
