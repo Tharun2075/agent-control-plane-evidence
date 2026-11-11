@@ -15,17 +15,24 @@ host objects through references and changing them in place, including the conten
 `sys.modules` and class methods), host-held file handles, and metadata calls (`os.stat`,
 `os.access`). Routes in these classes are listed as "out of scope"; a few were fixed anyway.
 
-Columns: `n` is the number of routes a row stands for (1, unless a verdict gave only a
-count); `then` is the outcome when the judge ran it; `fix` names the merge into
-`paper-v1.2` and the test that now covers the route; `now` is the outcome at the current
-head. Re-runs of an earlier round's routes are not counted again. Rows marked [named] are
-reviewer attacks a judge listed without a run.
+Columns: `n` is the number of routes a row stands for (1, unless a verdict listed the
+routes without a row each); `then` is the outcome when the judge ran it, one of
+"refused" (the guard raised and the call did not run), "held" (contained: the route was
+put back, or ran with no leak outside the session; also used where a verdict does not
+say which of refused or put back), "escaped in scope" or "out of scope"; `fix` names the
+merge into `paper-v1.2` and the test that now covers the route; `now` is the outcome at
+the current head ("held" rows were not re-run). Re-runs of an earlier round's routes are
+not counted again. G030 is a grouped probe: the C15 verdict gives only a count of blocked
+routes and no list, so it counts once. Rows marked [named] are reviewer attacks a judge
+listed without a run.
 
 Counts, from `python3 tools/guard_probes_count.py docs/GUARD-PROBES.md`:
 
 ```
-routes_total=166
-refused_first_try=117
+routes_total=140
+refused_first_try=76
+held_first_try=15
+did_not_get_through_first_try=91
 escaped_in_scope_then_fixed=34
 out_of_scope_then=15
 out_of_scope_now=12
@@ -62,7 +69,7 @@ out_of_scope_now=12
 | G027 | shutil | C15 | 1 | refused | - | refused |
 | G028 | subprocess | C15 | 1 | refused | - | refused |
 | G029 | ctypes | C15 | 1 | refused | - | refused |
-| G030 | other routes, not named in the verdict ("35 blocked" minus the 8 above) | C15 | 27 | refused | - | refused |
+| G030 | other routes, not named in the verdict ("35 of my own escapes were blocked" minus the 8 above; grouped, counted once) | C15 | 1 | refused | - | refused |
 | G031 | deferred signal.setitimer / SIGALRM handler | C16 | 1 | escaped in scope | fix12e 1fecdc81, test_deferred_signal_handler_refused | refused |
 | G032 | returned object with __del__ | C16 | 1 | escaped in scope | fix12e 1fecdc81, test_returned_object_del_refused | refused |
 | G033 | host-held int fd via fcntl F_GETPATH | C16 | 1 | out of scope | - | out of scope |
@@ -87,8 +94,8 @@ out_of_scope_now=12
 | G052 | E11 setprofile | C17 | 1 | refused | - | refused |
 | G053 | E12 atexit re-import | C17 | 1 | refused | - | refused |
 | G054 | E13 _signal / setitimer | C17 | 1 | refused | - | refused |
-| G055 | E10, E19, E20 (stayed guarded) | C17 | 3 | refused | - | refused |
-| G056 | E1, E1b, E2 __del__ via module global, gc.freeze (ran, nothing crossed) | C17 | 3 | refused | - | refused |
+| G055 | E10, E19, E20 (verdict: "ran inside the window and stayed guarded") | C17 | 3 | held | - | held |
+| G056 | E1, E1b, E2 __del__ via module global, gc.freeze (verdict: "Allowed, no leak seen") | C17 | 3 | held | - | held |
 | G057 | N1 logging.root.addFilter | C18 | 1 | escaped in scope | fix12g f8ed68f2, test_root_filters_restored | refused |
 | G058 | N3 PathFinder.find_spec patched (borderline) | C18 | 1 | escaped in scope | fix12g f8ed68f2, test_pathfinder_attrs_restored | refused |
 | G059 | N5 setLogRecordFactory (borderline) | C18 | 1 | escaped in scope | fix12g f8ed68f2, test_record_factory_restored | refused |
@@ -107,7 +114,7 @@ out_of_scope_now=12
 | G072 | P10 logging.__class__ swap with record factory | C19 | 1 | escaped in scope | fix12h 3caef1de, test_logging_class_swap_lying_refused | refused |
 | G073 | P12 BuiltinImporter.find_spec patched | C19 | 1 | escaped in scope | fix12h 3caef1de, test_builtin_frozen_importer_attrs_restored | refused |
 | G074 | P13 logging.disable | C19 | 1 | escaped in scope | fix12h 3caef1de, test_logging_disable_restored | refused |
-| G075 | P2, P4-P7, P11, P14-P16 (restored or refused) | C19 | 9 | refused | - | refused |
+| G075 | P2, P4-P7, P11, P14-P16 (verdict: "Restored or refused", not split per route) | C19 | 9 | held | - | held |
 | G076 | posixpath class swap, then cross-session read | C20 | 1 | escaped in scope | fix12i eb2a6a4b, test_posixpath_class_swap_then_cross_session_read_refused | refused |
 | G077 | builtins class swap | C20 | 1 | escaped in scope | fix12i eb2a6a4b, test_any_module_or_logger_class_swap_restored_and_refused | refused |
 | G078 | importlib class swap | C20 | 1 | escaped in scope | fix12i eb2a6a4b, test_any_module_or_logger_class_swap_restored_and_refused | refused |
