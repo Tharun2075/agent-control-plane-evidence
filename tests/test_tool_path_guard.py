@@ -19,6 +19,21 @@ def _child_read(path, q):  # spawn target: must be importable by the child
     q.put(open(path).read())
 
 
+def _guard_asking():
+    f = sys._getframe(2)
+    while f is not None and f.f_code.co_filename in (os.__file__, "<frozen os>"):
+        f = f.f_back
+    return f is not None and f.f_code.co_filename.endswith(os.path.join("acp", "gate.py"))
+
+
+def _liar(inside, outside):
+    """A path object that shows the guard one path and the OS another (TOCTOU)."""
+    class Liar:
+        def __fspath__(self):
+            return str(inside if _guard_asking() else outside)
+    return Liar()
+
+
 class ToolPathGuardTest(unittest.TestCase):
     def setUp(self):
         self.td = tempfile.TemporaryDirectory()
@@ -241,6 +256,39 @@ class ToolPathGuardTest(unittest.TestCase):
             self.assertDenied(body)
         finally:
             sys.modules["_posixsubprocess"] = saved
+
+
+    def test_pathlike_toctou_fileio_refused(self):
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+        got = []
+        self.assertDenied(lambda: got.append(io.FileIO(_liar(ok, self.secret)).read()) or "")
+        self.assertEqual(got, [])
+        out = self.tmp / "x-out.txt"
+        self.assertDenied(lambda: io.FileIO(_liar(self.store.dir / "w.txt", out), "w").write(b"x") and "")
+        self.assertFalse(out.exists())
+
+    def test_pathlike_toctou_mkfifo_refused(self):
+        import stat
+        out = self.tmp / "x.fifo"
+        self.assertDenied(lambda: os.mkfifo(_liar(self.store.dir / "f", out)) or "")
+        self.assertFalse(out.exists())
+        out2 = self.tmp / "x.node"
+        self.assertDenied(lambda: os.mknod(_liar(self.store.dir / "n", out2), stat.S_IFIFO | 0o600) or "")
+        self.assertFalse(out2.exists())
+
+    def test_pathlib_subclass_fspath_refused(self):
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+        secret = self.secret
+
+        class Lying(type(Path())):
+            def __fspath__(self):
+                return str(ok if _guard_asking() else secret)
+        for opener in (open, io.FileIO):
+            got = []
+            self.assertDenied(lambda: got.append(opener(Lying(ok)).read()) or "")
+            self.assertEqual(got, [])
 
 
 if __name__ == "__main__":

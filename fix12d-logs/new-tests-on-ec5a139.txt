@@ -1,0 +1,48 @@
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py:290: ResourceWarning: unclosed file <_io.FileIO name=Lying('/private/var/folders/zf/q9mj1yl568z5bnhv2_zq0xbm0000gn/T/tmp2gvhnor5/sessions/test-s1/ok.txt') mode='rb' closefd=True>
+F/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py:265: ResourceWarning: unclosed file <_io.FileIO name=<tests.test_tool_path_guard._liar.<locals>.Liar object at 0x109665fd0> mode='rb' closefd=True>
+  self.assertDenied(lambda: got.append(io.FileIO(_liar(ok, self.secret)).read()) or "")
+FF
+======================================================================
+FAIL: test_pathlib_subclass_fspath_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlib_subclass_fspath_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py", line 291, in test_pathlib_subclass_fspath_refused
+    self.assertEqual(got, [])
+AssertionError: Lists differ: [b'TOP-SECRET'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+b'TOP-SECRET'
+
+- [b'TOP-SECRET']
++ []
+
+======================================================================
+FAIL: test_pathlike_toctou_fileio_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlike_toctou_fileio_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py", line 266, in test_pathlike_toctou_fileio_refused
+    self.assertEqual(got, [])
+AssertionError: Lists differ: [b'TOP-SECRET'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+b'TOP-SECRET'
+
+- [b'TOP-SECRET']
++ []
+
+======================================================================
+FAIL: test_pathlike_toctou_mkfifo_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlike_toctou_mkfifo_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py", line 274, in test_pathlike_toctou_mkfifo_refused
+    self.assertDenied(lambda: os.mkfifo(_liar(self.store.dir / "f", out)) or "")
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12d/tests/test_tool_path_guard.py", line 57, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.011s
+
+FAILED (failures=3)
