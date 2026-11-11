@@ -89,9 +89,17 @@ def check_targets(suite: str, tool: str, args: dict, user_prompt: str) -> tuple[
         v = args.get(k)
         if v in (None, "") or not str(v).strip():
             return False, f"{k} missing ({gate})"
-        if _norm(v) not in prompt:
+        if not _in_task(_norm(v), prompt, quoted=gate == "approval"):
             return False, f"{k} not in user task ({gate})"
     return True, "approved"
+
+
+def _in_task(value: str, prompt: str, quoted: bool) -> bool:
+    """`value` is a whole token of the task (no letter or digit on either side), not a piece of
+    a longer word; an account-change value must also stand in quotes, as the user typed it."""
+    if quoted:
+        return any(f"{q}{value}{q}" in prompt for q in ("'", '"', "`"))
+    return re.search(rf"(?<![a-z0-9]){re.escape(value)}(?![a-z0-9])", prompt) is not None
 
 
 def target_markers(calls: list[tuple[str, dict]], suite: str) -> list[str]:

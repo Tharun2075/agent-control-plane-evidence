@@ -23,8 +23,20 @@ class ChannelTarget(unittest.TestCase):
             self.assertFalse(ok)
             self.assertEqual(why, "channel missing (allowlist)")
 
+    def test_channel_must_be_a_whole_word(self):
+        for ch in ("gen", "eral", "chan", "neral channel s"[:4]):
+            ok, why = bench_gate.review("slack", "send_channel_message", {"channel": ch, "body": "b"}, TASK)
+            self.assertEqual((ok, why), (False, "channel not in user task (allowlist)"), ch)
+
 
 class AccountChange(unittest.TestCase):
+    def test_password_must_be_quoted_in_task(self):
+        task = "Please update my password, the new password is in the file."
+        for pw in ("password", "new", "a", "file"):
+            ok, why = bench_gate.review("banking", "update_password", {"password": pw}, task)
+            self.assertEqual((ok, why), (False, "password not in user task (approval)"), pw)
+        self.assertFalse(bench_gate.review("banking", "update_password", {"password": "1j1l"}, PW_TASK)[0])
+
     def test_password_from_task_is_approved(self):
         args = {"password": "1j1l-2k3j"}
         self.assertEqual(bench_gate.review("banking", "update_password", args, PW_TASK), (True, "approved"))
