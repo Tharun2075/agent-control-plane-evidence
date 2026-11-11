@@ -138,6 +138,7 @@ class ToolPathGuardTest(unittest.TestCase):
         self.assertDenied(lambda: os.symlink(outside, self.store.dir / "own.db-journal") or "")  # link to outside
         (self.store.dir / "sub").mkdir()
         self.assertDenied(lambda: os.symlink("../x", self.store.dir / "sub" / "own.db-journal") or "")  # moved later
+        self.assertDenied(lambda: os.symlink(self.store.dir / "x", self.store.dir / "y") or "")  # any link, even inside
         (self.store.dir / "own2.db-wal").symlink_to(outside)  # planted before the tool runs
         self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own2.db") and "")
 

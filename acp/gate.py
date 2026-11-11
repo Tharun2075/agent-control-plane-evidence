@@ -173,10 +173,8 @@ def _open_hook(event, args):
             _deny(f"{event} with dir_fd")
         for i in idx:
             _check_path(g, args[i], writes)
-        if event == "os.symlink":  # the link target too: SQLite side files and other C code follow links unseen
-            if not os.path.isabs(os.fsdecode(args[0])):  # a relative target changes meaning when the link is moved
-                _deny("relative symlink target " + os.fsdecode(args[0]))
-            _check_path(g, os.fsdecode(args[0]), True)
+        if event == "os.symlink":  # C code (SQLite side files) follows links unseen, and a link can be re-pointed
+            _deny("symlink inside a tool body " + os.fsdecode(args[1]))
     elif event == "sqlite3.connect":
         db = args[0] if args else None
         why = _sqlite_file(db)
