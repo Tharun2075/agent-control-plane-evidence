@@ -1,0 +1,2 @@
+# verdict
+  - RESTORED OR REFUSED: N7 UNSETENV.
