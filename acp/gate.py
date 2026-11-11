@@ -23,9 +23,12 @@ Every tool call goes through ToolRunner.call(). It
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -127,6 +130,23 @@ def approval_path(approvals_dir: Path, action_sha256: str) -> Path:
     return Path(approvals_dir) / (action_sha256.split(":", 1)[1][:16] + ".json")
 
 
+# Approval records are signed with HMAC-SHA256. The key is made fresh in this
+# process's memory and never written to disk, so no tool, session store or
+# approvals-dir write can read it; a file written without it is refused.
+_APPROVAL_KEY = secrets.token_bytes(32)
+_SIGNED_FIELDS = ("action_sha256", "approver", "decision", "note", "simulated", "at")
+
+
+def approval_mac(rec: dict, key: bytes | None = None) -> str:
+    body = canonical({k: rec.get(k) for k in _SIGNED_FIELDS})
+    return "hmac-sha256:" + hmac.new(key or _APPROVAL_KEY, body, hashlib.sha256).hexdigest()
+
+
+def approval_mac_ok(rec: dict) -> bool:
+    mac = rec.get("mac")
+    return isinstance(mac, str) and hmac.compare_digest(mac, approval_mac(rec))
+
+
 def write_approval(
     approvals_dir: Path,
     action_sha256: str,
@@ -149,6 +169,7 @@ def write_approval(
         "simulated": simulated,
         "at": at,
     }
+    rec["mac"] = approval_mac(rec)
     p.write_bytes(canonical(rec) + b"\n")
     return p
 
@@ -326,6 +347,8 @@ class ToolRunner:
             reason = None
             if not appr or appr.get("action_sha256") != a:
                 reason = "no approval record"
+            elif not approval_mac_ok(appr):
+                reason = "approval MAC invalid"
             elif appr.get("consumed") or claim.exists() or decided_in_log(ctx.log.path, a):
                 reason = "approval already used"
             elif appr["decision"] == "approve":

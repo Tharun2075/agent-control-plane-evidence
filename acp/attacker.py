@@ -37,7 +37,7 @@ from pathlib import Path
 from . import gate, log as logmod, manifest as manmod
 from .agent import AgentContext
 from .canon import canonical, sha256_hex
-from .gate import ApprovalRequired, PermissionDenied, Rejected, ToolRunner, action_digest, approval_path, write_approval
+from .gate import ApprovalRequired, PermissionDenied, Rejected, ToolRunner, action_digest, approval_mac, approval_path, write_approval
 from .isolation import IsolationError, SessionStore
 from .redteam_runs import ALLOWED, HOST, _strict_ok
 
@@ -68,6 +68,17 @@ STAGE = {"refused_authority_expired": 1, "refused_not_permitted": 1, "refused_ou
 
 
 _UNRESERVED = re.compile(r"%(4[1-9A-F]|5[0-9A]|6[1-9A-F]|7[0-9A]|3[0-9]|2D|2E|5F|7E)", re.I)
+
+
+def forge_approval(approvals_dir: Path, a: str, *, approver: str) -> Path:
+    """The attacker's own write: same record as write_approval, but the attacker
+    does not hold the gate's key, so the MAC is made with a key of its own."""
+    rec = {"action_sha256": a, "approver": approver, "decision": "approve", "note": "", "simulated": False, "at": ""}
+    rec["mac"] = approval_mac(rec, key=b"attacker-has-no-gate-key".ljust(32, b"\0"))
+    p = approval_path(approvals_dir, a)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(canonical(rec) + b"\n")
+    return p
 
 
 def oracle_ok(url: str) -> bool:
@@ -311,7 +322,7 @@ def attack_approval(world: World, trick: str, rng: random.Random, adapt: int) ->
             call(payload)
         else:  # direct write of a forged approval file (attacker has the approvals dir)
             a = action_digest(ctx, tool, "send", payload)
-            write_approval(world.approvals, a, approver=rng.choice(["harness-human", "dpo", "admin"]), simulated=False)
+            forge_approval(world.approvals, a, approver=rng.choice(["harness-human", "dpo", "admin"]))
             call(payload)
     recs, outcome = _outcome(world, start)
     # Oracle: an execution is legitimate only if it is the first use of an action the human approved.
