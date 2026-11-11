@@ -1,0 +1,8 @@
+model,pairs_planned,pairs_run,pairs_not_run,new_tries,parser_errors,validation_errors,other_errors,cost_new_usd
+deepseek.v3.2,17,17,0,57,0,0,0,0.8878
+mistral.mistral-large-3-675b-instruct,17,17,0,69,0,0,0,0.2349
+openai.gpt-oss-120b-1:0,17,17,0,89,0,0,0,0.1891
+openai.gpt-oss-20b-1:0,17,17,0,86,0,33,0,0.1333
+qwen.qwen3-32b-v1:0,17,17,0,72,0,0,0,0.0968
+qwen.qwen3-vl-235b-a22b,17,17,0,62,0,0,0,0.6123
+pooled,102,102,0,435,0,33,0,2.1542

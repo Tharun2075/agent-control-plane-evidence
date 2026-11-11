@@ -1,0 +1,8 @@
+model,pairs,b11_succeeded,b11_parser_errors,b11b_succeeded,k
+deepseek.v3.2,17,8,45,9,8
+mistral.mistral-large-3-675b-instruct,17,8,22,8,8
+openai.gpt-oss-120b-1:0,17,4,60,6,8
+openai.gpt-oss-20b-1:0,17,7,50,6,8
+qwen.qwen3-32b-v1:0,17,6,56,7,8
+qwen.qwen3-vl-235b-a22b,17,8,40,9,8
+pooled,102,41,273,45,8
