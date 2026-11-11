@@ -1,0 +1,62 @@
+test_root_filters_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_root_filters_restored) ... FAIL
+test_record_factory_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_record_factory_restored) ... FAIL
+test_std_streams_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_std_streams_restored) ... FAIL
+test_pathfinder_attrs_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_pathfinder_attrs_restored) ... FAIL
+
+======================================================================
+FAIL: test_root_filters_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_root_filters_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_tool_path_guard.py", line 661, in test_root_filters_restored
+    self.assertEqual(logging.root.filters, filters)
+AssertionError: Lists differ: [<function ToolPathGuardTest.test_root_fil[61 chars]4e0>] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+<function ToolPathGuardTest.test_root_filters_restored.<locals>.<lambda>.<locals>.<lambda> at 0x1064594e0>
+
+- [<function ToolPathGuardTest.test_root_filters_restored.<locals>.<lambda>.<locals>.<lambda> at 0x1064594e0>]
++ []
+
+======================================================================
+FAIL: test_record_factory_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_record_factory_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_tool_path_guard.py", line 670, in test_record_factory_restored
+    self.assertIs(logging.getLogRecordFactory(), factory)
+AssertionError: <function ToolPathGuardTest.test_record_factory_restored.<locals>.<lambda>.<locals>.<lambda> at 0x1064bb560> is not <class 'logging.LogRecord'>
+
+======================================================================
+FAIL: test_std_streams_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_std_streams_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_tool_path_guard.py", line 682, in test_std_streams_restored
+    self.assertEqual([a is b for a, b in zip((sys.stdin, sys.stdout, sys.stderr), streams)], [True] * 3)
+AssertionError: Lists differ: [False, False, False] != [True, True, True]
+
+First differing element 0:
+False
+True
+
+- [False, False, False]
++ [True, True, True]
+
+======================================================================
+FAIL: test_pathfinder_attrs_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_pathfinder_attrs_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_tool_path_guard.py", line 697, in test_pathfinder_attrs_restored
+    self.assertEqual(sorted(k for k in set(vars(c)) | set(d) if vars(c).get(k) is not d.get(k)), [])
+AssertionError: Lists differ: ['find_spec'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'find_spec'
+
+- ['find_spec']
++ []
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.019s
+
+FAILED (failures=4)
