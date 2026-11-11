@@ -9,11 +9,11 @@ ALLOWED_EMAILS = {"info@thatched.ai"}
 # userinfo cases and the 2^32 boundary port numbers. Only these strings, only in this file;
 # the deny-list still applies to it.
 VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com", "www.@pple.com", "4294967295", "4294967296"}}
-# AgentDojo 0.1.35 synthetic benchmark accounts inside batch 10 run records (no personal data):
+# AgentDojo 0.1.35 synthetic benchmark accounts inside batch 10 / 11 run records (no personal data):
 # the suites' fake users and company domains (a JSON escape such as u202f or n may be glued on),
 # and one benchmark account number printed with spaces. Only under this path; deny-list still applies.
-AGENTDOJO_RUNS = "repeats/batch10/runs/"
-AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech)\.com)", re.I)
+AGENTDOJO_RUNS = ("repeats/batch10/runs/", "repeats/batch11/runs/")
+AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech|our-company|secure-systems-252)\.com)", re.I)
 AGENTDOJO_DIGITS = {"3012400231215421872"}
 RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
 PATTERNS = {
