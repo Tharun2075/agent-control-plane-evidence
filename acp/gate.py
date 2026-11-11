@@ -224,11 +224,8 @@ def _open_hook(event, args):
     elif event in _SOCKET_EVENTS:
         addr = args[1]
         if addr is not None and not isinstance(addr, tuple):  # inet addresses are tuples; anything else is a file path
-            if not isinstance(addr, (str, bytes, os.PathLike)):
-                try:
-                    addr = bytes(memoryview(addr))
-                except TypeError:
-                    _deny(f"{event} with an unreadable address")
+            if type(addr) not in (str, bytes):  # exact types: the C code parses the same immutable value we check
+                _deny(f"{event} with a non-str/bytes address")
             _check_arg(g, event, addr)  # bind creates the socket file
     elif event == "import":
         _check_module(g, args[0] if args else "")  # first load only: re-import of a loaded module raises no event
@@ -300,8 +297,8 @@ def _guard_create(fn):
             return fn(spec, *a)
         name, origin = getattr(spec, "name", None), getattr(spec, "origin", None)
         _check_module(g, name)
-        if origin is not None and type(origin) is not str:
-            _deny("native module load with a non-str origin")
+        if origin is not None and (type(origin) is not str or not _under(Path(os.path.realpath(origin)), _PY_ROOTS)):
+            _deny(f"native module load from outside the Python install: {origin!r}")
         return fn(importlib.machinery.ModuleSpec(name, None, origin=origin), *a)
     guarded._acp_guard = True
     return guarded
