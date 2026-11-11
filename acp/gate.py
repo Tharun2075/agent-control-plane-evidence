@@ -27,6 +27,7 @@ import hashlib
 import hmac
 import json
 import os
+import pathlib
 import re
 import secrets
 import sys
@@ -133,6 +134,29 @@ def _deny(what: str):
     raise ToolFileAccessDenied(what)
 
 
+# Path arguments: only types whose text cannot change between the check and the use. Native calls (the open
+# event, the os.* path events, sqlite, sockets, any other event) take an exact str or bytes, or an exact int where
+# a file descriptor is allowed: a str/bytes subclass, an object with __fspath__ (a pathlib subclass, a DirEntry
+# look-alike) or even a stdlib Path (its cached text can be changed by a gc callback after C converted it) could
+# show the guard one path and the OS another. The wrappers below (builtins.open, io.open, os path functions) turn
+# an exact stdlib pathlib path into its string once before the native call, so the string checked is the one opened.
+_PATHLIB_TYPES = (pathlib.PurePath, pathlib.PurePosixPath, pathlib.PureWindowsPath, pathlib.Path, pathlib.PosixPath,
+                  pathlib.WindowsPath)
+
+
+def _plain(x, pathlib_ok=False, fd_ok=False):
+    """x as an exact str/bytes (or exact int fd when fd_ok); an exact stdlib pathlib path converted once when
+    pathlib_ok; any other type is refused."""
+    t = type(x)
+    if t is str or t is bytes or (fd_ok and t is int):
+        return x
+    if pathlib_ok and t in _PATHLIB_TYPES:
+        s = os.fspath(x)
+        if type(s) is str:
+            return s
+    _deny(f"path argument of type {t.__name__}: pass a str, bytes or stdlib pathlib path")
+
+
 def _outside(g, path, writes: bool):
     """The resolved path if the guard refuses it, else None."""
     if isinstance(path, int):  # an fd that was already checked when it was opened
@@ -192,7 +216,8 @@ def _open_hook(event, args):
         path, mode, flags = args
         if path is None:
             return
-        if not isinstance(path, int) and not os.path.isabs(os.fsdecode(path)):
+        path = _plain(path, fd_ok=True)
+        if type(path) is not int and not os.path.isabs(os.fsdecode(path)):
             _deny(f"relative path {os.fsdecode(path)!r}")  # dir_fd is not in the event: refuse relative opens
         writes = bool(mode and any(c in mode for c in "wax+")) or bool(flags and flags & _WRITE_FLAGS)
         _check_path(g, path, writes)
@@ -200,12 +225,13 @@ def _open_hook(event, args):
         idx, writes, fds = _PATH_EVENTS[event]
         if any(i < len(args) and args[i] not in (None, -1) for i in fds):
             _deny(f"{event} with dir_fd")
-        for i in idx:
-            _check_path(g, args[i], writes)
+        for i in idx:  # os.* events come from C: exact types; pathlib/shutil events are Python-level notices
+            _check_path(g, _plain(args[i], pathlib_ok=not event.startswith("os."), fd_ok=True), writes)
         if event == "os.symlink":  # C code (SQLite side files) follows links unseen, and a link can be re-pointed
             _deny("symlink inside a tool body " + os.fsdecode(args[1]))
     elif event == "sqlite3.connect":
         db = args[0] if args else None
+        db = db if db is None else _plain(db)
         why = _sqlite_file(db)
         if why:
             _deny(why)
@@ -243,7 +269,7 @@ def _check_args(g, event, args):
 
 def _check_arg(g, event, a):
     try:
-        raw = os.fsdecode(a)
+        raw = os.fsdecode(_plain(a))
     except (TypeError, ValueError):
         _deny(f"{event} with an undecodable argument")
     if "\0" in raw or not os.path.isabs(raw):
@@ -305,9 +331,23 @@ def _guard_create(fn):
 
 
 def _check_node(g, path, *a, dir_fd=None, **kw):
-    if dir_fd is not None or isinstance(path, int):
+    if dir_fd is not None or type(path) is int:
         _deny("mkfifo/mknod with dir_fd")
     _check_arg(g, "mkfifo/mknod", path)
+
+
+def _guard_paths(fn, n):
+    """Wrap a path function: inside a tool body its first n path arguments become plain str/bytes before the call,
+    so the audit hook and any check see the exact string the OS gets."""
+    def guarded(*a, **kw):
+        if getattr(_GUARD, "allow", None) is not None and not getattr(_LOG_WRITING, "on", False):
+            a = tuple(_plain(x, True, True) if i < n else x for i, x in enumerate(a))
+            for k in ("file", "path", "src", "dst", "database"):
+                if k in kw:
+                    kw[k] = _plain(kw[k], True, True)
+        return fn(*a, **kw)
+    guarded._acp_guard = True
+    return guarded
 
 
 def _wrap(mod, name, what, check=None):
@@ -346,6 +386,17 @@ for _mod in {os, sys.modules[os.name]}:
         _wrap(_mod, _name, "process start")
     for _name in ("mkfifo", "mknod"):
         _wrap(_mod, _name, None, _check_node)
+        setattr(_mod, _name, _guard_paths(getattr(_mod, _name), 1))  # convert first, then _check_node checks it
+for _name, _n in (("open", 1), ("remove", 1), ("unlink", 1), ("rmdir", 1), ("mkdir", 1), ("chmod", 1),
+                  ("chown", 1), ("lchown", 1), ("truncate", 1), ("utime", 1), ("listdir", 1), ("scandir", 1),
+                  ("rename", 2), ("replace", 2), ("link", 2), ("symlink", 2)):
+    if hasattr(os, _name):
+        setattr(os, _name, _guard_paths(getattr(os, _name), _n))
+import builtins  # noqa: E402
+import io  # noqa: E402
+import sqlite3  # noqa: E402
+builtins.open = io.open = _guard_paths(io.open, 1)  # pathlib's Path.open calls io.open
+sqlite3.connect = _guard_paths(sqlite3.connect, 1)
 _guard_native()
 
 _SYS_PATH = tuple(sys.path)  # snapshot at install: a tool body that edits sys.path gains nothing
