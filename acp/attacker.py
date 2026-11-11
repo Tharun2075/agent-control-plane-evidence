@@ -114,7 +114,8 @@ class World:
         m = manmod.bind_session(manmod.load(self.repo / "manifests" / f"{name}.json"), session_id=sid,
                                 task="batch5 scripted attacker (synthetic)", expires=exp, **kw)
         ctx = AgentContext(self.log, m, sid)
-        return ctx, ToolRunner(ctx, self.approvals), SessionStore(self.sessions, ctx)
+        store = SessionStore(self.sessions, ctx)
+        return ctx, ToolRunner(ctx, self.approvals, session_dir=store.dir), store
 
 
 def _outcome(world: World, start: int) -> tuple[list[dict], str]:

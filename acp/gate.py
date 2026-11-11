@@ -29,6 +29,8 @@ import json
 import os
 import re
 import secrets
+import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -52,6 +54,50 @@ class PermissionDenied(Exception):
     def __init__(self, message: str, outcome: str = "refused_not_permitted"):
         super().__init__(message)
         self.outcome = outcome
+
+
+class ToolFileAccessDenied(PermissionDenied):
+    """A tool body opened a file outside its own session namespace."""
+
+    def __init__(self, path: str):
+        super().__init__(f"tool file access outside session: {path}", "refused_outside_session")
+        self.path = path
+
+
+# Path guard: while a tool body runs, every file open on this thread (builtins.open,
+# io.open, os.open, pathlib, open_code) is checked by an audit hook. Allowed: anything
+# under the session dir; reads under declared read roots and the Python install; writes
+# under declared write roots and the hash-chained log. Everything else raises.
+_GUARD = threading.local()
+_PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
+                  | {Path(__file__).resolve().parent})
+_WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+
+
+def _under(p: Path, roots) -> bool:
+    return any(p == r or r in p.parents for r in roots)
+
+
+def _open_hook(event, args):
+    if event != "open":
+        return
+    g = getattr(_GUARD, "allow", None)
+    if g is None:
+        return
+    path, mode, flags = args
+    if isinstance(path, int) or path is None:  # fdopen of an fd that was already checked
+        return
+    target = os.path.realpath(os.fsdecode(path))  # symlinks and '..' resolved before the check
+    p = Path(target)
+    writes = bool(mode and any(c in mode for c in "wax+")) or bool(flags and flags & _WRITE_FLAGS)
+    session, reads, writes_ok = g
+    if _under(p, (session,)) or (_under(p, writes_ok) if writes else _under(p, reads + _PY_ROOTS)):
+        return
+    _GUARD.denied = target
+    raise ToolFileAccessDenied(target)
+
+
+sys.addaudithook(_open_hook)
 
 
 class ApprovalRequired(Exception):
@@ -278,9 +324,30 @@ def check_url(url: str, allowed_prefixes, blocked_patterns) -> tuple[str, list |
 
 
 class ToolRunner:
-    def __init__(self, ctx: AgentContext, approvals_dir: Path):
+    def __init__(self, ctx: AgentContext, approvals_dir: Path, session_dir: Path | None = None,
+                 read_roots=(), write_roots=()):
+        """With session_dir set, tool bodies may open files only inside it (plus declared
+        read-only data roots and write-only stub roots); see the path guard above."""
         self.ctx = ctx
         self.approvals_dir = Path(approvals_dir)
+        self.session_dir = Path(session_dir).resolve() if session_dir else None
+        lp = Path(ctx.log.path).resolve()  # the gate's own log + head sidecar, if a tool body logs
+        own_log = (lp, lp.with_name(lp.name + ".head"), lp.with_name(lp.name + ".head.tmp"))
+        self.read_roots = tuple(Path(r).resolve() for r in read_roots) + own_log
+        self.write_roots = tuple(Path(r).resolve() for r in write_roots) + own_log
+
+    def _run_guarded(self, fn):
+        if self.session_dir is None:
+            return fn()
+        prev = getattr(_GUARD, "allow", None)
+        _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
+        try:
+            out = fn()
+        finally:
+            _GUARD.allow = prev
+        if _GUARD.denied:  # the tool swallowed the denial: still refuse its result
+            raise ToolFileAccessDenied(_GUARD.denied)
+        return out
 
     def requires_approval(self, tool: str) -> bool:
         spec = tool_spec(self.ctx.manifest, tool) or {}
@@ -382,7 +449,7 @@ class ToolRunner:
             os.replace(tmp, p)
 
         try:
-            out = fn()
+            out = self._run_guarded(fn)
             value, provenance = out[0], out[1]
             if len(out) > 2:  # tool reports what it actually found (e.g. special category data)
                 ov = out[2]
@@ -390,7 +457,8 @@ class ToolRunner:
                 base["lawful_basis"] = ov.get("lawful_basis", base["lawful_basis"])
                 detail.update(ov.get("detail", {}))
         except Exception as e:  # logged, then re-raised
-            rec = ctx.record(**base, outcome="error", decision_mode=decision_mode, approval_ref=approval_ref,
+            outcome = e.outcome if isinstance(e, ToolFileAccessDenied) else "error"
+            rec = ctx.record(**base, outcome=outcome, decision_mode=decision_mode, approval_ref=approval_ref,
                              detail={**detail, "error": type(e).__name__})
             if approval_ref:
                 consume(rec)
