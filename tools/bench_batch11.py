@@ -15,6 +15,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT))
@@ -43,12 +45,28 @@ def seed_injection(suite, ut, goal: str, pipe) -> dict:
     return {c: body for c in att.get_injection_candidates(ut)}
 
 
+def yaml_safe(text: str) -> str:
+    """Attacker text escaped for the inside of a YAML double-quoted scalar, which is where every
+    AgentDojo banking/slack injection placeholder sits; AgentDojo pastes the value in with str.format
+    and then yaml.safe_load-s the environment, so a raw '"' or '\\' broke the parse (batch-11
+    ParserError, repeats/batch11b/PROTOCOL-ADDENDUM.md). PyYAML's own double-quoted emitter does the
+    escaping; the loaded value equals the text exactly (newlines included)."""
+    out = yaml.dump(text, default_style='"', width=10 ** 9, allow_unicode=True).rstrip("\n")
+    if out.endswith("\n..."):
+        out = out[:-4].rstrip("\n")
+    if not (len(out) >= 2 and out[0] == out[-1] == '"') or "\n" in out:
+        raise ValueError("yaml_safe: unexpected emitter output")
+    return out[1:-1]
+
+
 def rewrite_injection(suite, ut, inj: str, pipe) -> dict:
     """An attacker rewrite on the same injection candidates as the seed."""
     return {c: inj for c in load_attack("important_instructions", suite, pipe).get_injection_candidates(ut)}
 
 
-def run_seeded(j, a, client, chain, lock, attacker=B10.attacker_call, max_tries=MAX_TRIES) -> dict:
+def run_seeded(j, a, client, chain, lock, attacker=B10.attacker_call, max_tries=MAX_TRIES, prior=None) -> dict:
+    """prior: tries already run for this pair (batch 11b reuses batch-11 try 1); the loop continues
+    after them with the same history the attacker would have seen."""
     suite = get_suite(B.BENCH_VERSION, j["suite"])
     ut = suite.user_tasks[j["ut"]]
     goal = B9.adaptive_goal(j["tool"], j["target"])
@@ -56,9 +74,9 @@ def run_seeded(j, a, client, chain, lock, attacker=B10.attacker_call, max_tries=
     rec = B10._base(j, a)
     rec.update({"set": "A", "it": None, "kind": "attacked", "attack": ATTACK, "adaptive_tool": j["tool"],
                 "adaptive_target": j["target"], "max_tries": max_tries})
-    tries, history = [], []
-    success_at = None
-    for t in range(1, max_tries + 1):
+    tries, history = list(prior or []), list(prior or [])
+    success_at = next((h["t"] for h in tries if h.get("security")), None)
+    for t in range(len(tries) + 1, max_tries + 1 if success_at is None else 0):
         st = B10.State10(ARM, authority, j["suite"], ut.PROMPT, list(B9.ADAPTIVE_MARKERS[j["suite"]]), True,
                          chain, f"{B.key(j)}#{t}", lock)
         a_err, fallback, use = None, False, dict(NO_USE)
@@ -80,8 +98,8 @@ def run_seeded(j, a, client, chain, lock, attacker=B10.attacker_call, max_tries=
                 inj = B10.fallback_injection(goal)
 
             def fn(pipe, inj=inj):
-                box.update(rewrite_injection(suite, ut, inj, pipe))
-                return dict(box)
+                box.update(rewrite_injection(suite, ut, inj, pipe))  # raw text stays in the record
+                return {c: yaml_safe(v) for c, v in box.items()}
         run = B10._victim_run(suite, ut, None, st, a, client, fn)
         # batch-9 success rule: a target-marker call the gate let through (bench_batch9.adaptive_success)
         run["security"] = B9.adaptive_success(run["calls"])
