@@ -737,9 +737,15 @@ class ToolRunner:
         finally:
             try:
                 changed = []
-                for _ in range(2):  # the body's objects die inside the window: their __del__ runs guarded
-                    gc.collect()
-                    changed += _hook_restore(hooks)
+                rounds, found = 0, 1
+                while found:  # the body's objects die inside the window: their __del__ runs guarded;
+                    rounds += 1  # the window stays shut until no garbage is left (a chain only hangs, like a busy loop)
+                    found = gc.collect()
+                    step = _hook_restore(hooks)
+                    changed += step
+                    found = found or step
+                if rounds > 4:  # finalizers kept making garbage
+                    changed.append("finalizer chain")
                 if changed and not _GUARD.denied:
                     _GUARD.denied = "deferred code: " + ", ".join(dict.fromkeys(changed))
             finally:

@@ -407,6 +407,32 @@ class ToolPathGuardTest(unittest.TestCase):
         gc.collect()
         self.assertEqual(got, [])
 
+    def test_finalizer_chain_refused(self):
+        import gc
+        got, secret, left = [], self.secret, [50]
+
+        class Chain:  # each __del__ leaves a new cycle: the window cannot outwait it
+            def __init__(self):
+                self.me = self
+
+            def __del__(self):
+                if left[0] > 0:
+                    left[0] -= 1
+                    Chain()
+                else:
+                    try:
+                        got.append(open(secret).read())
+                    except Exception:
+                        pass
+
+        def body():
+            Chain()
+            return "ok"
+        self.assertDenied(body)
+        for _ in range(60):
+            gc.collect()
+        self.assertEqual(got, [])
+
     def test_atexit_thread_finalize_refused(self):
         import atexit
         import threading

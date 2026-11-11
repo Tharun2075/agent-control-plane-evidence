@@ -1,13 +1,48 @@
-# new tests run against eee9565 acp/gate.py (old guard), 2026-11-11T05:38:33Z
+F/private/tmp/fx12e-old/tests/test_tool_path_guard.py:403: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/zf/q9mj1yl568z5bnhv2_zq0xbm0000gn/T/tmpkb5rb6pg/sessions/victim-s2/secret.txt' mode='r' encoding='UTF-8'>
+  got.append(open(secret).read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FFF
+======================================================================
 FAIL: test_deferred_signal_handler_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_deferred_signal_handler_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 389, in test_deferred_signal_handler_refused
+    self.assertDenied(body)
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 62, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
 AssertionError: ToolFileAccessDenied not raised
-Ran 1 test in 0.004s
-FAILED (failures=1)
+
+======================================================================
 FAIL: test_returned_object_del_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_returned_object_del_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 406, in test_returned_object_del_refused
+    self.assertDenied(Later)
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 62, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
 AssertionError: ToolFileAccessDenied not raised
-Ran 1 test in 0.004s
-FAILED (failures=1)
+
+======================================================================
 FAIL: test_atexit_thread_finalize_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_atexit_thread_finalize_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 449, in test_atexit_thread_finalize_refused
+    self.assertDenied(lambda: atexit.register(f) and None)
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 62, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
 AssertionError: ToolFileAccessDenied not raised
-Ran 1 test in 0.003s
-FAILED (failures=1)
+
+======================================================================
+FAIL: test_finalizer_chain_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_finalizer_chain_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 431, in test_finalizer_chain_refused
+    self.assertDenied(body)
+  File "/private/tmp/fx12e-old/tests/test_tool_path_guard.py", line 62, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.010s
+
+FAILED (failures=4)
