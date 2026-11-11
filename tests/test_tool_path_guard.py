@@ -912,5 +912,73 @@ class ToolPathGuardTest(unittest.TestCase):
                 del cls.level
 
 
+    # fix12j: modules and loggers first made during the call are class-checked too
+    def _fresh(self, mod, logger):
+        import logging
+        sys.modules.pop(mod, None)
+        logging.root.manager.loggerDict.pop(logger, None)
+
+    def test_module_imported_in_body_class_swap_restored_and_refused(self):  # C21 (15)
+        import types
+        self._fresh("colorsys", "")
+        box = {}
+
+        class Mod(types.ModuleType):
+            pass
+
+        def body():
+            import colorsys
+            box["m"] = colorsys
+            object.__setattr__(colorsys, "__class__", Mod)
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(colorsys)", str(cm.exception))
+            self.assertIs(type(box["m"]), types.ModuleType)
+        finally:
+            if "m" in box:
+                object.__setattr__(box["m"], "__class__", types.ModuleType)
+
+    def test_logger_made_in_body_class_swap_restored_and_refused(self):  # C21 (16)
+        import logging
+        self._fresh("colorsys", "jc21.new.child")
+        box = {}
+
+        class Lg(logging.Logger):
+            pass
+
+        def body():
+            lg = box["l"] = logging.getLogger("jc21.new.child")
+            object.__setattr__(lg, "__class__", Lg)
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            self.assertIn("type(logger jc21.new.child)", str(cm.exception))
+            self.assertIs(type(box["l"]), logging.Logger)
+        finally:
+            if "l" in box:
+                object.__setattr__(box["l"], "__class__", logging.Logger)
+            for n in ("jc21.new.child", "jc21.new", "jc21"):
+                logging.root.manager.loggerDict.pop(n, None)
+
+    def test_new_import_and_new_logger_still_work(self):  # control
+        import contextlib
+        import io
+        import logging
+        self._fresh("colorsys", "acp.fix12j.new.child")
+
+        def body():
+            import colorsys
+            logging.getLogger("acp.fix12j.new.child").warning("hi")
+            return str(colorsys.rgb_to_hsv(0, 0, 0))
+        with contextlib.redirect_stderr(io.StringIO()):
+            out = self.read(body)
+        self.assertEqual(out[0] if isinstance(out, tuple) else out, "(0.0, 0.0, 0)")
+        logging.root.manager.loggerDict.pop("acp.fix12j.new.child", None)
+        logging.root.manager.loggerDict.pop("acp.fix12j.new", None)
+        logging.root.manager.loggerDict.pop("acp.fix12j", None)
+
 if __name__ == "__main__":
     unittest.main()
