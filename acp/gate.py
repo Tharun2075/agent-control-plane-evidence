@@ -96,6 +96,7 @@ _DENY_EVENTS = {"os.chdir", "os.system", "os.exec", "os.posix_spawn", "os.spawn"
                 "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen",
                 "ctypes.dlsym", "sqlite3.enable_load_extension", "sqlite3.load_extension"}
 _SQLITE_MEMORY = ("", ":memory:")
+_SQLITE_SIDE = ("", "-journal", "-wal", "-shm")  # SQLite opens these beside the database without an audit event
 
 
 def _deny(what: str):
@@ -145,7 +146,7 @@ def _sqlite_authorizer(g):
         # ATTACH and VACUUM INTO both reach SQLite as an attach of a new file.
         if action != sqlite3.SQLITE_ATTACH or (arg1 is not None and os.fsdecode(arg1) in _SQLITE_MEMORY):
             return sqlite3.SQLITE_OK
-        why = _sqlite_file(arg1) or _outside(g, arg1, True)
+        why = _sqlite_file(arg1) or next(filter(None, (_outside(g, os.fsdecode(arg1) + x, True) for x in _SQLITE_SIDE)), None)
         if not why:
             return sqlite3.SQLITE_OK
         if getattr(_GUARD, "allow", None) is not None:
@@ -172,13 +173,16 @@ def _open_hook(event, args):
             _deny(f"{event} with dir_fd")
         for i in idx:
             _check_path(g, args[i], writes)
+        if event == "os.symlink":  # the link target too: SQLite side files and other C code follow links unseen
+            _check_path(g, os.path.join(os.path.dirname(os.fsdecode(args[1])), os.fsdecode(args[0])), True)
     elif event == "sqlite3.connect":
         db = args[0] if args else None
         why = _sqlite_file(db)
         if why:
             _deny(why)
         if os.fsdecode(db) not in _SQLITE_MEMORY:
-            _check_path(g, db, True)
+            for side in _SQLITE_SIDE:
+                _check_path(g, os.fsdecode(db) + side, True)
     elif event == "sqlite3.connect/handle":
         # The connection is not ready inside this event; the authorizer goes on at the next profile event
         # on this thread (the return from connect), before any statement can run.
@@ -191,11 +195,12 @@ def _open_hook(event, args):
 
 
 def _sqlite_profile(frame, event, arg):
+    import sqlite3
     waiting = []
     for conn, auth in getattr(_GUARD, "sqlite_pending", []):
         try:
-            conn.set_authorizer(auth)
-        except Exception:  # still inside connect: try again at the next event
+            sqlite3.Connection.set_authorizer(conn, auth)  # base method: a Connection subclass cannot skip it
+        except Exception:  # still inside connect: try again; _run_guarded refuses if it never goes on
             waiting.append((conn, auth))
     _GUARD.sqlite_pending = waiting
     if not waiting:
@@ -212,7 +217,9 @@ def _guard_thread_start(start):
 
 if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it at the start functions
     import _thread
-    _thread.start_new_thread = _guard_thread_start(_thread.start_new_thread)
+    for _name in ("start_new_thread", "start_new", "start_joinable_thread"):  # every alias of the start function
+        if hasattr(_thread, _name):
+            setattr(_thread, _name, _guard_thread_start(getattr(_thread, _name)))
     threading._start_new_thread = _guard_thread_start(threading._start_new_thread)
 
 _SYS_PATH = tuple(sys.path)  # snapshot at install: a tool body that edits sys.path gains nothing
@@ -466,6 +473,9 @@ class ToolRunner:
             out = None  # a refusal caused this error (e.g. sqlite "not authorized"): report the refusal
         finally:
             _GUARD.allow = prev
+            if getattr(_GUARD, "sqlite_pending", None):  # fail closed: a connection ran without its authorizer
+                _GUARD.sqlite_pending = []
+                _GUARD.denied = _GUARD.denied or "sqlite authorizer not installed"
         if _GUARD.denied:  # the tool swallowed the denial: still refuse its result
             raise ToolFileAccessDenied(_GUARD.denied)
         return out

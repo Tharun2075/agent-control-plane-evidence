@@ -116,6 +116,7 @@ class ToolPathGuardTest(unittest.TestCase):
         got = []
         self.assertDenied(lambda: threading.Thread(target=lambda: got.append(self.secret.read_text())).start() or "")
         self.assertDenied(lambda: _thread.start_new_thread(lambda: got.append(self.secret.read_text()), ()) and "")
+        self.assertDenied(lambda: _thread.start_new(lambda: got.append(self.secret.read_text()), ()) and "")
         self.assertDenied(lambda: ThreadPoolExecutor(1).submit(self.secret.read_text).result())
         self.assertDenied(lambda: threading.Timer(0, lambda: got.append(self.secret.read_text())).start() or "")
         self.assertEqual(got, [])
@@ -134,13 +135,18 @@ class ToolPathGuardTest(unittest.TestCase):
         self.assertDenied(lambda: sqlite3.connect(":memory:").execute(f"ATTACH DATABASE '{outside}' AS a") and "")
         self.assertDenied(lambda: sqlite3.connect("").execute("ATTACH DATABASE ? AS a", (str(outside),)) and "")
         self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own.db").execute(f"VACUUM INTO '{outside}'") and "")
+        self.assertDenied(lambda: os.symlink(outside, self.store.dir / "own.db-journal") or "")  # link to outside
+        (self.store.dir / "own2.db-wal").symlink_to(outside)  # planted before the tool runs
+        self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own2.db") and "")
+
+        class Quiet(sqlite3.Connection):
+            def set_authorizer(self, *a):
+                pass
+        self.assertDenied(lambda: sqlite3.connect("", factory=Quiet).execute(f"ATTACH DATABASE '{outside}' AS a") and "")
         self.assertFalse(outside.exists())
         self.assertEqual(self.secret.read_text(), "TOP-SECRET")
 
-    def test_sqlite_inside_session_and_memory_work(self):
-        import sqlite3
-
-        def use():
+        def use():  # the session's own files and in-memory databases still work
             c = sqlite3.connect(self.store.dir / "own.db")
             c.execute("create table t(x)")
             c.execute("insert into t values (1)")
