@@ -76,6 +76,12 @@ batch9:
 verify-batch9:
 	$(PY) tools/batch9_summary.py --check
 verify: verify-batch9
+.PHONY: batch13 verify-batch13
+batch13:
+	$(PY) tools/batch13_summary.py
+verify-batch13:
+	$(PY) tools/batch13_summary.py --check
+verify: verify-batch13
 
 # Batch 10 (outside AgentDojo attacks, adaptive LLM attacker, allowlist-off authority arm, repeats/batch10/PROTOCOL.md).
 .PHONY: batch10 verify-batch10
