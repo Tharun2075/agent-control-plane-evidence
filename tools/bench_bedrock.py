@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import threading
 import time
@@ -86,6 +87,48 @@ def _text(blocks) -> str:
     return "\n".join(b["content"] for b in (blocks or []) if b.get("content")) if blocks else ""
 
 
+# Bedrock's Converse API accepts toolUse.name and toolUseId only if they match this pattern;
+# a name outside it in the replayed history fails the whole next request (ValidationException).
+NAME_OK = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
+
+
+def clean_name(name, known: frozenset | set = frozenset(), fallback: str = "invalid_tool") -> str:
+    """Map a model-emitted tool name onto a Converse-safe one.
+
+    gpt-oss can append harmony channel tokens ("get_webpage<|channel|>commentary") or a namespace
+    ("functions.get_webpage"); both reach the history as is and Bedrock rejects the next turn.
+    Known tool names win; anything else is reduced to the allowed characters, and the tools
+    executor then answers it with AgentDojo's own "Invalid tool" error."""
+    raw = str(name or "")
+    n = raw.split("<|")[0].strip().strip("\"'` ")
+    if n in known:
+        return n
+    head = n.split("(")[0].strip()
+    head = head.split()[0] if head.split() else ""
+    if head.rsplit(".", 1)[-1] in known:
+        return head.rsplit(".", 1)[-1]
+    if NAME_OK.match(n):
+        return n
+    n = re.sub(r"[^a-zA-Z0-9_-]+", "_", n).strip("_")[:64]
+    return n or (re.sub(r"[^a-zA-Z0-9_-]+", "_", raw).strip("_")[:64] or fallback)
+
+
+def as_object(args) -> dict:
+    """Converse wants toolUse.input as a JSON object; models sometimes emit a JSON string or a list."""
+    if isinstance(args, dict):
+        return dict(args)
+    if isinstance(args, str):
+        try:
+            v = json.loads(args)
+        except ValueError:
+            return {}
+        return dict(v) if isinstance(v, dict) else {}
+    try:
+        return dict(args or {})
+    except (TypeError, ValueError):
+        return {}
+
+
 def to_converse(messages: list) -> tuple[list, list]:
     """AgentDojo chat messages -> (system blocks, Converse messages with same-role turns merged)."""
     system, out = [], []
@@ -102,12 +145,13 @@ def to_converse(messages: list) -> tuple[list, list]:
             t = _text(m["content"])
             blocks = [{"text": t}] if t.strip() else []
             for tc in m.get("tool_calls") or []:
-                blocks.append({"toolUse": {"toolUseId": tc.id, "name": tc.function, "input": dict(tc.args)}})
+                blocks.append({"toolUse": {"toolUseId": clean_name(tc.id, fallback="call"),
+                                           "name": clean_name(tc.function), "input": as_object(tc.args)}})
             blocks, crole = blocks or [{"text": EMPTY}], "assistant"
         elif role == "tool":
             err = m.get("error")
             body = err or _text(m["content"]) or EMPTY
-            blocks = [{"toolResult": {"toolUseId": m["tool_call_id"], "content": [{"text": body}],
+            blocks = [{"toolResult": {"toolUseId": clean_name(m["tool_call_id"], fallback="call"), "content": [{"text": body}],
                                       "status": "error" if err else "success"}}]
             crole = "user"
         else:
@@ -119,15 +163,17 @@ def to_converse(messages: list) -> tuple[list, list]:
     return system, out
 
 
-def from_converse(message: dict) -> ChatAssistantMessage:
-    """Converse output message -> AgentDojo assistant message. reasoningContent is dropped."""
+def from_converse(message: dict, known: frozenset | set = frozenset()) -> ChatAssistantMessage:
+    """Converse output message -> AgentDojo assistant message. reasoningContent is dropped.
+    Tool names are cleaned (see clean_name) so a malformed name cannot poison the next request."""
     texts, calls = [], []
     for b in message.get("content", []):
         if "text" in b:
             texts.append(b["text"])
         elif "toolUse" in b:
             u = b["toolUse"]
-            calls.append(FunctionCall(function=u["name"], args=dict(u.get("input") or {}), id=u["toolUseId"]))
+            calls.append(FunctionCall(function=clean_name(u.get("name"), known), args=as_object(u.get("input")),
+                                      id=clean_name(u.get("toolUseId"), fallback="call")))
     content = [text_content_block_from_string("\n".join(texts))] if texts else None
     return ChatAssistantMessage(role="assistant", content=content, tool_calls=calls or None)
 
@@ -189,7 +235,7 @@ class BedrockLLM(BasePipelineElement):
         self.stop_reasons.append(reason)
         if reason in ("guardrail_intervened", "content_filtered"):
             raise B.ProviderRefusal(f"stopReason={reason}")
-        output = from_converse(r["output"]["message"])
+        output = from_converse(r["output"]["message"], {t.name for t in runtime.functions.values()})
         return query, runtime, env, [*messages, output], extra_args
 
 
