@@ -8,11 +8,13 @@ ALLOWED_EMAILS = {"info@thatched.ai"}
 # Exact strings inside vendored third-party test corpora (not personal data): WPT urltestdata
 # userinfo cases and the 2^32 boundary port numbers. Only these strings, only in this file;
 # the deny-list still applies to it.
-VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com", "www.@pple.com", "4294967295", "4294967296"}}
-# AgentDojo 0.1.35 synthetic benchmark accounts inside batch 10 / 11 / 11b run records (no personal data):
+VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com", "www.@pple.com", "4294967295", "4294967296"},
+               # batch 17 gate: an illustrative comment on whole-token matching (no mailbox; file hash is pinned in code-sha256.json)
+               "acp/bench_gate_b17.py": {"ann@x.com", "joann@x.com"}}
+# AgentDojo 0.1.35 synthetic benchmark accounts inside batch 10 / 11 / 11b / 13 / 17 run records (no personal data):
 # the suites' fake users and company domains (a JSON escape such as u202f or n may be glued on),
 # and one benchmark account number printed with spaces. Only under this path; deny-list still applies.
-AGENTDOJO_RUNS = ("repeats/batch10/runs/", "repeats/batch11/runs/", "repeats/batch11b/runs/", "repeats/batch13/runs/")
+AGENTDOJO_RUNS = ("repeats/batch10/runs/", "repeats/batch11/runs/", "repeats/batch11b/runs/", "repeats/batch13/runs/", "repeats/batch17/p1/runs/", "repeats/batch17/p2/runs/", "repeats/batch17/p3/runs/")
 AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech|our-company|secure-systems-252)\.com)", re.I)
 AGENTDOJO_DIGITS = {"3012400231215421872"}
 RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
