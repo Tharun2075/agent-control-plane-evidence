@@ -24,6 +24,7 @@ Every tool call goes through ToolRunner.call(). It
 from __future__ import annotations
 
 import atexit
+import builtins
 import codecs
 import copyreg
 import faulthandler
@@ -50,6 +51,68 @@ from .agent import AgentContext
 from .canon import canonical, digest
 from .log import _WRITING as _LOG_WRITING
 from .manifest import tool_spec
+
+# The path and event checks below look nothing up through module state a tool body can change: the gate's
+# functions run on a private copy of the builtins, and every os/sys/sqlite3/importlib function they use is
+# bound here, at load. Paths are resolved by _realpath below (built on these bindings), never by os.path.
+__builtins__ = dict(vars(builtins))
+_fsdecode, _fsencode, _fspath, _PathLike = os.fsdecode, os.fsencode, os.fspath, os.PathLike
+_lstat, _readlink, _getcwd, _tuple_item = os.lstat, os.readlink, os.getcwd, tuple.__getitem__
+_getprofile, _setprofile, _MODULES, _gc_collect = sys.getprofile, sys.setprofile, sys.modules, gc.collect
+
+
+def _isabs(s: str) -> bool:
+    return s.startswith("/")
+
+
+def _join(a: str, b: str) -> str:
+    return b if b.startswith("/") else (a + b if a.endswith("/") else a + "/" + b)
+
+
+def _split(p: str):
+    i = p.rfind("/") + 1
+    head, tail = p[:i], p[i:]
+    if head and head != "/" * len(head):
+        head = head.rstrip("/")
+    return head, tail
+
+
+def _realpath(path: str) -> str:
+    """posixpath.realpath(path) (strict=False) for a str, from the bindings above only."""
+    if not path.startswith("/"):
+        path = _join(_getcwd(), path)
+    return _joinrealpath("/", path, {})[0]
+
+
+def _joinrealpath(path: str, rest: str, seen: dict):  # posixpath._joinrealpath of Python 3.11, absolute paths
+    if rest.startswith("/"):
+        rest, path = rest[1:], "/"
+    while rest:
+        name, _, rest = rest.partition("/")
+        if not name or name == ".":
+            continue
+        if name == "..":
+            path = _split(path)[0] or "/"
+            continue
+        newpath = _join(path, name)
+        try:
+            mode = _tuple_item(_lstat(newpath), 0)  # st_mode by index: stat_result's attributes can be patched
+        except OSError:
+            mode = 0
+        if mode & 0o170000 != 0o120000:  # not a symlink
+            path = newpath
+            continue
+        if newpath in seen:
+            path = seen[newpath]
+            if path is not None:
+                continue
+            return _join(newpath, rest), False  # a symlink loop
+        seen[newpath] = None
+        path, ok = _joinrealpath(path, _readlink(newpath), seen)
+        if not ok:
+            return _join(path, rest), False
+        seen[newpath] = path
+    return path, True
 
 
 def _parse(ts: str) -> datetime:
@@ -89,22 +152,27 @@ class ToolFileAccessDenied(PermissionDenied):
 # the rest are SNAPSHOT before the body and RESTORED after it (the _RESTORED table below: interpreter hooks,
 # import finders and path state, sys.path, os.environ, std streams, profile/trace, the root logger's handlers,
 # filters and level, the root logger binding and logging.disable, the log record factory, gc.callbacks, copyreg;
-# a module or logger whose class was swapped is put back and the call refused). The result
+# the class of every module and logger loaded before the call is put back if swapped and the call refused;
+# three restore passes, then the call is refused). The result
 # leaves as JSON data only and the body's objects are collected inside the window, so __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
 # (its globals, the hook, a removed sqlite authorizer, the wrapped functions) or with shared interpreter
-# state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules,
+# state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules (the
+# checks use functions bound at load and a private builtins copy, so these do not reach them),
 # objects reachable from restored state that are mutated in place, attributes not on that list).
 # Metadata calls (os.stat, os.access, os.path.exists) raise no audit event, and file descriptors the host
 # already holds are not tracked. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
-_PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
-                  | {Path(__file__).resolve().parent})
+_PY_ROOTS = tuple({_realpath(p) for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
+                  | {_split(_realpath(__file__))[0]})
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
 
 
-def _under(p: Path, roots) -> bool:
-    return any(p == r or r in p.parents for r in roots)
+def _under(t: str, roots) -> bool:  # t and roots are resolved absolute str paths
+    for r in roots:
+        if t == r or t.startswith(r if r.endswith("/") else r + "/"):
+            return True
+    return False
 
 
 # Audit events the guard checks. Path events: (event -> (path arg indexes, writes?, dir_fd arg indexes)).
@@ -173,7 +241,7 @@ def _plain(x, pathlib_ok=False, fd_ok=False):
     if t is str or t is bytes or (fd_ok and t is int):
         return x
     if pathlib_ok and t in _PATHLIB_TYPES:
-        s = os.fspath(x)
+        s = _fspath(x)
         if type(s) is str:
             return s
     _deny(f"path argument of type {t.__name__}: pass a str, bytes or stdlib pathlib path")
@@ -183,11 +251,10 @@ def _outside(g, path, writes: bool):
     """The resolved path if the guard refuses it, else None."""
     if isinstance(path, int):  # an fd that was already checked when it was opened
         return None
-    raw = os.fsdecode(path if path is not None else ".")
-    target = os.path.realpath(raw)  # symlinks and '..' resolved before the check
-    p = Path(target)
+    raw = _fsdecode(path if path is not None else ".")
+    target = _realpath(raw)  # symlinks and '..' resolved before the check
     session, reads, writes_ok = g
-    if _under(p, (session,)) or (_under(p, writes_ok) if writes else _under(p, reads + _PY_ROOTS)):
+    if _under(target, (session,)) or (_under(target, writes_ok) if writes else _under(target, reads + _PY_ROOTS)):
         return None
     if not writes and raw in _SYS_PATH:  # the import system lists sys.path entries; names only
         return None
@@ -204,26 +271,24 @@ def _sqlite_file(db) -> str:
     """Refusal reason for a sqlite database name, or '' when it is a plain absolute path or in-memory."""
     if db is None:
         return "sqlite database given as an expression"
-    name = os.fsdecode(db)
+    name = _fsdecode(db)
     if name in _SQLITE_MEMORY:
         return ""
     if name.lower().startswith("file:"):
         return f"sqlite URI {name!r}"
-    if not os.path.isabs(name):
+    if not _isabs(name):
         return f"relative sqlite path {name!r}"
     return ""
 
 
 def _sqlite_authorizer(g):
-    import sqlite3
-
     def authorize(action, arg1, arg2, db_name, trigger):
         # ATTACH and VACUUM INTO both reach SQLite as an attach of a new file.
-        if action != sqlite3.SQLITE_ATTACH or (arg1 is not None and os.fsdecode(arg1) in _SQLITE_MEMORY):
-            return sqlite3.SQLITE_OK
-        why = _sqlite_file(arg1) or next(filter(None, (_outside(g, os.fsdecode(arg1) + x, True) for x in _SQLITE_SIDE)), None)
+        if action != _SQLITE_ATTACH or (arg1 is not None and _fsdecode(arg1) in _SQLITE_MEMORY):
+            return _SQLITE_OK
+        why = _sqlite_file(arg1) or next(filter(None, (_outside(g, _fsdecode(arg1) + x, True) for x in _SQLITE_SIDE)), None)
         if not why:
-            return sqlite3.SQLITE_OK
+            return _SQLITE_OK
         if getattr(_GUARD, "allow", None) is not None:
             _GUARD.denied = why  # the tool body cannot hide the refusal by catching the sqlite error
         return sqlite3.SQLITE_DENY
@@ -238,15 +303,15 @@ def _open_hook(event, args):
         k = args[0]
         if type(k) not in (str, bytes):  # only exact str/bytes keys: the put-back never runs tool code
             _deny(f"{event} key of type {type(k).__name__}")
-        _GUARD.env_raw.add(os.fsencode(k))
+        _GUARD.env_raw.add(_fsencode(k))
         return
     if event == "open":
         path, mode, flags = args
         if path is None:
             return
         path = _plain(path, fd_ok=True)
-        if type(path) is not int and not os.path.isabs(os.fsdecode(path)):
-            _deny(f"relative path {os.fsdecode(path)!r}")  # dir_fd is not in the event: refuse relative opens
+        if type(path) is not int and not _isabs(_fsdecode(path)):
+            _deny(f"relative path {_fsdecode(path)!r}")  # dir_fd is not in the event: refuse relative opens
         writes = bool(mode and any(c in mode for c in "wax+")) or bool(flags and flags & _WRITE_FLAGS)
         _check_path(g, path, writes)
     elif event in _PATH_EVENTS:
@@ -256,22 +321,22 @@ def _open_hook(event, args):
         for i in idx:  # os.* events come from C: exact types; pathlib/shutil events are Python-level notices
             _check_path(g, _plain(args[i], pathlib_ok=not event.startswith("os."), fd_ok=True), writes)
         if event == "os.symlink":  # C code (SQLite side files) follows links unseen, and a link can be re-pointed
-            _deny("symlink inside a tool body " + os.fsdecode(args[1]))
+            _deny("symlink inside a tool body " + _fsdecode(args[1]))
     elif event == "sqlite3.connect":
         db = args[0] if args else None
         db = db if db is None else _plain(db)
         why = _sqlite_file(db)
         if why:
             _deny(why)
-        if os.fsdecode(db) not in _SQLITE_MEMORY:
+        if _fsdecode(db) not in _SQLITE_MEMORY:
             for side in _SQLITE_SIDE:
-                _check_path(g, os.fsdecode(db) + side, True)
+                _check_path(g, _fsdecode(db) + side, True)
     elif event == "sqlite3.connect/handle":
         # The connection is not ready inside this event; the authorizer goes on at the next profile event
         # on this thread (the return from connect), before any statement can run.
         _GUARD.sqlite_pending = getattr(_GUARD, "sqlite_pending", []) + [(args[0], _sqlite_authorizer(g))]
-        if sys.getprofile() is not _sqlite_profile:
-            _GUARD.sqlite_prev_profile = sys.getprofile()
+        if _getprofile() is not _sqlite_profile:
+            _GUARD.sqlite_prev_profile = _getprofile()
             _set_profile(_sqlite_profile)
     elif event in _DENY_EVENTS:
         if not (event == "sys.setprofile" and getattr(_GUARD, "internal", False)):  # the gate's own sqlite hook
@@ -292,26 +357,25 @@ def _check_args(g, event, args):
     for a in args:
         if isinstance(a, (tuple, list)):
             _check_args(g, event, a)
-        elif isinstance(a, (str, bytes, os.PathLike)):
+        elif isinstance(a, (str, bytes, _PathLike)):
             _check_arg(g, event, a)
 
 
 def _check_arg(g, event, a):
     try:
-        raw = os.fsdecode(_plain(a))
+        raw = _fsdecode(_plain(a))
     except (TypeError, ValueError):
         _deny(f"{event} with an undecodable argument")
-    if "\0" in raw or not os.path.isabs(raw):
+    if "\0" in raw or not _isabs(raw):
         _deny(f"{event} with non-absolute argument {raw!r}")
     _check_path(g, raw, True)  # an unknown event may write: fail closed
 
 
 def _sqlite_profile(frame, event, arg):
-    import sqlite3
     waiting = []
     for conn, auth in getattr(_GUARD, "sqlite_pending", []):
         try:
-            sqlite3.Connection.set_authorizer(conn, auth)  # base method: a Connection subclass cannot skip it
+            _SET_AUTHORIZER(conn, auth)  # base method: a Connection subclass cannot skip it
         except Exception:  # still inside connect: try again; _run_guarded refuses if it never goes on
             waiting.append((conn, auth))
     _GUARD.sqlite_pending = waiting
@@ -322,7 +386,7 @@ def _sqlite_profile(frame, event, arg):
 def _set_profile(fn):
     _GUARD.internal = True
     try:
-        sys.setprofile(fn)
+        _setprofile(fn)
     finally:
         _GUARD.internal = False
 
@@ -360,9 +424,9 @@ def _guard_create(fn):
             return fn(spec, *a)
         name, origin = getattr(spec, "name", None), getattr(spec, "origin", None)
         _check_module(g, name)
-        if origin is not None and (type(origin) is not str or not _under(Path(os.path.realpath(origin)), _PY_ROOTS)):
+        if origin is not None and (type(origin) is not str or not _under(_realpath(origin), _PY_ROOTS)):
             _deny(f"native module load from outside the Python install: {origin!r}")
-        return fn(importlib.machinery.ModuleSpec(name, None, origin=origin), *a)
+        return fn(_ModuleSpec(name, None, origin=origin), *a)
     guarded._acp_guard = True
     return guarded
 
@@ -414,6 +478,7 @@ import _imp  # noqa: E402
 import _posixsubprocess  # noqa: E402
 import multiprocessing.process  # noqa: E402
 import importlib.machinery  # noqa: E402
+_ModuleSpec = importlib.machinery.ModuleSpec
 _imp.create_builtin = _guard_create(_imp.create_builtin)
 _imp.create_dynamic = _guard_create(_imp.create_dynamic)
 _wrap(_posixsubprocess, "fork_exec", "process start")
@@ -432,7 +497,10 @@ for _name, _n in (("open", 1), ("remove", 1), ("unlink", 1), ("rmdir", 1), ("mkd
 import builtins  # noqa: E402
 import io  # noqa: E402
 import sqlite3  # noqa: E402
+_SQLITE_ATTACH, _SQLITE_OK, _SQLITE_DENY = sqlite3.SQLITE_ATTACH, sqlite3.SQLITE_OK, sqlite3.SQLITE_DENY
+_SET_AUTHORIZER = sqlite3.Connection.set_authorizer  # base method: a Connection subclass cannot skip it
 builtins.open = io.open = _guard_paths(io.open, 1)  # pathlib's Path.open calls io.open
+__builtins__["open"] = builtins.open
 sqlite3.connect = _guard_paths(sqlite3.connect, 1)
 _guard_native()
 # Code the host would run after the body returns, with no audit event: signal handlers and timers, exit
@@ -473,6 +541,27 @@ def _attr(o, a):  # an attribute: the same object is put back; a module's is rea
         put(v)
         return True
     return get, restore
+
+
+def _classes_snap():
+    """(name, object, class) for every module in sys.modules, every logger and placeholder, the root logger and
+    its manager: a class the tool body swaps (a module or logger can lie about every attribute) is put back."""
+    root = logging.root
+    objs = [("logging.root", root), ("logging.root.manager", root.manager), *list(_MODULES.items())]
+    objs += [("logger " + n, o) for n, o in list(root.manager.loggerDict.items())]
+    return [(n, o, type(o)) for n, o in objs]
+
+
+def _classes_restore(snap):  # the names it put back, each refused
+    moved = []
+    for n, o, t in snap:
+        if type(o) is not t:
+            try:
+                _SET_CLASS(o, t)
+                moved.append(f"type({n})")
+            except BaseException:
+                moved.append(f"type({n}) (not restored)")
+    return moved
 
 
 def _class_of(o):  # an object's class (a swapped one can lie about every attribute): it is put back first
@@ -587,11 +676,8 @@ def _level_restore(v):
 # when the body raises. One row per channel: (name, snapshot, restore -> changed, a change refuses the call).
 # Code hooks refuse the call; data a tool may legitimately touch (imports, environment, log level) is only put back.
 _RESTORED = (  # the class rows come first, so every later row reads and writes through the real class
-    *((f"type({n})", *_class_of(o), True) for n, o in (("sys", sys), ("logging", logging), ("threading", threading),
-                                                         ("os", os), ("gc", gc), ("copyreg", copyreg))),
-    *((f"type({n})", *_class_of(o), True) for n, o in (("logging.root", logging.root),
-                                                         ("logging.root.manager", logging.root.manager),
-                                                         ("os.environ", os.environ))),
+    ("module and logger classes", _classes_snap, _classes_restore, True),
+    ("type(os.environ)", *_class_of(os.environ), True),
     ("sys.asyncgen_hooks", *_pair(sys.get_asyncgen_hooks, lambda f, g: sys.set_asyncgen_hooks(f, g)), True),
     *((f"sys.{a}", *_attr(sys, a), True) for a in ("excepthook", "unraisablehook", "displayhook", "breakpointhook")),
     ("threading.excepthook", *_attr(threading, "excepthook"), True),
@@ -630,7 +716,11 @@ def _restore(snaps):
     code, moved = [], False
     for (name, _, restore, refuse), snap in zip(_RESTORED, snaps):  # runs inside the window, guard on
         try:
-            if restore(snap):
+            r = restore(snap)
+            if type(r) is list:  # a row that names what it put back
+                code += r
+                moved = moved or bool(r)
+            elif r:
                 moved = True
                 if refuse:
                     code.append(name)
@@ -912,7 +1002,8 @@ class ToolRunner:
         prev = getattr(_GUARD, "allow", None)
         gc.collect()  # host garbage dies outside the window
         snaps = [snap() for _, snap, _, _ in _RESTORED]
-        _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
+        _GUARD.allow, _GUARD.denied = (str(self.session_dir), tuple(map(str, self.read_roots)),
+                                        tuple(map(str, self.write_roots))), None
         out = err = None
         try:
             try:
@@ -925,15 +1016,19 @@ class ToolRunner:
         finally:
             try:
                 changed = []
-                rounds, found = 0, 1
-                while found:  # the body's objects die inside the window: their __del__ runs guarded;
-                    rounds += 1  # the window stays shut until no garbage is left (a chain only hangs, like a busy loop)
-                    found = gc.collect()
+                for _ in range(3):  # the body's objects die inside the window: their __del__ runs guarded
+                    found = _gc_collect()
                     step, moved = _restore(snaps)
                     changed += step
-                    found = found or moved
-                if rounds > 4:  # finalizers kept making garbage
-                    changed.append("finalizer chain")
+                    if not (found or moved):
+                        break
+                else:  # finalizers kept making garbage or a planted property kept state moving: refuse
+                    changed.append("restore loop (not restored)")
+                    while _gc_collect():  # a finalizer chain still dies inside the window (it only hangs, like a busy loop)
+                        pass
+                    changed += _restore(snaps)[0]  # one last pass, then the garbage that pass left
+                    while _gc_collect():
+                        pass
                 if changed and not _GUARD.denied:
                     _GUARD.denied = "deferred code: " + ", ".join(dict.fromkeys(changed))
             finally:
