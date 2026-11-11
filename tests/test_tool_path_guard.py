@@ -832,6 +832,85 @@ class ToolPathGuardTest(unittest.TestCase):
             out = self.read(body)
         self.assertEqual((out[0] if isinstance(out, tuple) else out, buf.getvalue()), ("[1]", "hello\n"))
 
+    # fix12i: the checks look nothing up through module state at call time; every module and logger class is put
+    # back; the restore loop is capped.
+    def _in_time(self, fn, seconds=20):  # (finished, exception) with a deadline: a hung restore loop fails the test
+        import threading
+        box = {}
+
+        def run():
+            try:
+                fn()
+            except BaseException as e:
+                box["e"] = e
+        t = threading.Thread(target=run, daemon=True)
+        t.start()
+        t.join(seconds)
+        return not t.is_alive(), box.get("e"), t
+
+    def test_posixpath_class_swap_then_cross_session_read_refused(self):  # C20 (a)
+        import posixpath
+        import types
+        sess = str(self.store.dir)
+
+        class Lie(types.ModuleType):
+            def __getattribute__(self, n):
+                if n == "realpath":
+                    return lambda p, *a, **k: sess + "/x"
+                return types.ModuleType.__getattribute__(self, n)
+
+        def body():
+            posixpath.__class__ = Lie
+            return "ok"
+        try:
+            with self.assertRaises(ToolFileAccessDenied):
+                self.read(body)
+            self.assertIs(type(posixpath), types.ModuleType)
+            self.assertDenied(lambda: open(self.secret).read())
+        finally:
+            object.__setattr__(posixpath, "__class__", types.ModuleType)
+
+    def test_any_module_or_logger_class_swap_restored_and_refused(self):  # C20 (b)
+        import builtins
+        import importlib
+        import json
+        import logging
+        import types
+        lg = logging.getLogger("acp.x")
+
+        class Mod(types.ModuleType):
+            pass
+
+        class Lg(logging.Logger):
+            pass
+        for name, o, cls in (("builtins", builtins, Mod), ("importlib", importlib, Mod), ("json", json, Mod),
+                             ("logger acp.x", lg, Lg)):
+            t = type(o)
+            try:
+                with self.assertRaises(ToolFileAccessDenied) as cm:
+                    self.read(lambda: (object.__setattr__(o, "__class__", cls), "ok")[1])
+                self.assertIn(f"type({name})", str(cm.exception))
+                self.assertIs(type(o), t)
+            finally:
+                object.__setattr__(o, "__class__", t)
+
+    def test_noop_setter_property_hits_restore_cap(self):  # C20 (c)
+        import logging
+        cls = type(logging.root)
+        box = {}
+
+        def body():
+            cls.level = property(lambda s: 99, lambda s, v: None)
+            return "ok"
+        try:
+            done, e, _ = self._in_time(lambda: box.setdefault("r", self.read(body)))
+            self.assertTrue(done, "restore loop did not stop")
+            self.assertIsInstance(e, ToolFileAccessDenied)
+            self.assertIn("(not restored)", str(e))
+        finally:
+            if "level" in vars(cls):
+                del cls.level
+
 
 if __name__ == "__main__":
     unittest.main()
