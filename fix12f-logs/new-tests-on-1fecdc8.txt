@@ -1,0 +1,74 @@
+# fix12f new tests on 1fecdc8 (gate.py unchanged), 2026-11-11T06:37:58Z
+test_register_at_fork_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_register_at_fork_refused) ... FAIL
+test_asyncgen_hooks_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_asyncgen_hooks_restored) ... FAIL
+test_logging_root_handler_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_logging_root_handler_restored) ... FAIL
+test_sys_path_environ_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_sys_path_environ_restored) ... FAIL
+test_every_snapshot_row_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_every_snapshot_row_restored) ... FAIL
+
+======================================================================
+FAIL: test_register_at_fork_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_register_at_fork_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f/tests/test_tool_path_guard.py", line 470, in test_register_at_fork_refused
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_asyncgen_hooks_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_asyncgen_hooks_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f/tests/test_tool_path_guard.py", line 502, in test_asyncgen_hooks_restored
+    self.assertTrue(all(x is y for x, y in zip(after, before)))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_logging_root_handler_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_logging_root_handler_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f/tests/test_tool_path_guard.py", line 529, in test_logging_root_handler_restored
+    self.assertEqual(logging.root.level, level)
+AssertionError: 1 != 30
+
+======================================================================
+FAIL: test_sys_path_environ_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_sys_path_environ_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f/tests/test_tool_path_guard.py", line 550, in test_sys_path_environ_restored
+    self.assertEqual(sys.path, path)
+AssertionError: Lists differ: ['/private/var/folders/zf/q9mj1yl568z5bnhv2_[590 chars]ges'] != ['/Users/thar/.workflow/scratch/ico-evidence[501 chars]ges']
+
+First differing element 0:
+'/private/var/folders/zf/q9mj1yl568z5bnhv2_[39 chars]t-s1'
+'/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f'
+
+First list contains 1 additional elements.
+First extra element 6:
+'/Users/thar/.workflow/scratch/ico-evidence/bench-venv/lib/python3.11/site-packages'
+
+Diff is 731 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_every_snapshot_row_restored (tests.test_tool_path_guard.ToolPathGuardTest.test_every_snapshot_row_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/thar/.workflow/scratch/ico-evidence/repo-fix12f/tests/test_tool_path_guard.py", line 648, in test_every_snapshot_row_restored
+    self.assertEqual([k for k in before if not same(before[k], after[k])], [])
+AssertionError: Lists differ: ['asyncgen', 'path_importer_cache', 'path'[56 chars]ble'] != []
+
+First list contains 7 additional elements.
+First extra element 0:
+'asyncgen'
+
++ []
+- ['asyncgen',
+-  'path_importer_cache',
+-  'path',
+-  'environ',
+-  'root.handlers',
+-  'root.level',
+-  'dispatch_table']
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.030s
+
+FAILED (failures=5)

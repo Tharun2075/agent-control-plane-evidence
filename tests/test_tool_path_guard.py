@@ -457,5 +457,196 @@ class ToolPathGuardTest(unittest.TestCase):
         self.assertEqual(got, [])
 
 
+    def test_register_at_fork_refused(self):
+        out, secret, armed = self.tmp / "child.txt", self.secret, [True]
+
+        def leak():  # runs in the child of a later host fork
+            if armed[0]:
+                try:
+                    out.write_text(open(secret).read())
+                except Exception:
+                    pass
+        try:
+            with self.assertRaises(ToolFileAccessDenied):
+                self.read(lambda: os.register_at_fork(after_in_child=leak))
+        finally:
+            pid = os.fork()
+            if pid == 0:
+                os._exit(0)
+            os.waitpid(pid, 0)
+            armed[0] = False
+        self.assertFalse(out.exists())
+
+    def test_asyncgen_hooks_restored(self):
+        before = tuple(sys.get_asyncgen_hooks())
+        got, secret = [], self.secret
+
+        def hook(agen):
+            got.append(open(secret).read())
+
+        async def agen():
+            yield 1
+        try:
+            try:
+                self.read(lambda: sys.set_asyncgen_hooks(firstiter=hook, finalizer=hook))
+            except ToolFileAccessDenied:
+                pass
+            after = tuple(sys.get_asyncgen_hooks())
+            a = agen()
+            try:
+                a.asend(None).send(None)
+            except StopIteration:
+                pass
+        finally:
+            sys.set_asyncgen_hooks(firstiter=before[0], finalizer=before[1])
+        self.assertTrue(all(x is y for x, y in zip(after, before)))
+        self.assertEqual(got, [])
+
+    def test_logging_root_handler_restored(self):
+        import logging
+        got, secret, armed = [], self.secret, [True]
+        level = logging.root.level
+
+        class Leak(logging.Handler):
+            def emit(self, record):
+                pass
+
+            def close(self):  # logging.shutdown calls it at host exit
+                if armed[0]:
+                    got.append(open(secret).read())
+                super().close()
+
+        def body():
+            logging.root.addHandler(Leak())
+            logging.root.setLevel(1)
+        try:
+            try:
+                self.read(body)
+            except ToolFileAccessDenied:
+                pass
+            left = [h for h in logging.root.handlers if isinstance(h, Leak)]
+            logging.shutdown([r for r in list(logging._handlerList) if isinstance(r(), Leak)])
+            self.assertEqual(logging.root.level, level)
+        finally:
+            armed[0] = False
+            for h in logging.root.handlers[:]:
+                if isinstance(h, Leak):
+                    logging.root.removeHandler(h)
+            logging.root.setLevel(level)
+        self.assertEqual((left, got), ([], []))
+
+    def test_sys_path_environ_restored(self):
+        import subprocess
+        path, env, cache = list(sys.path), dict(os.environ), dict(sys.path_importer_cache)
+
+        def body():
+            sys.path.insert(0, str(self.store.dir))
+            sys.path_importer_cache[str(self.store.dir)] = None
+            os.environ["ACP_LEAK"] = "1"
+            os.environ["HOME"] = str(self.store.dir)
+            os.putenv("ACP_RAW", "1")
+        try:
+            self.read(body)
+            self.assertEqual(sys.path, path)
+            self.assertEqual(dict(os.environ), env)
+            self.assertEqual(sys.path_importer_cache.keys(), cache.keys())
+            for k in ("ACP_LEAK", "ACP_RAW"):
+                self.assertEqual(subprocess.run(["/usr/bin/printenv", k], capture_output=True).returncode, 1)
+            self.assertEqual(subprocess.run(["/usr/bin/printenv", "HOME"], capture_output=True,
+                                            text=True).stdout.strip(), env["HOME"])
+        finally:
+            sys.path[:] = path
+            for k in ("ACP_LEAK", "ACP_RAW"):
+                os.environ.pop(k, None)
+                os.unsetenv(k)
+            os.environ["HOME"] = env["HOME"]
+
+    def test_every_snapshot_row_restored(self):
+        import copyreg
+        import gc
+        import logging
+        import threading
+
+        def f(*_):
+            return None
+
+        class Finder:
+            def find_spec(self, *_):
+                return None
+
+        class Key:
+            pass
+        sets = [lambda: sys.set_asyncgen_hooks(firstiter=f, finalizer=f),
+                lambda: setattr(sys, "excepthook", f), lambda: setattr(sys, "unraisablehook", f),
+                lambda: setattr(sys, "displayhook", f), lambda: setattr(sys, "breakpointhook", f),
+                lambda: setattr(threading, "excepthook", f),
+                lambda: sys.meta_path.insert(0, Finder()), lambda: sys.path_hooks.append(f),
+                lambda: sys.path_importer_cache.__setitem__("/acp-row", None), lambda: sys.path.append("/acp-row"),
+                lambda: os.environ.__setitem__("ACP_ROW", "1"), lambda: setattr(os, "environ", {}),
+                lambda: sys.setprofile(f), lambda: sys.settrace(f),
+                lambda: setattr(threading, "_profile_hook", f), lambda: setattr(threading, "_trace_hook", f),
+                lambda: logging.root.addHandler(logging.NullHandler()), lambda: logging.root.setLevel(1),
+                lambda: gc.callbacks.append(f), lambda: copyreg.dispatch_table.__setitem__(Key, f)]
+
+        def state():
+            held = lambda v: (v, dict(v) if isinstance(v, dict) else list(v))  # noqa: E731
+            return {"asyncgen": tuple(sys.get_asyncgen_hooks()), "excepthook": sys.excepthook,
+                    "unraisablehook": sys.unraisablehook, "displayhook": sys.displayhook,
+                    "breakpointhook": sys.breakpointhook, "threading.excepthook": threading.excepthook,
+                    "meta_path": held(sys.meta_path), "path_hooks": held(sys.path_hooks),
+                    "path_importer_cache": held(sys.path_importer_cache), "path": held(sys.path),
+                    "environ": (os.environ, dict(os.environ)), "profile": (sys.getprofile(), sys.gettrace()),
+                    "threading.hooks": (threading._profile_hook, threading._trace_hook),
+                    "root.handlers": held(logging.root.handlers), "root.level": logging.root.level,
+                    "gc.callbacks": held(gc.callbacks), "dispatch_table": held(copyreg.dispatch_table)}
+
+        def same(a, b):
+            if isinstance(a, tuple):
+                return len(a) == len(b) and all(same(x, y) for x, y in zip(a, b))
+            if isinstance(a, list):
+                return len(a) == len(b) and all(x is y or x == y for x, y in zip(a, b))
+            if isinstance(a, dict) and not isinstance(a, type(os.environ)):
+                return a.keys() == b.keys() and all(a[k] is b[k] or a[k] == b[k] for k in a)
+            return a is b or (type(a) in (int, str) and a == b)
+
+        def body():
+            for s in sets:
+                try:
+                    s()
+                except Exception:
+                    pass
+        before = state()
+        try:
+            try:
+                self.read(body)
+            except ToolFileAccessDenied:
+                pass
+            after = state()
+        finally:  # put the host back by hand if the gate did not
+            sys.set_asyncgen_hooks(firstiter=before["asyncgen"][0], finalizer=before["asyncgen"][1])
+            for k, o, a in (("excepthook", sys, "excepthook"), ("unraisablehook", sys, "unraisablehook"),
+                            ("displayhook", sys, "displayhook"), ("breakpointhook", sys, "breakpointhook"),
+                            ("threading.excepthook", threading, "excepthook")):
+                setattr(o, a, before[k])
+            for k, o, a in (("meta_path", sys, "meta_path"), ("path_hooks", sys, "path_hooks"),
+                            ("path_importer_cache", sys, "path_importer_cache"), ("path", sys, "path"),
+                            ("root.handlers", logging.root, "handlers"), ("gc.callbacks", gc, "callbacks"),
+                            ("dispatch_table", copyreg, "dispatch_table")):
+                v, items = before[k]
+                setattr(o, a, v)
+                if isinstance(v, dict):
+                    v.clear()
+                    v.update(items)
+                else:
+                    v[:] = items
+            os.environ = before["environ"][0]
+            os.environ.pop("ACP_ROW", None)
+            sys.setprofile(before["profile"][0])
+            sys.settrace(before["profile"][1])
+            threading._profile_hook, threading._trace_hook = before["threading.hooks"]
+            logging.root.setLevel(before["root.level"])
+        self.assertEqual([k for k in before if not same(before[k], after[k])], [])
+
+
 if __name__ == "__main__":
     unittest.main()
