@@ -231,7 +231,10 @@ def _open_hook(event, args):
     if g is None or getattr(_LOG_WRITING, "on", False):
         return
     if event in ("os.putenv", "os.unsetenv"):  # raw environment edits: the key is put back after the call
-        _GUARD.env_raw.add(os.fsencode(args[0]))
+        k = args[0]
+        if type(k) not in (str, bytes):  # only exact str/bytes keys: the put-back never runs tool code
+            _deny(f"{event} key of type {type(k).__name__}")
+        _GUARD.env_raw.add(os.fsencode(k))
         return
     if event == "open":
         path, mode, flags = args
@@ -468,11 +471,10 @@ def _held(o, a):  # a list or dict attribute: the same object is put back, holdi
     def restore(snap):
         v, items = snap
         changed = put(v)
-        try:  # a planted key may break the comparison: then the items are put back without comparing
-            same = (v.keys() == items.keys() and all(v[k] is items[k] for k in items) if type(v) is dict
-                    else len(v) == len(items) and all(x is y for x, y in zip(v, items)))
-        except Exception:
-            same = False
+        same = len(v) == len(items) and all(  # identity in order only: no tool __eq__ or __hash__ runs
+            x is y for x, y in zip(v, items))
+        if type(v) is dict:
+            same = same and all(x is y for x, y in zip(v.values(), items.values()))
         if same:
             return changed
         if type(v) is dict:
@@ -511,24 +513,18 @@ def _env_snap():
 def _env_restore(snap):  # os.environ and the process environment (raw os.putenv keys come from the audit hook)
     env, held, data = snap
     changed = _attr(os, "environ")[1](env) | _attr(env, "_data")[1](held)
-    try:
-        keys = {k for k in data.keys() | held.keys() if held.get(k) is not data.get(k)} | _GUARD.env_raw
-    except Exception:  # a planted key broke the comparison: put every snapshot key back
-        keys = set(data) | _GUARD.env_raw
-        held.clear()
-    _GUARD.env_raw = set()
-    for k in keys:
-        if type(k) is not type(next(iter(data), k)):  # only exact str/bytes keys reach the raw setters
-            held.pop(k, None)
-            changed = True
-            continue
-        if k in data:
-            _quiet(os.putenv, k, data[k])
-            held[k] = data[k]
-        else:
-            _quiet(os.unsetenv, k)
-            held.pop(k, None)
-    return changed or bool(keys)
+    raw, _GUARD.env_raw = _GUARD.env_raw, set()  # exact bytes only (the audit hook refuses other key types)
+    if not raw and len(held) == len(data) and all(  # identity in order only: no tool __eq__ or __hash__ runs
+            a is b and x is y for (a, x), (b, y) in zip(zip(held.keys(), held.values()), data.items())):
+        return changed
+    gone = [k for k in list(held.keys()) + list(raw) if type(k) is bytes and k not in data]
+    held.clear()  # planted keys of any type go with the clear
+    held.update(data)
+    for k in gone:
+        _quiet(os.unsetenv, k)
+    for k, v in data.items():
+        _quiet(os.putenv, k, v)
+    return True
 
 
 def _level_restore(v):
