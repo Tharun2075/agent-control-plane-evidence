@@ -113,18 +113,28 @@ def clean_name(name, known: frozenset | set = frozenset(), fallback: str = "inva
     return n or (re.sub(r"[^a-zA-Z0-9_-]+", "_", raw).strip("_")[:64] or fallback)
 
 
+def drop_empty_keys(v):
+    """Bedrock rejects toolUse.input with an empty-string key at any depth (gpt-oss-120b emits
+    {"": {}} for no-argument tools, which then fails on replay as ValidationException)."""
+    if isinstance(v, dict):
+        return {k: drop_empty_keys(x) for k, x in v.items() if k != ""}
+    if isinstance(v, list):
+        return [drop_empty_keys(x) for x in v]
+    return v
+
+
 def as_object(args) -> dict:
     """Converse wants toolUse.input as a JSON object; models sometimes emit a JSON string or a list."""
     if isinstance(args, dict):
-        return dict(args)
+        return drop_empty_keys(dict(args))
     if isinstance(args, str):
         try:
             v = json.loads(args)
         except ValueError:
             return {}
-        return dict(v) if isinstance(v, dict) else {}
+        return drop_empty_keys(dict(v)) if isinstance(v, dict) else {}
     try:
-        return dict(args or {})
+        return drop_empty_keys(dict(args or {}))
     except (TypeError, ValueError):
         return {}
 
