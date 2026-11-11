@@ -92,3 +92,11 @@ batch11:
 verify-batch11:
 	$(PY) tools/batch11_summary.py --check
 verify: verify-batch11
+
+# Batch 11b (batch 11 re-run after the YAML fix, repeats/batch11b/PROTOCOL-ADDENDUM.md).
+.PHONY: batch11b verify-batch11b
+batch11b:
+	$(PY) tools/batch11b_summary.py
+verify-batch11b:
+	$(PY) tools/batch11b_summary.py --check
+verify: verify-batch11b
