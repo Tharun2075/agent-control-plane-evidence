@@ -159,7 +159,7 @@ make reproduce && python3 tools/compare_metrics.py /tmp/committed.json metrics.j
 - The simulated reviewer in run 3 stands in for a human.
 - Personal-data detection is keyword and pattern based.
 - Provenance is complete for our own tools; the third-party MCP tool in run 4 supplied none, so the harness records it (see runs/4/mcp-provenance.json).
-- The file guard and approval key live in the gate process and bound tool code that does not tamper with the gate; an OS sandbox per tool is the next step. `os.stat` and `os.path.exists` on outside paths are not guarded, so a file's existence and size can leak; symlinks cannot be created inside a tool body (`repeats/batch12b/PROTOCOL.md`).
+- The file guard and approval key live in the gate process and bound tool code that does not tamper with the gate; an OS sandbox per tool is the next step. Inside a tool body every process start is refused, any audit event not on a short safe list is refused when a path argument lies outside the allowed directories, and `readline` cannot be imported; symlinks cannot be created (`repeats/batch12b/PROTOCOL.md`, `repeats/batch12c/PROTOCOL.md`). Metadata calls on outside paths (`os.stat`, `os.access`, `os.path.exists`) stay unguarded, so a file's existence, size and permissions can leak, but not its contents.
 
 ## Licence
 

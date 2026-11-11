@@ -69,10 +69,15 @@ class ToolFileAccessDenied(PermissionDenied):
 # io.open, os.open, pathlib, open_code) is checked by an audit hook. Allowed: anything
 # under the session dir; reads under declared read roots and the Python install; writes
 # under declared write roots and the hash-chained log. Everything else raises.
+# Deny by default: any other audit event not on the short safe list is refused when a str/bytes/path
+# argument is relative or resolves outside the allowed dirs (checked as a write). Native calls that touch
+# files or start processes without an audit event (_posixsubprocess.fork_exec, os.mkfifo, os.mknod,
+# readline history files, dbm) are wrapped or refused at import.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
-# (its globals, the hook, a removed sqlite authorizer). os.stat, os.path.exists and os.lstat raise no
-# audit event, so a tool body can learn whether a path outside the session exists and its size and
-# times; it cannot read, write, list or remove it. An OS sandbox per tool is the next step.
+# (its globals, the hook, a removed sqlite authorizer, the wrapped functions). os.stat, os.lstat,
+# os.access and os.path.exists raise no audit event, so a tool body can learn whether a path outside the
+# session exists, its size, times and access bits; it cannot read, write, list or remove it. An OS
+# sandbox per tool is the next step.
 _GUARD = threading.local()
 _PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
                   | {Path(__file__).resolve().parent})
@@ -89,12 +94,36 @@ _PATH_EVENTS = {
     "os.rename": ((0, 1), True, (2, 3)), "os.link": ((0, 1), True, (2, 3)), "os.symlink": ((1,), True, (2,)),
     "os.chmod": ((0,), True, (2,)), "os.chown": ((0,), True, (3,)), "os.truncate": ((0,), True, ()),
     "os.utime": ((0,), True, (3,)), "os.listdir": ((0,), False, ()), "os.scandir": ((0,), False, ()),
+    # Events with a non-path string argument (a glob pattern, a mode name): only the path positions are checked.
+    "pathlib.Path.glob": ((0,), False, ()), "pathlib.Path.rglob": ((0,), False, ()),
+    "shutil.copyfile": ((1,), True, ()), "shutil.copymode": ((1,), True, ()), "shutil.copystat": ((1,), True, ()),
+    "shutil.copytree": ((1,), True, ()), "shutil.move": ((0, 1), True, ()), "shutil.rmtree": ((0,), True, (1,)),
 }
 # Events a tool body may not raise at all: new processes, threads the guard cannot follow, cwd changes, native code.
 # Python < 3.13 raises no audit event for a thread start; there the thread-start functions are wrapped below.
 _DENY_EVENTS = {"os.chdir", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.fork", "os.forkpty",
                 "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen",
                 "ctypes.dlsym", "sqlite3.enable_load_extension", "sqlite3.load_extension"}
+# Events whose arguments are code, names, data or network addresses, never file paths: they pass.
+# Every event not handled by name in _open_hook and not listed here is checked argument by argument.
+_SAFE_EVENTS = {"import", "exec", "compile", "code.__new__", "function.__new__", "marshal.loads", "marshal.dumps",
+                "marshal.load", "pickle.find_class", "object.__getattr__", "object.__setattr__",
+                "object.__delattr__", "sys._getframe", "sys.setprofile", "sys.settrace", "array.__new__",
+                "fcntl.fcntl", "fcntl.ioctl", "fcntl.flock", "fcntl.lockf", "socket.__new__", "builtins.input",
+                "builtins.input/result", "socket.getaddrinfo", "socket.gethostbyname", "socket.gethostbyname_ex",
+                "socket.gethostbyaddr", "socket.getnameinfo", "socket.getservbyname", "socket.getservbyport",
+                "http.client.connect", "http.client.send", "urllib.Request", "smtplib.connect", "smtplib.send",
+                "os.putenv", "os.unsetenv"}
+# Socket events (sock, address): a str/bytes/path address is an AF_UNIX file path, whatever the socket claims.
+_SOCKET_EVENTS = {"socket.bind", "socket.connect", "socket.sendto", "socket.sendmsg"}
+# Modules that create or read files in C without an audit event: their import is refused in a tool body,
+# and if one was imported before, its file functions are wrapped (see _guard_native).
+_NATIVE_FILE_MODULES = {"readline": ("read_history_file", "write_history_file", "append_history_file",
+                                     "read_init_file"),
+                        "_dbm": ("open",), "dbm.ndbm": ("open",), "_gdbm": ("open",), "dbm.gnu": ("open",)}
+# C modules a tool body may not load: file access without an audit event, or a fresh copy that would lack
+# the wrappers installed below. Refused by name at import and at _imp.create_builtin/create_dynamic.
+_NATIVE_GUARDED = {"readline", "_dbm", "_gdbm", "_posixsubprocess", "posix", "nt", "_thread", "_imp"}
 _SQLITE_MEMORY = ("", ":memory:")
 _SQLITE_SIDE = ("", "-journal", "-wal", "-shm")  # SQLite opens these beside the database without an audit event
 
@@ -192,6 +221,34 @@ def _open_hook(event, args):
             sys.setprofile(_sqlite_profile)
     elif event in _DENY_EVENTS:
         _deny(event)
+    elif event in _SOCKET_EVENTS:
+        addr = args[1]
+        if addr is not None and not isinstance(addr, tuple):  # inet addresses are tuples; anything else is a file path
+            if type(addr) not in (str, bytes):  # exact types: the C code parses the same immutable value we check
+                _deny(f"{event} with a non-str/bytes address")
+            _check_arg(g, event, addr)  # bind creates the socket file
+    elif event == "import":
+        _check_module(g, args[0] if args else "")  # first load only: re-import of a loaded module raises no event
+    elif event not in _SAFE_EVENTS:  # deny by default: any other event with an outside path argument is refused
+        _check_args(g, event, args)
+
+
+def _check_args(g, event, args):
+    for a in args:
+        if isinstance(a, (tuple, list)):
+            _check_args(g, event, a)
+        elif isinstance(a, (str, bytes, os.PathLike)):
+            _check_arg(g, event, a)
+
+
+def _check_arg(g, event, a):
+    try:
+        raw = os.fsdecode(a)
+    except (TypeError, ValueError):
+        _deny(f"{event} with an undecodable argument")
+    if "\0" in raw or not os.path.isabs(raw):
+        _deny(f"{event} with non-absolute argument {raw!r}")
+    _check_path(g, raw, True)  # an unknown event may write: fail closed
 
 
 def _sqlite_profile(frame, event, arg):
@@ -207,12 +264,64 @@ def _sqlite_profile(frame, event, arg):
         sys.setprofile(getattr(_GUARD, "sqlite_prev_profile", None))
 
 
-def _guard_thread_start(start):
+def _guard_call(fn, what, check=None):
+    """Wrap a native call that raises no audit event: refused (or its path checked) inside a tool body."""
     def guarded(*a, **kw):
-        if getattr(_GUARD, "allow", None) is not None and not getattr(_LOG_WRITING, "on", False):
-            _deny("thread start")
-        return start(*a, **kw)
+        g = getattr(_GUARD, "allow", None)
+        if g is not None and not getattr(_LOG_WRITING, "on", False):
+            if check is None:
+                _deny(what)
+            check(g, *a, **kw)
+        return fn(*a, **kw)
+    guarded._acp_guard = True
     return guarded
+
+
+def _guard_thread_start(start):
+    return _guard_call(start, "thread start")
+
+
+def _check_module(g, name):
+    if type(name) is not str:
+        _deny("import with a non-str module name")
+    if name.rpartition(".")[2] in _NATIVE_GUARDED:  # the C init symbol is PyInit_<last name part>
+        _deny(f"loading {name}: native file or process access without an audit event")
+
+
+def _guard_create(fn):
+    """_imp.create_builtin/create_dynamic inside a tool body: check the name, then load from a fresh spec built
+    from the values checked, so a spec whose attributes change between reads cannot slip a guarded module in."""
+    def guarded(spec, *a):
+        g = getattr(_GUARD, "allow", None)
+        if g is None or getattr(_LOG_WRITING, "on", False):
+            return fn(spec, *a)
+        name, origin = getattr(spec, "name", None), getattr(spec, "origin", None)
+        _check_module(g, name)
+        if origin is not None and (type(origin) is not str or not _under(Path(os.path.realpath(origin)), _PY_ROOTS)):
+            _deny(f"native module load from outside the Python install: {origin!r}")
+        return fn(importlib.machinery.ModuleSpec(name, None, origin=origin), *a)
+    guarded._acp_guard = True
+    return guarded
+
+
+def _check_node(g, path, *a, dir_fd=None, **kw):
+    if dir_fd is not None or isinstance(path, int):
+        _deny("mkfifo/mknod with dir_fd")
+    _check_arg(g, "mkfifo/mknod", path)
+
+
+def _wrap(mod, name, what, check=None):
+    fn = getattr(mod, name, None)
+    if fn is not None and not getattr(fn, "_acp_guard", False):
+        setattr(mod, name, _guard_call(fn, what, check))
+
+
+def _guard_native():
+    """Wrap the file functions of C modules that were imported before a tool body ran (their import is refused)."""
+    for mod_name, names in _NATIVE_FILE_MODULES.items():
+        mod = sys.modules.get(mod_name)
+        for name in names if mod is not None else ():
+            _wrap(mod, name, f"{mod_name}.{name}: file access in C without an audit event")
 
 
 if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it at the start functions
@@ -221,6 +330,23 @@ if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it a
         if hasattr(_thread, _name):
             setattr(_thread, _name, _guard_thread_start(getattr(_thread, _name)))
     threading._start_new_thread = _guard_thread_start(threading._start_new_thread)
+
+# Process starts that raise no audit event (_posixsubprocess.fork_exec backs subprocess and multiprocessing
+# spawn/forkserver) and file nodes created in C without one (mkfifo, mknod): refused or checked at the call.
+import _imp  # noqa: E402
+import _posixsubprocess  # noqa: E402
+import multiprocessing.process  # noqa: E402
+import importlib.machinery  # noqa: E402
+_imp.create_builtin = _guard_create(_imp.create_builtin)
+_imp.create_dynamic = _guard_create(_imp.create_dynamic)
+_wrap(_posixsubprocess, "fork_exec", "process start")
+_wrap(multiprocessing.process.BaseProcess, "start", "process start")
+for _mod in {os, sys.modules[os.name]}:
+    for _name in ("fork", "forkpty", "posix_spawn", "posix_spawnp"):
+        _wrap(_mod, _name, "process start")
+    for _name in ("mkfifo", "mknod"):
+        _wrap(_mod, _name, None, _check_node)
+_guard_native()
 
 _SYS_PATH = tuple(sys.path)  # snapshot at install: a tool body that edits sys.path gains nothing
 sys.addaudithook(_open_hook)
@@ -463,6 +589,7 @@ class ToolRunner:
     def _run_guarded(self, fn):
         if self.session_dir is None:
             return fn()
+        _guard_native()
         prev = getattr(_GUARD, "allow", None)
         _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
         try:

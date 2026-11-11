@@ -1,0 +1,84 @@
+F.....F...FFE.F.....FF.
+======================================================================
+ERROR: test_reimport_of_wrapped_native_module_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_reimport_of_wrapped_native_module_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 235, in test_reimport_of_wrapped_native_module_refused
+    saved = sys.modules["_posixsubprocess"]
+            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+KeyError: '_posixsubprocess'
+
+======================================================================
+FAIL: test_chflags_outside_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_chflags_outside_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 228, in test_chflags_outside_refused
+    self.assertDenied(lambda: os.chflags(self.secret, stat.UF_NODUMP) or "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_mkfifo_outside_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_mkfifo_outside_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 196, in test_mkfifo_outside_refused
+    self.assertDenied(lambda: os.mkfifo(out) or "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_readline_history_write_outside_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_readline_history_write_outside_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 221, in test_readline_history_write_outside_refused
+    self.assertDenied(lambda: readline.write_history_file(str(out)) or "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_readline_import_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_readline_import_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 212, in test_readline_import_refused
+    self.assertDenied(lambda: __import__("readline") and "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_spawned_process_cannot_read_outside (tests.test_tool_path_guard.ToolPathGuardTest.test_spawned_process_cannot_read_outside)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 191, in test_spawned_process_cannot_read_outside
+    self.assertDenied(body)
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_unix_socket_bind_outside_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_unix_socket_bind_outside_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 204, in test_unix_socket_bind_outside_refused
+    self.assertDenied(lambda: s.bind(str(out)) or "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+======================================================================
+FAIL: test_unnamed_audit_event_with_outside_path_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_unnamed_audit_event_with_outside_path_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 232, in test_unnamed_audit_event_with_outside_path_refused
+    self.assertDenied(lambda: sys.audit("acp.test.unknown", str(self.secret)) or "")
+  File "/private/tmp/fix12c-probe/old/tests/test_tool_path_guard.py", line 42, in assertDenied
+    with self.assertRaises(ToolFileAccessDenied):
+AssertionError: ToolFileAccessDenied not raised
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.141s
+
+FAILED (failures=7, errors=1)

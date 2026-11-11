@@ -15,6 +15,10 @@ CATS = ["identifier:name"]
 KW = dict(personal_data_categories=CATS, lawful_basis="legitimate_interests")
 
 
+def _child_read(path, q):  # spawn target: must be importable by the child
+    q.put(open(path).read())
+
+
 class ToolPathGuardTest(unittest.TestCase):
     def setUp(self):
         self.td = tempfile.TemporaryDirectory()
@@ -172,6 +176,71 @@ class ToolPathGuardTest(unittest.TestCase):
         tr = ToolRunner(self.c, self.tmp / "ap")
         self.assertEqual(tr.call("crm_read", "read", lambda: (self.secret.read_text(), {"source": "t"}), **KW),
                          "TOP-SECRET")
+
+    # C13 escapes: each of these passed through the per-event guard of db42c16.
+    def test_spawned_process_cannot_read_outside(self):
+        import multiprocessing
+        mp = multiprocessing.get_context("spawn")
+        q = mp.Queue()
+
+        def body():
+            p = mp.Process(target=_child_read, args=(str(self.secret), q))
+            p.start()
+            p.join(30)
+            return q.get(timeout=5)
+        self.assertDenied(body)
+        self.assertTrue(q.empty())
+
+    def test_mkfifo_outside_refused(self):
+        out = self.tmp / "x.fifo"
+        self.assertDenied(lambda: os.mkfifo(out) or "")
+        self.assertFalse(out.exists())
+
+    def test_unix_socket_bind_outside_refused(self):
+        import socket
+        out = self.tmp / "x.sock"
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            self.assertDenied(lambda: s.bind(str(out)) or "")
+        finally:
+            s.close()
+        self.assertFalse(out.exists())
+
+    def test_readline_import_refused(self):
+        saved = sys.modules.pop("readline", None)
+        try:
+            self.assertDenied(lambda: __import__("readline") and "")
+        finally:
+            sys.modules.pop("readline", None)
+            if saved is not None:
+                sys.modules["readline"] = saved
+
+    def test_readline_history_write_outside_refused(self):
+        import readline
+        out = self.tmp / "x.hist"
+        self.assertDenied(lambda: readline.write_history_file(str(out)) or "")
+        self.assertFalse(out.exists())
+
+    @unittest.skipUnless(hasattr(os, "chflags"), "no chflags")
+    def test_chflags_outside_refused(self):
+        import stat
+        before = os.stat(self.secret).st_flags
+        self.assertDenied(lambda: os.chflags(self.secret, stat.UF_NODUMP) or "")
+        self.assertEqual(os.stat(self.secret).st_flags, before)
+
+    def test_unnamed_audit_event_with_outside_path_refused(self):
+        self.assertDenied(lambda: sys.audit("acp.test.unknown", str(self.secret)) or "")
+
+    def test_reimport_of_wrapped_native_module_refused(self):
+        saved = sys.modules["_posixsubprocess"]
+
+        def body():
+            del sys.modules["_posixsubprocess"]
+            return __import__("_posixsubprocess") and ""
+        try:
+            self.assertDenied(body)
+        finally:
+            sys.modules["_posixsubprocess"] = saved
 
 
 if __name__ == "__main__":
