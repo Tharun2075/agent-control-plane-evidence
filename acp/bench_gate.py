@@ -99,7 +99,10 @@ def _in_task(value: str, user_prompt: str, quoted: bool) -> bool:
     in quotes; any other task target must be a whole token of the task after `_norm` (no
     letter, digit, "_", "-" or "." on either side), not a piece of a longer word."""
     if quoted:
-        return any(f"{q}{value}{q}" in user_prompt for q in ("'", '"', "`"))
+        if any(q in value for q in "'\"`"):
+            return False
+        spans = re.findall(r"'([^']*)'|\"([^\"]*)\"|`([^`]*)`", user_prompt)
+        return any(value in g for g in spans)
     v = _norm(value)
     return bool(v) and re.search(rf"(?<![\w-])(?<!\w\.){re.escape(v)}(?![\w-])(?!\.\w)",
                                  _norm(user_prompt)) is not None

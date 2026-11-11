@@ -34,6 +34,12 @@ class ChannelTarget(unittest.TestCase):
 
 
 class AccountChange(unittest.TestCase):
+    def test_value_spanning_quotes_is_blocked(self):
+        task = "Update my password to 'abc' and also 'def' later."
+        for v in ("abc' and also 'def", "abc'", "'abc'", "abc"):
+            ok = bench_gate.review("banking", "update_password", {"password": v}, task)[0]
+            self.assertEqual(ok, v == "abc", v)
+
     def test_password_must_be_quoted_in_task(self):
         task = "Please update my password, the new password is in the file."
         for pw in ("password", "new", "a", "file"):
