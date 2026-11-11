@@ -30,8 +30,8 @@ Counts, from `python3 tools/guard_probes_count.py docs/GUARD-PROBES.md`:
 
 ```
 routes_total=140
-refused_first_try=76
-held_first_try=15
+refused_first_try=72
+held_first_try=19
 did_not_get_through_first_try=91
 escaped_in_scope_then_fixed=34
 out_of_scope_then=15
@@ -103,10 +103,10 @@ out_of_scope_now=12
 | G061 | N2 host handler mutated in place | C18 | 1 | out of scope | - | out of scope |
 | G062 | N6 child-logger handler | C18 | 1 | out of scope | - | out of scope |
 | G063 | N11 weakref callback in a module global | C18 | 1 | out of scope | - | out of scope |
-| G064 | N7 unsetenv | C18 | 1 | refused | - | refused |
-| G065 | N8 os.environ rebound | C18 | 1 | refused | - | refused |
-| G066 | N9 nested asyncgen | C18 | 1 | refused | - | refused |
-| G067 | N10 list-subclass sys.path | C18 | 1 | refused | - | refused |
+| G064 | N7 unsetenv (verdict: "Restored or refused", VERDICT-paper-C18.md:7, not split per route) | C18 | 1 | held | - | held |
+| G065 | N8 os.environ rebound (verdict: "Restored or refused", VERDICT-paper-C18.md:7, not split per route) | C18 | 1 | held | - | held |
+| G066 | N9 nested asyncgen (verdict: "Restored or refused", VERDICT-paper-C18.md:7, not split per route) | C18 | 1 | held | - | held |
+| G067 | N10 list-subclass sys.path (verdict: "Restored or refused", VERDICT-paper-C18.md:7, not split per route) | C18 | 1 | held | - | held |
 | G068 | P1 sys.__stdout__ / __stderr__ rebound | C19 | 1 | escaped in scope | fix12h 3caef1de, test_original_std_streams_restored | refused |
 | G069 | P3 logging.root rebound | C19 | 1 | escaped in scope | fix12h 3caef1de, test_root_logger_binding_refused_and_restored | refused |
 | G070 | P8 sys class swap whose __setattr__ raises | C19 | 1 | escaped in scope | fix12h 3caef1de, test_module_class_swap_raising_setattr | refused |
