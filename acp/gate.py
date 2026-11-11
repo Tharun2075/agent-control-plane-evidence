@@ -152,7 +152,8 @@ class ToolFileAccessDenied(PermissionDenied):
 # the rest are SNAPSHOT before the body and RESTORED after it (the _RESTORED table below: interpreter hooks,
 # import finders and path state, sys.path, os.environ, std streams, profile/trace, the root logger's handlers,
 # filters and level, the root logger binding and logging.disable, the log record factory, gc.callbacks, copyreg;
-# the class of every module and logger loaded before the call is put back if swapped and the call refused;
+# the class of every module and logger, loaded before the call or first made during it, is put back if swapped
+# and the call refused, a placeholder or lazy-module class passing only when its contents are real;
 # three restore passes, then the call is refused). The result
 # leaves as JSON data only and the body's objects are collected inside the window, so __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
@@ -479,6 +480,7 @@ import _posixsubprocess  # noqa: E402
 import multiprocessing.process  # noqa: E402
 import importlib.machinery  # noqa: E402
 import importlib.util  # noqa: E402
+import sysconfig  # noqa: E402
 _ModuleSpec = importlib.machinery.ModuleSpec
 _imp.create_builtin = _guard_create(_imp.create_builtin)
 _imp.create_dynamic = _guard_create(_imp.create_dynamic)
@@ -528,6 +530,63 @@ for _name in ("enable", "register", "dump_traceback_later"):
 _MODULE_DICT = types.ModuleType.__dict__["__dict__"].__get__  # a module's own dict, read past type(o)
 _SET_CLASS = object.__dict__["__class__"].__set__
 _LAZY_MODULE = importlib.util._LazyModule  # LazyLoader modules: a plain module after first use
+_PH_DICT = logging.PlaceHolder.__dict__["__dict__"]  # a placeholder's own dict, read and set past type(o)
+_LAZY_LOADERS = (importlib.machinery.SourceFileLoader, importlib.machinery.SourcelessFileLoader,
+                 importlib.machinery.ExtensionFileLoader)
+_RLOCK = type(threading.RLock())
+_INSTALLED = tuple(sorted({os.path.realpath(v) + os.sep for k, v in sysconfig.get_paths().items()
+                           if k in ("stdlib", "platstdlib", "purelib", "platlib")}))
+
+
+def _is(o, types_):  # type(o) is one of types_, by identity (a class's metaclass can lie about == and hash)
+    t = type(o)
+    return any(t is c for c in types_)
+
+
+def _str_keys(d):  # a dict whose keys are all exact str: reading it runs no tool code
+    return type(d) is dict and all(type(k) is str for k in list(d))
+
+
+def _real_placeholder(o, real):  # a logging.PlaceHolder as logging makes it: only loggerMap, loggers in it
+    d = _PH_DICT.__get__(o)
+    if not _str_keys(d) or list(d) != ["loggerMap"] or type(d["loggerMap"]) is not dict:
+        return False
+    for k, v in list(d["loggerMap"].items()):
+        if not _is(k, real) or v is not None:
+            return False
+        kd = vars(k)
+        if not _str_keys(kd) or not (kd.get("parent") is None or _is(kd.get("parent"), real)):
+            return False
+    return True
+
+
+def _clean_placeholder(o, real):  # keep only the real loggers of its loggerMap; drop every other attribute
+    d = _PH_DICT.__get__(o)
+    m = d.get("loggerMap") if _str_keys(d) else None
+    keep = {}
+    for k in (list(m) if type(m) is dict else ()):
+        if _is(k, real):
+            kd = vars(k)
+            if _str_keys(kd) and (kd.get("parent") is None or _is(kd.get("parent"), real)):
+                keep[k] = None
+    _PH_DICT.__set__(o, {"loggerMap": keep})
+
+
+def _real_lazy(o):  # a LazyLoader module not yet used: an installed file's loader and an untouched loader_state
+    d = _MODULE_DICT(o)
+    if not _str_keys(d) or type(d.get("__spec__")) is not _ModuleSpec or type(d.get("__name__")) is not str:
+        return False
+    sd = vars(d["__spec__"])
+    if not _str_keys(sd) or type(sd.get("name")) is not str or not _is(sd.get("loader"), _LAZY_LOADERS):
+        return False
+    ld, st = vars(sd["loader"]), sd.get("loader_state")
+    if not _str_keys(ld) or type(ld.get("name")) is not str or type(ld.get("path")) is not str:
+        return False
+    if not os.path.realpath(ld["path"]).startswith(_INSTALLED):
+        return False
+    return (_str_keys(st) and sorted(st) == ["__class__", "__dict__", "is_loading", "lock"]
+            and st["__class__"] is types.ModuleType and _str_keys(st["__dict__"])
+            and type(st["lock"]) is _RLOCK and st["is_loading"] is False)
 
 
 def _attr(o, a):  # an attribute: the same object is put back; a module's is read and written in its own dict
@@ -555,9 +614,11 @@ def _classes_snap():
     loggers = manager.loggerDict
     objs += [("logger " + n, o) for n, o in list(loggers.items())]
     rows = [(n, o, type(o)) for n, o in objs]
-    mods = {types.ModuleType, _LAZY_MODULE, *(t for n, o, t in rows[2:] if not n.startswith("logger "))}
+    special = (_LAZY_MODULE, logging.PlaceHolder)  # pass only when real by contents, never by class alone
+    mods = (types.ModuleType, *{t for n, o, t in rows[2:] if not n.startswith("logger ") and t not in special})
     lg = logging.getLoggerClass()
-    lgs = {lg, logging.PlaceHolder, *(t for n, o, t in rows if n.startswith("logger "))}
+    lgs = (lg, logging.Logger, logging.RootLogger,
+           *{t for n, o, t in rows if n.startswith("logger ") and t is not logging.PlaceHolder})
     return rows, {id(o) for n, o, t in rows}, mods, lgs, lg, manager, loggers
 
 
@@ -572,21 +633,34 @@ def _classes_restore(snap):  # the names it put back, each refused
         except BaseException:
             moved.append(f"type({n}) (not restored)")
     for n, o, t in rows:
-        if type(o) is not t:
+        if type(o) is not t and not (t is _LAZY_MODULE and type(o) is types.ModuleType):  # a lazy module, used
             put(n, o, t)
     # Modules and loggers first made during the call: a module's class must be a plain module class, a logger's
-    # the logger class of the snapshot (or a placeholder); any other class is put back and the call refused.
+    # a logger class of the snapshot; a lazy module or a placeholder passes only when its contents are real
+    # (a placeholder's loggerMap holds only real loggers: logging reads .parent.name on each of them later).
     for n, o in list(_MODULES.items()):
         t = type(o)
-        if id(o) not in seen and t not in mods and issubclass(t, types.ModuleType):
+        if id(o) in seen or not issubclass(t, types.ModuleType) or _is(o, mods):
+            continue
+        if t is not _LAZY_MODULE or not _real_lazy(o):
             put(n, o, types.ModuleType)
     now = manager.loggerDict  # the manager's class is real again (it is a snapshot row)
     for d in (loggers,) if now is loggers else (loggers, now):
         for n, o in list(d.items()):
             t = type(o)
-            if id(o) not in seen and t not in lgs:
-                ph = logging.PlaceHolder in type.__dict__["__mro__"].__get__(t)
-                put(f"logger {n}", o, logging.PlaceHolder if ph else lg)
+            if _is(o, lgs) or (id(o) in seen and t is not logging.PlaceHolder):
+                continue
+            ph = logging.PlaceHolder in type.__dict__["__mro__"].__get__(t)
+            if t is logging.PlaceHolder and _real_placeholder(o, lgs):
+                continue
+            if not ph or "loggerMap" not in _PH_DICT.__get__(o):  # a logger dressed as a placeholder
+                put(f"logger {n}", o, lg)
+                continue
+            if t is not logging.PlaceHolder:
+                put(f"logger {n}", o, logging.PlaceHolder)
+            else:
+                moved.append(f"type(logger {n})")
+            _clean_placeholder(o, lgs)
     return moved
 
 
