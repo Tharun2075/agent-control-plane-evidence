@@ -206,3 +206,12 @@ batch12k:
 verify-batch12k:
 	$(PY) tools/batch12k.py --check
 verify: verify-batch12k
+
+# Round-6 paper analyses (paired test, benign refusals, checks reached, cheapest check set,
+# run inventory), read from the committed run records only; outputs in analysis/out/.
+analysis:
+	$(PY) analysis/mcnemar_exact.py
+	$(PY) analysis/benign_refusals.py
+	$(PY) analysis/checks_reached.py
+	$(PY) analysis/config_replay.py
+	$(PY) analysis/run_inventory.py

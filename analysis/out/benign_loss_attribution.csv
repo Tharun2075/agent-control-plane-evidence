@@ -1,0 +1,4 @@
+suite,paired_runs,lost_tasks,authority,action,allowlist,other,none,allowlist_share,allowlist_share_ci95
+banking,144,21,0,4,12,0,5,0.57,"[0.37,0.76]"
+slack,189,120,0,7,108,0,5,0.90,"[0.83,0.94]"
+all,333,141,0,11,120,0,10,0.85,"[0.78,0.90]"

@@ -1,0 +1,6 @@
+arm,pairs,b,c,p_one_sided,p_holm
+gate-off,540,0,80,8.27e-25,2.48e-24
+allowlist-off,540,0,167,5.35e-51,2.14e-50
+expiry-off,540,0,60,8.67e-19,1.73e-18
+authority-off,540,0,20,9.54e-07,9.54e-07
+all-off,540,0,307,3.84e-93,1.92e-92
