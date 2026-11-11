@@ -479,37 +479,48 @@ def _held(o, a):  # a list or dict attribute: the same object is put back, holdi
     return snap, restore
 
 
+def _quiet(fn, *a):  # the gate's own call to a setter the audit hook refuses; no tool object is compared or dropped here
+    on = getattr(_LOG_WRITING, "on", False)
+    _LOG_WRITING.on = True
+    try:
+        fn(*a)
+    finally:
+        _LOG_WRITING.on = on
+
+
 def _pair(get, put):  # a getter/setter pair of two hooks
     def restore(v):
-        if all(x is y for x, y in zip(get(), v)):
+        cur = tuple(get())  # held until the guard is back on, so a dropped hook's __del__ runs guarded
+        if all(x is y for x, y in zip(cur, v)):
             return False
-        put(*v)
+        _quiet(put, *v)
         return True
     return lambda: tuple(get()), restore
 
 
 def _env_snap():
     _GUARD.env_raw = set()
-    return os.environ, dict(os.environ._data)
+    return os.environ, os.environ._data, dict(os.environ._data)
 
 
 def _env_restore(snap):  # os.environ and the process environment (raw os.putenv keys come from the audit hook)
-    env, data = snap
-    changed = _attr(os, "environ")[1](env)
-    keys = {k for k in data.keys() | env._data.keys() if env._data.get(k) != data.get(k)} | _GUARD.env_raw
+    env, held, data = snap
+    changed = _attr(os, "environ")[1](env) | _attr(env, "_data")[1](held)
+    keys = {k for k in data.keys() | held.keys() if held.get(k) is not data.get(k)} | _GUARD.env_raw
     _GUARD.env_raw = set()
     for k in keys:
         if k in data:
-            os.putenv(k, data[k])
-            env._data[k] = data[k]
+            _quiet(os.putenv, k, data[k])
+            held[k] = data[k]
         else:
-            os.unsetenv(k)
-            env._data.pop(k, None)
+            _quiet(os.unsetenv, k)
+            held.pop(k, None)
     return changed or bool(keys)
 
 
 def _level_restore(v):
-    if logging.root.level == v:
+    cur = logging.root.level
+    if type(cur) is int and cur == v:
         return False
     logging.root.setLevel(v)
     return True
@@ -542,16 +553,15 @@ _RESTORED = (
 
 def _restore(snaps):
     """Put every _RESTORED row back; return (names of changed code hooks, whether anything changed)."""
-    code, moved, on = [], False, getattr(_LOG_WRITING, "on", False)
-    _LOG_WRITING.on = True  # the restore itself sets hooks the audit hook refuses inside the window
-    try:
-        for (name, _, restore, refuse), snap in zip(_RESTORED, snaps):
+    code, moved = [], False
+    for (name, _, restore, refuse), snap in zip(_RESTORED, snaps):  # runs inside the window, guard on
+        try:
             if restore(snap):
                 moved = True
                 if refuse:
                     code.append(name)
-    finally:
-        _LOG_WRITING.on = on
+        except BaseException:  # a planted object broke the restore: fail closed, refuse the call, go on
+            code.append(name + " (not restored)")
     return code, moved
 
 
