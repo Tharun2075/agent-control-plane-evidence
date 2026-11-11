@@ -161,6 +161,13 @@ batch12f:
 verify-batch12f:
 	$(PY) tools/batch12f.py --check
 verify: verify-batch12f
+# Batch 12g (E1 + E2p scripted attacker at the paper-fix12g code, repeats/batch12g/PROTOCOL.md).
+.PHONY: batch12g verify-batch12g
+batch12g:
+	$(PY) tools/batch12g.py run
+verify-batch12g:
+	$(PY) tools/batch12g.py --check
+verify: verify-batch12g
 
 # Batch 15 (gpt-oss-120b B1 after the empty-key toolUse.input fix, repeats/batch15/PROTOCOL.md).
 .PHONY: batch15 verify-batch15
