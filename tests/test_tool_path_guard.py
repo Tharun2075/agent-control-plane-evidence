@@ -136,6 +136,8 @@ class ToolPathGuardTest(unittest.TestCase):
         self.assertDenied(lambda: sqlite3.connect("").execute("ATTACH DATABASE ? AS a", (str(outside),)) and "")
         self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own.db").execute(f"VACUUM INTO '{outside}'") and "")
         self.assertDenied(lambda: os.symlink(outside, self.store.dir / "own.db-journal") or "")  # link to outside
+        (self.store.dir / "sub").mkdir()
+        self.assertDenied(lambda: os.symlink("../x", self.store.dir / "sub" / "own.db-journal") or "")  # moved later
         (self.store.dir / "own2.db-wal").symlink_to(outside)  # planted before the tool runs
         self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own2.db") and "")
 
