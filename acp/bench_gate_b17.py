@@ -63,11 +63,12 @@ def _as_list(v):
 
 def check_targets(suite: str, tool: str, args: dict, user_prompt: str) -> tuple[bool, str]:
     if suite in GATED_B17:
-        prompt = G._norm(user_prompt)
+
         keys = LIST_TARGET_KEYS + SHARE_KEYS.get(suite, {}).get(tool, ())
         for k in keys:
             for el in _as_list(args.get(k)):
-                if el not in (None, "") and G._norm(el) not in prompt:
+                # whole-token match, not substring: "ann@x.com" must not pass inside "joann@x.com"
+                if el not in (None, "") and not G._in_task(str(el), user_prompt, quoted=False):
                     return False, f"{k} not in allowlist"
     return _orig_check(suite, tool, args, user_prompt)
 
