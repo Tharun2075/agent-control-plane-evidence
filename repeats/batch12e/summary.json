@@ -1,0 +1,261 @@
+{
+  "e1": {
+    "after": {
+      "attempts": 540,
+      "by_class": {},
+      "bypass": 0,
+      "families": {
+        "approval": {
+          "attempts": 80,
+          "bypass": 0,
+          "checks_reached_mean": 3.138,
+          "min_records": 1
+        },
+        "delegation": {
+          "attempts": 80,
+          "bypass": 0,
+          "checks_reached_mean": 1.0,
+          "min_records": 1
+        },
+        "logtamper": {
+          "attempts": 80,
+          "bypass": 0,
+          "checks_reached_mean": 2.25,
+          "min_records": 4
+        },
+        "session": {
+          "attempts": 60,
+          "bypass": 0,
+          "checks_reached_mean": 2.667,
+          "min_records": 1
+        },
+        "url": {
+          "attempts": 240,
+          "bypass": 0,
+          "checks_reached_mean": 2.35,
+          "min_records": 1
+        }
+      },
+      "wilson95_all": [
+        0.0,
+        0.0071
+      ]
+    },
+    "before": {
+      "attempts": 540,
+      "by_class": {},
+      "bypass": 0
+    }
+  },
+  "e2p": {
+    "after": {
+      "arms": {
+        "all-off": {
+          "bypass": 307,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 80
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 60
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 167
+            }
+          }
+        },
+        "all-on": {
+          "bypass": 0,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 0
+            }
+          }
+        },
+        "allowlist-off": {
+          "bypass": 167,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 167
+            }
+          }
+        },
+        "authority-off": {
+          "bypass": 20,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 20
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 0
+            }
+          }
+        },
+        "expiry-off": {
+          "bypass": 60,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 60
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 0
+            }
+          }
+        },
+        "gate-off": {
+          "bypass": 80,
+          "families": {
+            "approval": {
+              "attempts": 80,
+              "bypass": 80
+            },
+            "delegation": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "logtamper": {
+              "attempts": 80,
+              "bypass": 0
+            },
+            "session": {
+              "attempts": 60,
+              "bypass": 0
+            },
+            "url": {
+              "attempts": 240,
+              "bypass": 0
+            }
+          }
+        }
+      },
+      "attempts": 540,
+      "payload_hashes_equal": true,
+      "vs_all_on": {
+        "all-off": {
+          "b_all_on_only": 0,
+          "both": 0,
+          "c_arm_only": 307,
+          "h5_holds": true,
+          "p_exact": 7.670458539527698e-93,
+          "p_holm": 3.835229269763849e-92
+        },
+        "allowlist-off": {
+          "b_all_on_only": 0,
+          "both": 0,
+          "c_arm_only": 167,
+          "h5_holds": true,
+          "p_exact": 1.0691058840368783e-50,
+          "p_holm": 4.276423536147513e-50
+        },
+        "authority-off": {
+          "b_all_on_only": 0,
+          "both": 0,
+          "c_arm_only": 20,
+          "h5_holds": true,
+          "p_exact": 1.9073486328125e-06,
+          "p_holm": 1.9073486328125e-06
+        },
+        "expiry-off": {
+          "b_all_on_only": 0,
+          "both": 0,
+          "c_arm_only": 60,
+          "h5_holds": true,
+          "p_exact": 1.734723475976807e-18,
+          "p_holm": 3.469446951953614e-18
+        },
+        "gate-off": {
+          "b_all_on_only": 0,
+          "both": 0,
+          "c_arm_only": 80,
+          "h5_holds": true,
+          "p_exact": 1.6543612251060553e-24,
+          "p_holm": 4.963083675318166e-24
+        }
+      }
+    },
+    "before": {
+      "all-off": 307,
+      "all-on": 0,
+      "allowlist-off": 167,
+      "authority-off": 20,
+      "expiry-off": 60,
+      "gate-off": 80
+    }
+  },
+  "protocol": [
+    "repeats/batch12e/PROTOCOL.md"
+  ]
+}
