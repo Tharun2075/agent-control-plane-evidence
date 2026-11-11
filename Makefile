@@ -108,3 +108,11 @@ batch12:
 verify-batch12:
 	$(PY) tools/batch12.py --check
 verify: verify-batch12
+
+# Batch 12b (E1 + E2p scripted attacker at the paper-fix12b code, repeats/batch12b/PROTOCOL.md).
+.PHONY: batch12b verify-batch12b
+batch12b:
+	$(PY) tools/batch12b.py run
+verify-batch12b:
+	$(PY) tools/batch12b.py --check
+verify: verify-batch12b
