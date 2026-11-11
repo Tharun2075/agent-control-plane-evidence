@@ -69,6 +69,10 @@ class ToolFileAccessDenied(PermissionDenied):
 # io.open, os.open, pathlib, open_code) is checked by an audit hook. Allowed: anything
 # under the session dir; reads under declared read roots and the Python install; writes
 # under declared write roots and the hash-chained log. Everything else raises.
+# Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
+# (its globals, the hook, a removed sqlite authorizer). os.stat, os.path.exists and os.lstat raise no
+# audit event, so a tool body can learn whether a path outside the session exists and its size and
+# times; it cannot read, write, list or remove it. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
 _PY_ROOTS = tuple({Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)}
                   | {Path(__file__).resolve().parent})
@@ -87,9 +91,11 @@ _PATH_EVENTS = {
     "os.utime": ((0,), True, (3,)), "os.listdir": ((0,), False, ()), "os.scandir": ((0,), False, ()),
 }
 # Events a tool body may not raise at all: new processes, threads the guard cannot follow, cwd changes, native code.
-# Python < 3.13 raises no audit event for a thread start, so there a thread started by a tool body is not guarded.
+# Python < 3.13 raises no audit event for a thread start; there the thread-start functions are wrapped below.
 _DENY_EVENTS = {"os.chdir", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.fork", "os.forkpty",
-                "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen", "ctypes.dlsym"}
+                "subprocess.Popen", "_thread.start_new_thread", "_thread.start_joinable_thread", "ctypes.dlopen",
+                "ctypes.dlsym", "sqlite3.enable_load_extension", "sqlite3.load_extension"}
+_SQLITE_MEMORY = ("", ":memory:")
 
 
 def _deny(what: str):
@@ -97,18 +103,55 @@ def _deny(what: str):
     raise ToolFileAccessDenied(what)
 
 
-def _check_path(g, path, writes: bool):
+def _outside(g, path, writes: bool):
+    """The resolved path if the guard refuses it, else None."""
     if isinstance(path, int):  # an fd that was already checked when it was opened
-        return
+        return None
     raw = os.fsdecode(path if path is not None else ".")
     target = os.path.realpath(raw)  # symlinks and '..' resolved before the check
     p = Path(target)
     session, reads, writes_ok = g
     if _under(p, (session,)) or (_under(p, writes_ok) if writes else _under(p, reads + _PY_ROOTS)):
-        return
-    if not writes and raw in sys.path:  # the import system lists sys.path entries; names only
-        return
-    _deny(target)
+        return None
+    if not writes and raw in _SYS_PATH:  # the import system lists sys.path entries; names only
+        return None
+    return target
+
+
+def _check_path(g, path, writes: bool):
+    target = _outside(g, path, writes)
+    if target is not None:
+        _deny(target)
+
+
+def _sqlite_file(db) -> str:
+    """Refusal reason for a sqlite database name, or '' when it is a plain absolute path or in-memory."""
+    if db is None:
+        return "sqlite database given as an expression"
+    name = os.fsdecode(db)
+    if name in _SQLITE_MEMORY:
+        return ""
+    if name.lower().startswith("file:"):
+        return f"sqlite URI {name!r}"
+    if not os.path.isabs(name):
+        return f"relative sqlite path {name!r}"
+    return ""
+
+
+def _sqlite_authorizer(g):
+    import sqlite3
+
+    def authorize(action, arg1, arg2, db_name, trigger):
+        # ATTACH and VACUUM INTO both reach SQLite as an attach of a new file.
+        if action != sqlite3.SQLITE_ATTACH or (arg1 is not None and os.fsdecode(arg1) in _SQLITE_MEMORY):
+            return sqlite3.SQLITE_OK
+        why = _sqlite_file(arg1) or _outside(g, arg1, True)
+        if not why:
+            return sqlite3.SQLITE_OK
+        if getattr(_GUARD, "allow", None) is not None:
+            _GUARD.denied = why  # the tool body cannot hide the refusal by catching the sqlite error
+        return sqlite3.SQLITE_DENY
+    return authorize
 
 
 def _open_hook(event, args):
@@ -129,10 +172,50 @@ def _open_hook(event, args):
             _deny(f"{event} with dir_fd")
         for i in idx:
             _check_path(g, args[i], writes)
+    elif event == "sqlite3.connect":
+        db = args[0] if args else None
+        why = _sqlite_file(db)
+        if why:
+            _deny(why)
+        if os.fsdecode(db) not in _SQLITE_MEMORY:
+            _check_path(g, db, True)
+    elif event == "sqlite3.connect/handle":
+        # The connection is not ready inside this event; the authorizer goes on at the next profile event
+        # on this thread (the return from connect), before any statement can run.
+        _GUARD.sqlite_pending = getattr(_GUARD, "sqlite_pending", []) + [(args[0], _sqlite_authorizer(g))]
+        if sys.getprofile() is not _sqlite_profile:
+            _GUARD.sqlite_prev_profile = sys.getprofile()
+            sys.setprofile(_sqlite_profile)
     elif event in _DENY_EVENTS:
         _deny(event)
 
 
+def _sqlite_profile(frame, event, arg):
+    waiting = []
+    for conn, auth in getattr(_GUARD, "sqlite_pending", []):
+        try:
+            conn.set_authorizer(auth)
+        except Exception:  # still inside connect: try again at the next event
+            waiting.append((conn, auth))
+    _GUARD.sqlite_pending = waiting
+    if not waiting:
+        sys.setprofile(getattr(_GUARD, "sqlite_prev_profile", None))
+
+
+def _guard_thread_start(start):
+    def guarded(*a, **kw):
+        if getattr(_GUARD, "allow", None) is not None and not getattr(_LOG_WRITING, "on", False):
+            _deny("thread start")
+        return start(*a, **kw)
+    return guarded
+
+
+if sys.version_info < (3, 13):  # no audit event for a thread start: refuse it at the start functions
+    import _thread
+    _thread.start_new_thread = _guard_thread_start(_thread.start_new_thread)
+    threading._start_new_thread = _guard_thread_start(threading._start_new_thread)
+
+_SYS_PATH = tuple(sys.path)  # snapshot at install: a tool body that edits sys.path gains nothing
 sys.addaudithook(_open_hook)
 
 
@@ -377,6 +460,10 @@ class ToolRunner:
         _GUARD.allow, _GUARD.denied = (self.session_dir, self.read_roots, self.write_roots), None
         try:
             out = fn()
+        except Exception:
+            if not _GUARD.denied:
+                raise
+            out = None  # a refusal caused this error (e.g. sqlite "not authorized"): report the refusal
         finally:
             _GUARD.allow = prev
         if _GUARD.denied:  # the tool swallowed the denial: still refuse its result

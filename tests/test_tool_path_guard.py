@@ -108,8 +108,56 @@ class ToolPathGuardTest(unittest.TestCase):
             os.close(fd)
         self.assertDenied(lambda: os.chdir(self.victim) or "")
         self.assertDenied(lambda: subprocess.run(["cat", str(self.secret)], capture_output=True).stdout.decode())
-        if sys.version_info >= (3, 13):  # older Pythons raise no audit event for a thread start
-            self.assertDenied(lambda: threading.Thread(target=lambda: None).start() or "")
+        self.assertDenied(lambda: threading.Thread(target=lambda: None).start() or "")  # every Python version
+
+    def test_thread_started_by_tool_cannot_read_outside(self):
+        import _thread, threading
+        from concurrent.futures import ThreadPoolExecutor
+        got = []
+        self.assertDenied(lambda: threading.Thread(target=lambda: got.append(self.secret.read_text())).start() or "")
+        self.assertDenied(lambda: _thread.start_new_thread(lambda: got.append(self.secret.read_text()), ()) and "")
+        self.assertDenied(lambda: ThreadPoolExecutor(1).submit(self.secret.read_text).result())
+        self.assertDenied(lambda: threading.Timer(0, lambda: got.append(self.secret.read_text())).start() or "")
+        self.assertEqual(got, [])
+        t = threading.Thread(target=lambda: got.append("outside a tool body"))  # no guard outside a tool body
+        t.start()
+        t.join()
+        self.assertEqual(got, ["outside a tool body"])
+
+    def test_sqlite_outside_session_refused(self):
+        import sqlite3
+        outside = self.tmp / "outside.db"
+        self.assertDenied(lambda: sqlite3.connect(outside) and "")
+        self.assertDenied(lambda: sqlite3.connect(str(self.secret)).execute("select 1").fetchall() and "")
+        self.assertDenied(lambda: sqlite3.connect(f"file:{outside}?mode=rwc", uri=True) and "")
+        self.assertDenied(lambda: sqlite3.connect("rel.db") and "")
+        self.assertDenied(lambda: sqlite3.connect(":memory:").execute(f"ATTACH DATABASE '{outside}' AS a") and "")
+        self.assertDenied(lambda: sqlite3.connect("").execute("ATTACH DATABASE ? AS a", (str(outside),)) and "")
+        self.assertDenied(lambda: sqlite3.connect(self.store.dir / "own.db").execute(f"VACUUM INTO '{outside}'") and "")
+        self.assertFalse(outside.exists())
+        self.assertEqual(self.secret.read_text(), "TOP-SECRET")
+
+    def test_sqlite_inside_session_and_memory_work(self):
+        import sqlite3
+
+        def use():
+            c = sqlite3.connect(self.store.dir / "own.db")
+            c.execute("create table t(x)")
+            c.execute("insert into t values (1)")
+            c.commit()
+            m = sqlite3.connect(":memory:")
+            m.execute(f"ATTACH DATABASE '{self.store.dir / 'two.db'}' AS b")
+            return str(c.execute("select x from t").fetchall() + m.execute("select 2").fetchall())
+        self.assertEqual(self.read(use), "[(1,), (2,)]")
+
+    def test_sys_path_change_inside_tool_does_not_open_outside(self):
+        for entry in (str(self.secret), str(self.victim)):
+            sys.path.append(entry)
+            try:
+                self.assertDenied(lambda: open(self.secret).read())
+                self.assertDenied(lambda: str(os.listdir(self.victim)))
+            finally:
+                sys.path.remove(entry)
 
     def test_no_session_dir_keeps_old_behaviour(self):
         tr = ToolRunner(self.c, self.tmp / "ap")
