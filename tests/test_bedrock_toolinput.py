@@ -33,9 +33,11 @@ def recorded_errors():
     out = []
     for f in sorted(glob.glob(str(ROOT / "repeats" / "batch*" / "runs" / "*gpt-oss-120b*"))):
         for line in open(f, encoding="utf-8"):
-            m = PATH.search(json.loads(line).get("error") or "")
-            if m:
-                out.append((Path(f).parts[-3], int(m.group(1)), int(m.group(2))))
+            row = json.loads(line)  # a row with tries holds one error per refused try; its top error repeats the last
+            for err in ([t.get("error") for t in row["tries"]] if row.get("tries") else [row.get("error")]):
+                m = PATH.search(err or "")
+                if m:
+                    out.append((Path(f).parts[-3], int(m.group(1)), int(m.group(2))))
     return out
 
 
@@ -81,7 +83,7 @@ class ToolInputReplay(unittest.TestCase):
 
     def test_recorded_failures_replay_clean(self):
         errs = recorded_errors()
-        self.assertEqual(len(errs), 84)  # batches 7, 8, 9, 10, 14; all at messages.1.content.0
+        self.assertEqual(len(errs), 92)  # refused calls: b7 5, b8 10, b9 30, b10 43, b14 4; all at messages.1.content.0
         self.assertEqual({(i, k) for _, i, k in errs}, {(1, 0)})
         for bad in BAD:
             with self.subTest(bad=bad):
