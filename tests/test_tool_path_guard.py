@@ -703,6 +703,135 @@ class ToolPathGuardTest(unittest.TestCase):
                     if vars(c).get(k) is not v:
                         setattr(c, k, v)
 
+    def test_original_std_streams_restored(self):  # P1
+        import io
+        streams = (sys.__stdin__, sys.__stdout__, sys.__stderr__)
+
+        def body():
+            sys.__stdin__, sys.__stdout__, sys.__stderr__ = io.StringIO(), io.StringIO(), io.StringIO()
+        try:
+            self.call(body)
+            self.assertEqual([a is b for a, b in zip((sys.__stdin__, sys.__stdout__, sys.__stderr__), streams)],
+                             [True] * 3)
+        finally:
+            sys.__stdin__, sys.__stdout__, sys.__stderr__ = streams
+
+    def test_root_logger_binding_refused_and_restored(self):  # P3
+        import logging
+        root, manager = logging.root, logging.Logger.manager
+        held = (logging.root, logging.Logger.root, logging.Logger.manager, manager.root)
+        fake = logging.RootLogger(logging.WARNING)
+
+        def body():
+            logging.root = logging.Logger.root = manager.root = fake
+            logging.Logger.manager = logging.Manager(fake)
+        try:
+            with self.assertRaises(ToolFileAccessDenied):
+                self.read(body)
+            now = (logging.root, logging.Logger.root, logging.Logger.manager, manager.root)
+            self.assertEqual([a is b for a, b in zip(now, held)], [True] * 4)
+        finally:
+            logging.root = logging.Logger.root = manager.root = root
+            logging.Logger.manager = manager
+
+    def _swap_class(self, mod, cls, name, value):  # a module whose class was swapped: (refused, true value after)
+        import types
+        md = types.ModuleType.__dict__["__dict__"].__get__(mod)
+        orig = md[name]
+
+        def body():
+            setattr(mod, name, value)
+            mod.__class__ = cls(orig)
+        try:
+            with self.assertRaises(ToolFileAccessDenied) as cm:
+                self.read(body)
+            return orig, type(mod), md[name], str(cm.exception)
+        finally:
+            object.__dict__["__class__"].__set__(mod, types.ModuleType)
+            md[name] = orig
+
+    def test_module_class_swap_raising_setattr(self):  # P8
+        import types
+
+        def cls(orig):
+            class Raise(types.ModuleType):
+                def __setattr__(self, n, v):
+                    raise AttributeError(n)
+            return Raise
+        orig, t, now, _ = self._swap_class(sys, cls, "excepthook", lambda *a: None)
+        self.assertIs(t, types.ModuleType)
+        self.assertIs(now, orig)
+
+    def _lying(self, name):
+        import types
+
+        def cls(orig):
+            class Lie(types.ModuleType):
+                def __getattribute__(self, n):
+                    return orig if n == name else super().__getattribute__(n)
+            return Lie
+        return cls
+
+    def test_sys_class_swap_lying_refused(self):  # P9
+        import types
+        orig, t, now, msg = self._swap_class(sys, self._lying("excepthook"), "excepthook", lambda *a: None)
+        self.assertEqual((t, now is orig, "type(sys)" in msg), (types.ModuleType, True, True))
+
+    def test_logging_class_swap_lying_refused(self):  # P10
+        import logging
+        import types
+        orig, t, now, msg = self._swap_class(logging, self._lying("_logRecordFactory"), "_logRecordFactory",
+                                             lambda *a, **k: None)
+        self.assertEqual((t, now is orig, "type(logging)" in msg), (types.ModuleType, True, True))
+
+    def test_builtin_frozen_importer_attrs_restored(self):  # P12
+        import importlib.machinery as m
+        before = {c: dict(vars(c)) for c in (m.BuiltinImporter, m.FrozenImporter)}
+
+        def body():
+            m.BuiltinImporter.find_spec = classmethod(lambda cls, *a, **k: None)
+            m.FrozenImporter.acp_planted = staticmethod(lambda: None)
+        try:
+            with self.assertRaises(ToolFileAccessDenied):
+                self.read(body)
+            for c, d in before.items():
+                self.assertEqual(sorted(k for k in set(vars(c)) | set(d) if vars(c).get(k) is not d.get(k)), [])
+        finally:
+            for c, d in before.items():
+                for k in [k for k in vars(c) if k not in d]:
+                    delattr(c, k)
+                for k, v in d.items():
+                    if vars(c).get(k) is not v:
+                        setattr(c, k, v)
+
+    def test_logging_disable_restored(self):  # P13
+        import logging
+        before, log = logging.root.manager.disable, logging.getLogger("acp.test.disable")
+
+        def body():
+            logging.disable(logging.CRITICAL)
+            log.isEnabledFor(logging.WARNING)  # fills the logger's cache with the disabled answer
+        try:
+            self.call(body)
+            self.assertEqual((logging.root.manager.disable, log.isEnabledFor(logging.WARNING)), (before, True))
+        finally:
+            logging.disable(before)
+
+    def test_print_logging_import_still_work(self):  # control: ordinary use is neither refused nor undone
+        import contextlib
+        import io
+        import logging
+        buf = io.StringIO()
+
+        def body():
+            import json
+            print("hello", file=buf)
+            logging.getLogger("acp.test.control").warning("hello")
+            return json.dumps([1])
+        with contextlib.redirect_stderr(io.StringIO()):
+            out = self.read(body)
+        self.assertEqual((out[0] if isinstance(out, tuple) else out, buf.getvalue()), ("[1]", "hello\n"))
+
 
 if __name__ == "__main__":
     unittest.main()
