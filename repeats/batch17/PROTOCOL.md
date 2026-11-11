@@ -63,3 +63,12 @@ p3 gpt-oss-120b gated 2 ($0.003); 8 runs, $0.040, no errors. Projection from pil
 and the per-process caps (sum 9.30 + 0.04 pilots) stays under the USD 10.00 cap: no sub-batch dropped.
 Service quotas cannot be read (IAM user lacks servicequotas:List*; not widened), so workers are
 2-4 per process and throttling is handled by backoff (60 s x attempt, 5 retries).
+
+## Amendment 1 (2026-11-11, committed before any continuation call)
+The P3 DeepSeek V3.2 processes hit the USD 1.20 per-process cap after 47 (gated) and 46 (plain)
+of 100 runs; job order put all 40 travel jobs first, so the partial sets hold no workspace attacked
+job and are not a fair sample. The per-process cap was a cost guard, not part of the design (n = 100
+per arm). Both processes are resumed from their JSONL with a total cap of USD 3.00 each (spend so far
+counts toward it). Batch spend before the resume: USD 6.07 main + 0.04 pilots; worst case after
+it USD 9.72 < 10.00 hard cap. No other sub-batch, arm, prompt or code file changes.
+If a resumed process still stops at its cap, its missing runs are reported as not run.

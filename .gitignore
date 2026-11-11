@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 *.tmp
+repeats/batch17/logs/
+repeats/batch17/*/logs/
