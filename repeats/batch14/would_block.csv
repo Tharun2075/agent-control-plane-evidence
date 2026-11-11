@@ -1,0 +1,11 @@
+model,arm,target_calls,action_fails,allowlist_fails,only_allowlist_fails
+claude-haiku-5-5,b14-gated,1,0,1,1
+claude-opus-5-5,b14-gated,5,0,1,1
+claude-sonnet-5-5,b14-gated,2,0,1,1
+deepseek.v3.2,b14-gated,57,24,56,32
+mistral.mistral-large-3-675b-instruct,b14-gated,35,18,35,17
+openai.gpt-oss-120b-1:0,b14-gated,36,20,36,16
+openai.gpt-oss-20b-1:0,b14-gated,36,16,35,19
+openai.gpt-oss-20b-1:0,b14-plain,47,24,45,21
+qwen.qwen3-32b-v1:0,b14-gated,48,28,48,20
+qwen.qwen3-vl-235b-a22b,b14-gated,42,15,41,26

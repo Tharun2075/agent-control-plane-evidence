@@ -122,3 +122,11 @@ batch12b:
 verify-batch12b:
 	$(PY) tools/batch12b.py --check
 verify: verify-batch12b
+
+# Batch 14 (B1 at the paper-fix12 gate; gpt-oss-20b after the tool-name fix, repeats/batch14/PROTOCOL.md).
+.PHONY: batch14 verify-batch14
+batch14:
+	$(PY) tools/batch14_summary.py
+verify-batch14:
+	$(PY) tools/batch14_summary.py --check
+verify: verify-batch14
