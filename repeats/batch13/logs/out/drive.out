@@ -1,0 +1,13 @@
+START r1 claude-haiku-5-5 plain budget=$0.150 total=$0.006
+END r1 claude-haiku-5-5 plain rc=0 file=$0.098 total=$0.101
+START r1 claude-haiku-5-5 gated budget=$0.150 total=$0.101
+END r1 claude-haiku-5-5 gated rc=0 file=$0.098 total=$0.196
+START r1 claude-sonnet-5-5 plain budget=$2.000 total=$0.196
+END r1 claude-sonnet-5-5 plain rc=0 file=$1.712 total=$1.908
+START r1 claude-sonnet-5-5 gated budget=$2.000 total=$1.908
+END r1 claude-sonnet-5-5 gated rc=0 file=$1.657 total=$3.565
+START r1 claude-opus-5-5 plain budget=$3.800 total=$3.565
+END r1 claude-opus-5-5 plain rc=0 file=$3.344 total=$6.910
+START r1 claude-opus-5-5 gated budget=$3.800 total=$6.910
+END r1 claude-opus-5-5 gated rc=0 file=$3.327 total=$10.236
+START r2 claude-haiku-5-5 plain budget=$0.150 total=$10.236
