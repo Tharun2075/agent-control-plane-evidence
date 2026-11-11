@@ -1,0 +1,7 @@
+FAIL: test_lying_path_shapes_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_lying_path_shapes_refused)
+FAIL: test_pathlib_gc_mutation_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlib_gc_mutation_refused)
+FAIL: test_pathlib_subclass_fspath_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlib_subclass_fspath_refused)
+FAIL: test_pathlike_toctou_fileio_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlike_toctou_fileio_refused)
+FAIL: test_pathlike_toctou_mkfifo_refused (tests.test_tool_path_guard.ToolPathGuardTest.test_pathlike_toctou_mkfifo_refused)
+Ran 29 tests in 0.084s
+FAILED (failures=5)

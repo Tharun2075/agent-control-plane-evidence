@@ -19,6 +19,26 @@ def _child_read(path, q):  # spawn target: must be importable by the child
     q.put(open(path).read())
 
 
+def _guard_asking():
+    f = sys._getframe(2)
+    while f is not None and f.f_code.co_filename in (os.__file__, "<frozen os>"):
+        f = f.f_back
+    return f is not None and f.f_code.co_filename.endswith(os.path.join("acp", "gate.py"))
+
+
+def _read_close(f):
+    with f:
+        return f.read()
+
+
+def _liar(inside, outside):
+    """A path object that shows the guard one path and the OS another (TOCTOU)."""
+    class Liar:
+        def __fspath__(self):
+            return str(inside if _guard_asking() else outside)
+    return Liar()
+
+
 class ToolPathGuardTest(unittest.TestCase):
     def setUp(self):
         self.td = tempfile.TemporaryDirectory()
@@ -241,6 +261,116 @@ class ToolPathGuardTest(unittest.TestCase):
             self.assertDenied(body)
         finally:
             sys.modules["_posixsubprocess"] = saved
+
+
+    def test_pathlike_toctou_fileio_refused(self):
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+        got = []
+        self.assertDenied(lambda: got.append(io.FileIO(_liar(ok, self.secret)).read()) or "")
+        self.assertEqual(got, [])
+        out = self.tmp / "x-out.txt"
+        self.assertDenied(lambda: io.FileIO(_liar(self.store.dir / "w.txt", out), "w").write(b"x") and "")
+        self.assertFalse(out.exists())
+
+    def test_pathlike_toctou_mkfifo_refused(self):
+        import stat
+        out = self.tmp / "x.fifo"
+        self.assertDenied(lambda: os.mkfifo(_liar(self.store.dir / "f", out)) or "")
+        self.assertFalse(out.exists())
+        out2 = self.tmp / "x.node"
+        self.assertDenied(lambda: os.mknod(_liar(self.store.dir / "n", out2), stat.S_IFIFO | 0o600) or "")
+        self.assertFalse(out2.exists())
+
+    def test_pathlib_subclass_fspath_refused(self):
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+        secret = self.secret
+
+        class Lying(type(Path())):
+            def __fspath__(self):
+                return str(ok if _guard_asking() else secret)
+        for opener in (open, io.FileIO):
+            got = []
+            self.assertDenied(lambda: got.append(opener(Lying(ok)).read()) or "")
+            self.assertEqual(got, [])
+
+
+    def test_pathlib_gc_mutation_refused(self):
+        # Even an exact stdlib Path can change its cached text in a gc callback after C converted it; the hook
+        # now refuses non-str paths at native calls and the open wrapper converts a Path once before the call.
+        import gc
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+        seen = []
+        for opener in (io.FileIO, open):
+            for n in range(1, 12):
+                p = Path(ok)
+                str(p)
+                p._str = str(self.secret)
+                calls = [0]
+
+                def cb(phase, info, p=p, calls=calls, n=n):
+                    if phase == "start":
+                        calls[0] += 1
+                        if calls[0] == n:
+                            p._str = str(ok)
+                gc.callbacks.append(cb)
+                old = gc.get_threshold()
+                gc.set_threshold(1)
+                try:
+                    seen.append(self.read(lambda: _read_close(opener(p))))
+                except ToolFileAccessDenied:
+                    pass
+                finally:
+                    gc.set_threshold(*old)
+                    gc.callbacks.remove(cb)
+        self.assertNotIn("TOP-SECRET", [x.decode() if isinstance(x, bytes) else x for x in seen])
+
+    def test_lying_path_shapes_refused(self):
+        ok = self.store.dir / "ok.txt"
+        ok.write_text("fine")
+
+        class S(str):
+            def __fspath__(self):
+                return str(self)
+
+        class B(bytes):
+            pass
+
+        class Entry:  # os.DirEntry look-alike
+            path = str(ok)
+
+            def __fspath__(self):
+                return self.path
+
+        class Fd(int):
+            def __index__(self):
+                return int(self)
+        with os.scandir(self.store.dir) as it:
+            real_entry = next(e for e in it if e.name == "ok.txt")
+        for shape in (S(str(ok)), B(os.fsencode(ok)), Entry(), real_entry):
+            self.assertDenied(lambda shape=shape: open(shape).read())
+            self.assertDenied(lambda shape=shape: io.FileIO(shape).read() and "")
+        fd = os.open(ok, os.O_RDONLY)
+        try:
+            for shape in (Fd(fd), True):
+                self.assertDenied(lambda shape=shape: open(shape, closefd=False).read())
+        finally:
+            os.close(fd)
+
+    def test_stdlib_paths_still_work(self):
+        d = self.store.dir
+
+        def use():
+            (d / "a.txt").write_text("one")
+            os.rename(d / "a.txt", d / "b.txt")
+            with open(d / "b.txt") as f:
+                text = f.read()
+            os.mkdir(d / "sub")
+            os.remove(d / "b.txt")
+            return text + str(sorted(os.listdir(d / "sub")))
+        self.assertEqual(self.read(use), "one[]")
 
 
 if __name__ == "__main__":
