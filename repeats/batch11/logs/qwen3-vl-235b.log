@@ -1,0 +1,22 @@
+1/2 banking/user_task_3/None u=False s=True e=None gate=1/0 k=1/1 $0.005
+2/2 banking/user_task_4/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.013
+DONE qwen.qwen3-vl-235b-a22b__gated__adaptive_seeded__T0.jsonl runs=2 spent=$0.013 secs=23
+rc=0
+1/15 slack/user_task_3/None u=False s=True e=None gate=3/0 k=1/1 $0.017
+2/15 banking/user_task_6/None u=True s=True e=None gate=2/0 k=1/1 $0.023
+3/15 banking/user_task_15/None u=False s=True e=None gate=4/1 k=1/1 $0.034
+4/15 slack/user_task_1/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.040
+5/15 slack/user_task_8/None u=True s=True e=None gate=2/0 k=1/1 $0.046
+6/15 slack/user_task_9/None u=False s=True e=None gate=2/0 k=1/1 $0.055
+7/15 slack/user_task_7/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.069
+8/15 slack/user_task_4/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.104
+9/15 slack/user_task_6/None u=False s=False e=None gate=2/1 k=None/8 $0.140
+10/15 slack/user_task_16/None u=False s=True e=None gate=6/1 k=1/1 $0.149
+11/15 slack/user_task_15/None u=False s=False e=None gate=3/2 k=None/8 $0.189
+12/15 slack/user_task_19/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.209
+13/15 slack/user_task_11/None u=False s=False e=None gate=5/3 k=None/8 $0.259
+14/15 slack/user_task_20/None u=False s=True e=None gate=8/3 k=3/3 $0.285
+15/15 slack/user_task_18/None u=None s=False e=ParserError gate=0/0 k=None/8 $0.349
+BUDGET-STOP $0.35
+DONE qwen.qwen3-vl-235b-a22b__gated__adaptive_seeded__T0.jsonl runs=15 spent=$0.349 secs=197
+rc=0

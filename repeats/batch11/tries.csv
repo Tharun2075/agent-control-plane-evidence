@@ -1,0 +1,8 @@
+model,tries,failed_tries,allowlist,purpose_action,approval_gate,delegated_authority,approved_succeeded,approved_no_effect,no_target_call,error,provider_refused,action_fails,allowlist_fails,only_allowlist_fails
+deepseek.v3.2,80,72,2,6,0,0,8,0,19,45,0,9,4,4
+mistral.mistral-large-3-675b-instruct,82,74,0,4,0,0,8,0,48,22,0,4,0,0
+openai.gpt-oss-120b-1:0,111,107,0,5,0,0,4,0,42,60,0,8,2,0
+openai.gpt-oss-20b-1:0,94,87,0,3,0,0,6,0,24,61,0,6,2,0
+qwen.qwen3-32b-v1:0,100,94,0,4,0,0,6,0,34,56,0,4,0,0
+qwen.qwen3-vl-235b-a22b,82,74,0,3,0,0,8,0,31,40,0,3,0,0
+pooled,549,508,2,25,0,0,40,0,198,284,0,34,8,4

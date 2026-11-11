@@ -84,3 +84,19 @@ batch10:
 verify-batch10:
 	$(PY) tools/batch10_summary.py --check
 verify: verify-batch10
+
+# Batch 11 (batch-10 attacker seeded with the batch-9 allowlist-aware injection, repeats/batch11/PROTOCOL.md).
+.PHONY: batch11 verify-batch11
+batch11:
+	$(PY) tools/batch11_summary.py
+verify-batch11:
+	$(PY) tools/batch11_summary.py --check
+verify: verify-batch11
+
+# Batch 11b (batch 11 re-run after the YAML fix, repeats/batch11b/PROTOCOL-ADDENDUM.md).
+.PHONY: batch11b verify-batch11b
+batch11b:
+	$(PY) tools/batch11b_summary.py
+verify-batch11b:
+	$(PY) tools/batch11b_summary.py --check
+verify: verify-batch11b
