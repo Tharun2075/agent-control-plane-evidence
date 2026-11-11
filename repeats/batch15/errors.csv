@@ -1,0 +1,6 @@
+model,arm,runs,errors,provider_refused,error_classes,toolUse_input_errors
+openai.gpt-oss-120b-1:0,b14-gated,77,4,0,ValidationException=4,4
+openai.gpt-oss-120b-1:0,b15-gated,77,0,0,,0
+openai.gpt-oss-120b-1:0,b15-plain,77,0,0,,0
+openai.gpt-oss-120b-1:0,v1.2-gated,77,3,0,ValidationException=3,3
+openai.gpt-oss-120b-1:0,v1.2-plain,77,2,0,ValidationException=2,2

@@ -138,3 +138,11 @@ batch12c:
 verify-batch12c:
 	$(PY) tools/batch12c.py --check
 verify: verify-batch12c
+
+# Batch 15 (gpt-oss-120b B1 after the empty-key toolUse.input fix, repeats/batch15/PROTOCOL.md).
+.PHONY: batch15 verify-batch15
+batch15:
+	$(PY) tools/batch15_summary.py
+verify-batch15:
+	$(PY) tools/batch15_summary.py --check
+verify: verify-batch15
