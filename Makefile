@@ -214,3 +214,13 @@ batch17:
 verify-batch17:
 	$(PY) tools/batch17_summary.py --check
 verify: verify-batch17
+
+# Round-6 paper analyses (paired test, benign refusals, checks reached, cheapest check set,
+# run inventory), read from the committed run records only; outputs in analysis/out/.
+.PHONY: analysis
+analysis:
+	PYTHONPATH=. $(PY) analysis/mcnemar_exact.py
+	PYTHONPATH=. $(PY) analysis/benign_refusals.py
+	PYTHONPATH=. $(PY) analysis/checks_reached.py
+	PYTHONPATH=. $(PY) analysis/config_replay.py
+	PYTHONPATH=. $(PY) analysis/run_inventory.py
