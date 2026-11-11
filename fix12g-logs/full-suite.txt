@@ -1,0 +1,239 @@
+................................................................................................................................................................./Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__authority__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__authority__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__authority__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__authority__none__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__authority__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__gated__adaptive__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__gated__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__gated__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__gated__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__gated__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__plain__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__plain__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__plain__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-120b-1_0__plain__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch11/runs/openai.gpt-oss-120b-1_0__gated__adaptive_seeded__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch11b/runs/openai.gpt-oss-120b-1_0__gated__adaptive_seeded__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch14/runs/openai.gpt-oss-120b-1_0__gated__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch15/runs/openai.gpt-oss-120b-1_0__gated__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch15/runs/openai.gpt-oss-120b-1_0__plain__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-120b-1_0__gated__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-120b-1_0__plain__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-120b-1_0__plain__B2.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-120b-1_0__allowlist__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-120b-1_0__approval__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-120b-1_0__repeat_user_prompt__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-120b-1_0__spotlighting__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-120b-1_0__tool_filter__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__def-repeat_prompt__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__def-spotlighting__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__def-tool_filter__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__gated__allowlist_reuse__T0__r0__A.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__gated__important_instructions__T0.7__r1__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__gated__important_instructions__T0.7__r2__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__gated__important_instructions__T0.7__r3__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__gated__tool_knowledge__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__plain__allowlist_reuse__T0__r0__A.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__plain__important_instructions__T0.7__r1__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__plain__important_instructions__T0.7__r2__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__plain__important_instructions__T0.7__r3__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolinput.py:35: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-120b-1_0__plain__tool_knowledge__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.../Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__authority__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__authority__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__authority__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__authority__none__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__authority__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__gated__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__gated__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__gated__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__gated__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__plain__direct__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__plain__ignore_previous__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__plain__injecagent__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch10/runs/openai.gpt-oss-20b-1_0__plain__system_message__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch11/runs/openai.gpt-oss-20b-1_0__gated__adaptive_seeded__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch11b/runs/openai.gpt-oss-20b-1_0__gated__adaptive_seeded__T0.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch14/runs/openai.gpt-oss-20b-1_0__gated__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch14/runs/openai.gpt-oss-20b-1_0__plain__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-20b-1_0__gated__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-20b-1_0__plain__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch7/runs/openai.gpt-oss-20b-1_0__plain__B2.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-20b-1_0__allowlist__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-20b-1_0__approval__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-20b-1_0__repeat_user_prompt__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-20b-1_0__spotlighting__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch8/runs/openai.gpt-oss-20b-1_0__tool_filter__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__def-repeat_prompt__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__def-spotlighting__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__def-tool_filter__important_instructions__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__gated__allowlist_reuse__T0__r0__A.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__gated__important_instructions__T0.7__r1__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__gated__important_instructions__T0.7__r2__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__gated__important_instructions__T0.7__r3__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__gated__tool_knowledge__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__plain__allowlist_reuse__T0__r0__A.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__plain__important_instructions__T0.7__r1__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__plain__important_instructions__T0.7__r2__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__plain__important_instructions__T0.7__r3__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/tests/test_bedrock_toolname.py:33: ResourceWarning: unclosed file <_io.TextIOWrapper name='/Users/thar/.workflow/scratch/ico-evidence/repo-fix12g/repeats/batch9/runs/openai.gpt-oss-20b-1_0__plain__tool_knowledge__T0__r0__B1.jsonl' mode='r' encoding='utf-8'>
+  for line in open(f, encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..............................................................................................................................................
+----------------------------------------------------------------------
+Ran 306 tests in 138.154s
+
+OK

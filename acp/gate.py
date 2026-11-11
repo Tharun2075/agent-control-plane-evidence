@@ -86,11 +86,13 @@ class ToolFileAccessDenied(PermissionDenied):
 # body runs (signal handlers and timers, atexit, thread starts, weakref.finalize, sys.addaudithook,
 # os.register_at_fork, codecs.register/register_error, faulthandler.enable/register/dump_traceback_later);
 # the rest are SNAPSHOT before the body and RESTORED after it (the _RESTORED table below: interpreter hooks,
-# import machinery, sys.path, os.environ, profile/trace, root logging, gc.callbacks, copyreg). The result
+# import finders and path state, sys.path, os.environ, std streams, profile/trace, the root logger's handlers,
+# filters and level, the log record factory, gc.callbacks, copyreg). The result
 # leaves as JSON data only and the body's objects are collected inside the window, so __del__ runs guarded.
 # Scope: the guard lives in the gate process and binds tool code that does not tamper with the gate
 # (its globals, the hook, a removed sqlite authorizer, the wrapped functions) or with shared interpreter
-# state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules).
+# state outside the restored list (ctypes, object-graph walking, sys.modules, builtins, patched modules,
+# objects reachable from restored state that are mutated in place, other class or module attributes).
 # Metadata calls (os.stat, os.access, os.path.exists) raise no audit event, and file descriptors the host
 # already holds are not tracked. An OS sandbox per tool is the next step.
 _GUARD = threading.local()
@@ -527,6 +529,20 @@ def _env_restore(snap):  # os.environ and the process environment (raw os.putenv
     return True
 
 
+def _class_dict(cls):  # a class's own attributes (import finders): changed or added keys are put back
+    def restore(snap):
+        cur, changed = vars(cls), False
+        for k in [k for k in cur if k not in snap]:
+            delattr(cls, k)
+            changed = True
+        for k, v in snap.items():
+            if cur.get(k) is not v:
+                setattr(cls, k, v)
+                changed = True
+        return changed
+    return lambda: dict(vars(cls)), restore
+
+
 def _level_restore(v):
     cur = logging.root.level
     if type(cur) is int and cur == v:
@@ -551,11 +567,16 @@ _RESTORED = (
     ("sys.path_hooks", *_held(sys, "path_hooks"), True),
     ("gc.callbacks", *_held(gc, "callbacks"), True),
     ("copyreg.dispatch_table", *_held(copyreg, "dispatch_table"), True),
+    *((f"importlib.machinery.{c.__name__}", *_class_dict(c), True) for c in (importlib.machinery.PathFinder,
+                                                                          importlib.machinery.FileFinder)),
     ("logging.root.handlers", *_held(logging.root, "handlers"), True),
+    ("logging.root.filters", *_held(logging.root, "filters"), True),
+    ("logging record factory", *_attr(logging, "_logRecordFactory"), True),
     ("logging handler list", *_held(logging, "_handlerList"), False),  # logging.shutdown closes these at exit
     ("logging.root.level", lambda: logging.root.level, _level_restore, False),
     ("sys.path_importer_cache", *_held(sys, "path_importer_cache"), False),
     ("sys.path", *_held(sys, "path"), False),
+    *((f"sys.{a}", *_attr(sys, a), False) for a in ("stdin", "stdout", "stderr")),
     ("os.environ", _env_snap, _env_restore, False),
 )
 

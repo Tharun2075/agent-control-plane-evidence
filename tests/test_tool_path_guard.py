@@ -647,6 +647,62 @@ class ToolPathGuardTest(unittest.TestCase):
             logging.root.setLevel(before["root.level"])
         self.assertEqual([k for k in before if not same(before[k], after[k])], [])
 
+    def call(self, body):
+        try:
+            self.read(body)
+        except ToolFileAccessDenied:
+            pass
+
+    def test_root_filters_restored(self):
+        import logging
+        filters = list(logging.root.filters)
+        try:
+            self.call(lambda: logging.root.addFilter(lambda r: False))
+            self.assertEqual(logging.root.filters, filters)
+        finally:
+            logging.root.filters[:] = filters
+
+    def test_record_factory_restored(self):
+        import logging
+        factory = logging.getLogRecordFactory()
+        try:
+            self.call(lambda: logging.setLogRecordFactory(lambda *a, **k: None))
+            self.assertIs(logging.getLogRecordFactory(), factory)
+        finally:
+            logging.setLogRecordFactory(factory)
+
+    def test_std_streams_restored(self):
+        import io
+        streams = (sys.stdin, sys.stdout, sys.stderr)
+
+        def body():
+            sys.stdin, sys.stdout, sys.stderr = io.StringIO(), io.StringIO(), io.StringIO()
+        try:
+            self.call(body)
+            self.assertEqual([a is b for a, b in zip((sys.stdin, sys.stdout, sys.stderr), streams)], [True] * 3)
+        finally:
+            sys.stdin, sys.stdout, sys.stderr = streams
+
+    def test_pathfinder_attrs_restored(self):
+        import importlib.machinery as m
+        before = {c: dict(vars(c)) for c in (m.PathFinder, m.FileFinder)}
+
+        def body():
+            m.PathFinder.find_spec = classmethod(lambda cls, *a, **k: None)
+            m.FileFinder.find_spec = lambda self, *a, **k: None
+            m.FileFinder.acp_planted = staticmethod(lambda: None)
+        try:
+            self.call(body)
+            for c, d in before.items():
+                self.assertEqual(sorted(k for k in set(vars(c)) | set(d) if vars(c).get(k) is not d.get(k)), [])
+        finally:
+            for c, d in before.items():
+                for k in [k for k in vars(c) if k not in d]:
+                    delattr(c, k)
+                for k, v in d.items():
+                    if vars(c).get(k) is not v:
+                        setattr(c, k, v)
+
 
 if __name__ == "__main__":
     unittest.main()
