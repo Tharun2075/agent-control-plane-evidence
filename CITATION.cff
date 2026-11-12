@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this evidence, please cite the paper."
+title: "Restraint Is Not a Control: Measuring Which Checks an Attack Reaches in LLM Agent Evaluation"
+authors:
+  - family-names: Kandukuri
+    given-names: Tharun Reddy
+    orcid: "https://orcid.org/0009-0006-3053-8102"
+    affiliation: THATCHED
+doi: 10.5281/zenodo.24145217
+repository-code: "https://github.com/Tharun2075/agent-control-plane-evidence"
+preferred-citation:
+  type: article
+  title: "Restraint Is Not a Control: Measuring Which Checks an Attack Reaches in LLM Agent Evaluation"
+  authors:
+    - family-names: Kandukuri
+      given-names: Tharun Reddy
+      orcid: "https://orcid.org/0009-0006-3053-8102"
+  doi: 10.5281/zenodo.24145217
+  year: 2026

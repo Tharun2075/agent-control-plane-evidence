@@ -164,3 +164,11 @@ make reproduce && python3 tools/compare_metrics.py /tmp/committed.json metrics.j
 
 Code: MIT (see `LICENSE`). Companies House text in `data/public/` and the run 1 summary:
 Open Government Licence v3.0 (see `NOTICE`). Synthetic records are made up.
+
+## Cite
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24145217.svg)](https://doi.org/10.5281/zenodo.24145217)
+
+```bibtex
+@misc{kandukuri2026restraint, author={Kandukuri, Tharun Reddy}, title={Restraint Is Not a Control: Measuring Which Checks an Attack Reaches in {LLM} Agent Evaluation}, year={2026}, publisher={Zenodo}, doi={10.5281/zenodo.24145217}, url={https://doi.org/10.5281/zenodo.24145217}, note={Preprint; submitted to TMLR}}
+```
