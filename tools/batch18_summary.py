@@ -1,0 +1,175 @@
+"""Summarise batch 18 (repeats/batch18/PROTOCOL.md) into repeats/batch18/summary.{md,json} and runs.csv.
+`--check` recomputes and fails if the committed summary.json differs (SKIP when there is none yet).
+Pilot files are never counted."""
+from __future__ import annotations
+
+import csv
+import json
+import sys
+from collections import OrderedDict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from acp.repeats import wilson  # noqa: E402
+from acp import bench_gate as G  # noqa: E402
+
+D = ROOT / "repeats" / "batch18"
+COMPARATOR = "batch 9 `gated` cell, set A seeded: 37/102 (paper)"
+
+
+def load(part: str) -> list[dict]:
+    rows = []
+    for f in sorted((D / part / "runs").glob("*.jsonl")):
+        for line in f.read_text().splitlines():
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
+def prop(k: int, n: int) -> dict:
+    return {"k": k, "n": n, "p": round(k / n, 4) if n else None, "ci": wilson(k, n)}
+
+
+def rates(rows: list[dict]) -> dict:
+    att = [r for r in rows if r["kind"] == "attacked"]
+    ben = [r for r in rows if r["kind"] == "benign"]
+    return {"asr": prop(sum(bool(r["security"]) for r in att), len(att)),
+            "utility": prop(sum(bool(r["utility"]) for r in ben), len(ben)),
+            "errors": sum(r.get("error_class") not in (None, "", "ok") for r in rows),
+            "cost_usd": round(sum(r.get("cost_usd", 0.0) for r in rows), 4)}
+
+
+def by_arm_model(rows):
+    out = OrderedDict()
+    for arm in sorted({r["arm"] for r in rows}):
+        a = [r for r in rows if r["arm"] == arm]
+        out[arm] = {"all": rates(a), "per_victim": {m: rates([r for r in a if r["model"] == m])
+                                                    for m in sorted({r["model"] for r in a})}}
+    return out
+
+
+def diff_stats() -> dict:
+    """Inferred vs hand-written list, per victim and overall: share of tasks whose tools / targets differ,
+    recall of the hand list, extras, parse errors."""
+    per, tot = OrderedDict(), {"tasks": 0, "tools_differ": 0, "targets_differ": 0, "either_differs": 0,
+                               "tools_missing": 0, "tools_extra": 0, "targets_missing": 0, "targets_extra": 0,
+                               "parse_errors": 0}
+    for f in sorted((D / "a" / "inferred").glob("*.json")):
+        doc = json.loads(f.read_text())
+        s = {k: 0 for k in tot}
+        for t in doc["tasks"].values():
+            it, ht = set(t["tools"]), set(t["hand"]["tools"])
+            ig, hg = {G._norm(x) for x in t["targets"]}, {G._norm(x) for x in t["hand"]["targets"]}
+            s["tasks"] += 1
+            s["tools_differ"] += it != ht
+            s["targets_differ"] += ig != hg
+            s["either_differs"] += it != ht or ig != hg
+            s["tools_missing"] += bool(ht - it)
+            s["tools_extra"] += bool(it - ht)
+            s["targets_missing"] += bool(hg - ig)
+            s["targets_extra"] += bool(ig - hg)
+            s["parse_errors"] += t["parse_error"] is not None
+        per[doc["model"]] = s
+        for k in tot:
+            tot[k] += s[k]
+    tot["either_differs_prop"] = prop(tot["either_differs"], tot["tasks"])
+    return {"per_victim": per, "all": tot}
+
+
+def reviewer_calls(rows: list[dict]) -> dict:
+    """Arm B approve rates over gated tool calls the reviewer saw: injected = target-hitting calls in attacked
+    runs; benign = every gated call in benign runs. Also the per-run approve rate (mean of run rates)."""
+    out = {}
+    for kind, pick in (("injected", lambda r, c: r["kind"] == "attacked" and c["hit"]),
+                       ("benign", lambda r, c: r["kind"] == "benign")):
+        k = n = 0
+        run_rates = []
+        for r in rows:
+            cs = [c for c in r.get("calls", []) if c.get("chk") and "llm" in c["chk"] and pick(r, c)]
+            if not cs:
+                continue
+            a = sum(c["chk"]["llm"] == "APPROVE" for c in cs)
+            k, n = k + a, n + len(cs)
+            run_rates.append(a / len(cs))
+        out[kind] = {"llm_approve_calls": prop(k, n), "runs_with_calls": len(run_rates),
+                     "mean_run_approve_rate": round(sum(run_rates) / len(run_rates), 4) if run_rates else None,
+                     "llm_errors": sum(bool(c["chk"].get("llm_error")) for r in rows for c in r.get("calls", [])
+                                       if c.get("chk") and "llm" in c["chk"] and pick(r, c))}
+    return out
+
+
+def ci(p: dict) -> str:
+    if not p["n"]:
+        return "n/a (n=0)"
+    return f"{p['k']}/{p['n']} = {p['p']:.3f} [{p['ci'][0]:.3f}, {p['ci'][1]:.3f}]"
+
+
+def summarise() -> dict:
+    a, b = load("a"), load("b")
+    return {"arm_a": {"arms": by_arm_model(a), "inferred_vs_hand": diff_stats(), "comparator": COMPARATOR},
+            "arm_b": {"arms": by_arm_model(b), "reviewer": reviewer_calls(b)},
+            "n_rows": {"a": len(a), "b": len(b)}}
+
+
+def md(s: dict) -> str:
+    L = ["# Batch 18 summary", "", "Generated by `make batch18`. Wilson 95% CI. Pilot runs excluded.", "",
+         "## Arm A: inferred allowlist (R6/L5)", "", f"Comparator: {s['arm_a']['comparator']}.", "",
+         "| arm | victim | ASR | benign utility | errors | cost USD |", "|---|---|---|---|---|---|"]
+    for part in ("arm_a", "arm_b"):
+        if part == "arm_b":
+            L += ["", "## Arm B: model reviewer on all 102 pairs (R7/L6)", "",
+                  "| arm | victim | ASR | benign utility | errors | cost USD |", "|---|---|---|---|---|---|"]
+        for arm, v in s[part]["arms"].items():
+            rows = [("ALL", v["all"])] + list(v["per_victim"].items())
+            for m, r in rows:
+                L.append(f"| {arm} | {m} | {ci(r['asr'])} | {ci(r['utility'])} | {r['errors']} | {r['cost_usd']} |")
+        if part == "arm_a":
+            d = s["arm_a"]["inferred_vs_hand"]
+            L += ["", "### Inferred list vs hand-written list (37 benign tasks per victim)", "",
+                  "| victim | tasks | tools differ | targets differ | either | tools missing | tools extra | "
+                  "targets missing | targets extra | parse errors |", "|---|---|---|---|---|---|---|---|---|---|"]
+            for m, x in list(d["per_victim"].items()) + [("ALL", d["all"])]:
+                L.append(f"| {m} | {x['tasks']} | {x['tools_differ']} | {x['targets_differ']} | "
+                         f"{x['either_differs']} | {x['tools_missing']} | {x['tools_extra']} | "
+                         f"{x['targets_missing']} | {x['targets_extra']} | {x['parse_errors']} |")
+            L += ["", f"Share of tasks where the inferred list differs: {ci(d['all']['either_differs_prop'])}"]
+    rv = s["arm_b"]["reviewer"]
+    L += ["", "### Reviewer approve rate (LLM verdict, over gated calls)", ""]
+    for kind in ("injected", "benign"):
+        x = rv[kind]
+        L.append(f"- {kind}: {ci(x['llm_approve_calls'])}; runs with calls {x['runs_with_calls']}, "
+                 f"mean per-run rate {x['mean_run_approve_rate']}, reviewer errors {x['llm_errors']}")
+    return "\n".join(L) + "\n"
+
+
+def write_csv(path: Path):
+    cols = ["arm", "model", "suite", "ut", "kind", "adaptive_tool", "adaptive_target", "security", "utility",
+            "error_class", "gate_checks", "gate_blocks", "cost_usd", "job_key"]
+    with path.open("w", newline="") as f:
+        w = csv.DictWriter(f, cols, extrasaction="ignore")
+        w.writeheader()
+        for r in load("a") + load("b"):
+            w.writerow(r)
+
+
+def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    s = summarise()
+    if "--check" in argv:
+        f = D / "summary.json"
+        if not f.exists():
+            print("SKIP batch18: no summary.json yet")
+            return 0
+        same = json.loads(f.read_text()) == json.loads(json.dumps(s))
+        print("OK batch18" if same else "FAIL batch18: summary.json differs. Fix: run `make batch18` and commit")
+        return 0 if same else 1
+    (D / "summary.json").write_text(json.dumps(s, indent=1, sort_keys=True) + "\n")
+    (D / "summary.md").write_text(md(s))
+    write_csv(D / "runs.csv")
+    print(f"wrote {D / 'summary.md'} rows a={s['n_rows']['a']} b={s['n_rows']['b']}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

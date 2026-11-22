@@ -224,3 +224,11 @@ analysis:
 	PYTHONPATH=. $(PY) analysis/checks_reached.py
 	PYTHONPATH=. $(PY) analysis/config_replay.py
 	PYTHONPATH=. $(PY) analysis/run_inventory.py
+
+# Batch 18 (inferred allowlist arm, model reviewer on 102 pairs, repeats/batch18/PROTOCOL.md).
+.PHONY: batch18 verify-batch18
+batch18:
+	$(PY) tools/batch18_summary.py
+verify-batch18:
+	$(PY) tools/batch18_summary.py --check
+verify: verify-batch18
