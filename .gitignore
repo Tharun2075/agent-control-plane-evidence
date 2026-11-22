@@ -3,3 +3,6 @@ __pycache__/
 *.tmp
 repeats/batch17/logs/
 repeats/batch17/*/logs/
+.progent-deps/
+.progent-src/
+repeats/batch19/logs/*/*.stderr.log
