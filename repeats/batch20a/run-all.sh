@@ -10,6 +10,7 @@ PY=../bedrock-venv/bin/python
 MODE=main; [ "${1:-}" = "--dry-run" ] && MODE=dry; [ "${1:-}" = "--pilot" ] && MODE=pilot
 MODELS=(openai.gpt-oss-20b-1:0 openai.gpt-oss-120b-1:0 qwen.qwen3-32b-v1:0
         qwen.qwen3-vl-235b-a22b mistral.mistral-large-3-675b-instruct deepseek.v3.2)
+[ -n "${ONLY:-}" ] && MODELS=("$ONLY")  # ONLY=<model>: resume one victim's a2+a3, skip a4
 cap() {  # cap <set> <model>: USD per model and set (bash 3.2 has no associative arrays)
   case "$1:$2" in
     a2:qwen.qwen3-vl-235b-a22b) echo 0.35;; a2:deepseek.v3.2) echo 0.45;; a2:*) echo 0.25;;
@@ -37,12 +38,12 @@ OUT=repeats/batch20a/runs; EXTRA=(--workers 4); D="$L/runs"
 R() { $PY tools/bench_batch20a.py --out-dir "$OUT" "${EXTRA[@]}" "$@"; }
 pids=()
 for m in "${MODELS[@]}"; do
-  f=$D/${m//:/_}.run.out
+  f=$D/${m//:/_}.run.out; [ -n "${ONLY:-}" ] && f=$D/${m//:/_}.resume.run.out
   ( R --model "$m" --set a2 --budget-usd "$(cap a2 "$m")" && R --model "$m" --set a3 --budget-usd "$(cap a3 "$m")" ) >"$f" 2>&1 &
   pids+=($!)
 done
-R --model openai.gpt-oss-20b-1:0 --set a4 --policy-model "$POL4" --budget-usd "$CAP4" >"$D/a4.run.out" 2>&1 &
-pids+=($!)
+[ -z "${ONLY:-}" ] && R --model openai.gpt-oss-20b-1:0 --set a4 --policy-model "$POL4" --budget-usd "$CAP4" >"$D/a4.run.out" 2>&1 &
+[ -z "${ONLY:-}" ] && pids+=($!)
 unset AWS_SECRET_ACCESS_KEY
 st() { echo "--- $(date -u +%FT%TZ) mode=$MODE"; for f in "$D"/*.run.out; do printf '%-48s %s\n' "$(basename "$f")" "$(tail -n1 "$f" 2>/dev/null)"; done; }
 while [ -n "$(jobs -rp)" ]; do sleep 30; st >"$L/status.txt"; done

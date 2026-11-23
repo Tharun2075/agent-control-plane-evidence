@@ -15,8 +15,9 @@ VENDORED_OK = {"data/vectors/wpt-urltestdata-http.json": {"foobar@foodomain.com"
 # the suites' fake users and company domains (a JSON escape such as u202f or n may be glued on),
 # and one benchmark account number printed with spaces. Only under this path; deny-list still applies.
 AGENTDOJO_RUNS = ("repeats/batch10/runs/", "repeats/batch11/runs/", "repeats/batch11b/runs/", "repeats/batch13/runs/", "repeats/batch17/p1/runs/", "repeats/batch17/p2/runs/", "repeats/batch17/p3/runs/",
-                  "repeats/batch18/", "repeats/batch19/runs/", "repeats/batch19/logs/runs/", "repeats/batch19/pilot/", "repeats/batch19/logs/pilot/")
-AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech|our-company|secure-systems-252)\.com)", re.I)
+                  "repeats/batch18/", "repeats/batch19/runs/", "repeats/batch19/logs/runs/", "repeats/batch19/pilot/", "repeats/batch19/logs/pilot/",
+                  "repeats/batch20a/runs/", "repeats/batch20a/logs/", "repeats/batch20a/pilot/")
+AGENTDOJO_EMAIL = re.compile(r"(?:u[0-9a-f]{4}|n)?(?:(?:dora|fred9246)@gmail\.com|dora@gmai\.com|dora@dora-website\.com|[a-z0-9._%+-]+@(?:yourcompany|bluesparrowtech|our-company|secure-systems-252)\.com)", re.I)
 AGENTDOJO_DIGITS = {"3012400231215421872", "3704004405320130", "601613319268"}  # + banking-suite example IBANs DE89.../GB29 NWBK...
 RESERVED_DOMAIN = re.compile(r"@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|[a-z0-9-]+\.(?:test|example|invalid))$", re.I)
 PATTERNS = {

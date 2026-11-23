@@ -1,0 +1,10 @@
+--- 2026-11-23T12:07:43Z mode=main
+a4.run.out                                       DONE openai.gpt-oss-20b-1_0__progent__a4__pol-mistral.mistral-large-3-675b-instruct.jsonl runs=77 spent=$0.888 secs=865
+deepseek.v3.2.resume.run.out                     DONE deepseek.v3.2__progent__a3.jsonl runs=116 spent=$2.372 secs=794
+deepseek.v3.2.run.out                            DONE deepseek.v3.2__progent__a3.jsonl runs=44 spent=$0.668 secs=1290
+mistral.mistral-large-3-675b-instruct.run.out    DONE mistral.mistral-large-3-675b-instruct__progent__a3.jsonl runs=160 spent=$0.962 secs=1950
+openai.gpt-oss-120b-1_0.run.out                  DONE openai.gpt-oss-120b-1_0__progent__a3.jsonl runs=160 spent=$1.102 secs=2823
+openai.gpt-oss-20b-1_0.run.out                   DONE openai.gpt-oss-20b-1_0__progent__a3.jsonl runs=160 spent=$1.148 secs=3069
+qwen.qwen3-32b-v1_0.run.out                      DONE qwen.qwen3-32b-v1_0__progent__a3.jsonl runs=160 spent=$1.122 secs=2814
+qwen.qwen3-vl-235b-a22b.run.out                  DONE qwen.qwen3-vl-235b-a22b__progent__a3.jsonl runs=160 spent=$2.073 secs=2705
+--- done rc=0
